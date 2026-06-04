@@ -127,12 +127,17 @@ defmodule Substrate do
   defp normalize(:grouping, %{code: c} = d), do: %{d | code: Codes.canonicalize(c)}
   defp normalize(:attribute, %{code: c} = d), do: %{d | code: Codes.canonicalize(c)}
   defp normalize(:media, %{target: t} = d), do: %{d | target: Codes.canonicalize(t)}
+
+  defp normalize(:member_of, %{member_code: m, collection: c} = d),
+    do: %{d | member_code: Codes.canonicalize(m), collection: Codes.canonicalize(c)}
+
   defp normalize(_kind, d), do: d
 
   defp slot(%ClaimAsserted{source: s, kind: :identity, data: %{ref: r}}), do: {s, :identity, r}
   defp slot(%ClaimAsserted{source: s, kind: :grouping, data: %{code: c}}), do: {s, :grouping, c}
   defp slot(%ClaimAsserted{source: s, kind: :attribute, data: %{code: c, field: f}}), do: {s, :attr, c, f}
   defp slot(%ClaimAsserted{source: s, kind: :media, data: %{asset: a, target: t}}), do: {s, :media, a, t}
+  defp slot(%ClaimAsserted{source: s, kind: :member_of, data: %{member_code: m, collection: c}}), do: {s, :member_of, m, c}
 
   def current(claims) do
     claims
@@ -396,6 +401,7 @@ defmodule Catalog do
     attrs = Enum.filter(live_claims, &(&1.kind == :attribute))
     groups = Enum.filter(live_claims, &(&1.kind == :grouping))
     media = Enum.filter(live_claims, &(&1.kind == :media))
+    edges = Enum.filter(live_claims, &(&1.kind == :member_of))
 
     members
     |> Enum.map(fn {key, codes} ->
@@ -404,7 +410,8 @@ defmodule Catalog do
         codes: Enum.sort(MapSet.to_list(codes)),
         attributes: resolve_attributes(key, codes, attrs, priority, overrides.attr),
         product: resolve_product(key, codes, groups, priority, overrides.product),
-        media: resolve_media(codes, media, priority)
+        media: resolve_media(codes, media, priority),
+        categories: resolve_categories(codes, edges)
       }
     end)
     |> Enum.group_by(& &1.product.value)
@@ -443,6 +450,16 @@ defmodule Catalog do
       %{asset: asset, role: best.data.role, source: best.source, uri: best.data.uri}
     end)
     |> Enum.sort_by(fn m -> {m.role != :primary, m.asset} end)
+  end
+
+  # Collection membership (e.g. ATC categories) attaches by code too, so it re-homes on a split,
+  # and unions across sources by default. Each edge points the member's code at a collection code.
+  defp resolve_categories(codes, edges) do
+    edges
+    |> Enum.filter(&MapSet.member?(codes, &1.data.member_code))
+    |> Enum.map(& &1.data.collection)
+    |> Enum.uniq()
+    |> Enum.sort()
   end
 
   defp resolve_product_from_claims(codes, groups, priority) do
@@ -516,4 +533,105 @@ defmodule History do
 
     %{attr: attr, product: product}
   end
+end
+
+defmodule Api do
+  @moduledoc """
+  The read layer we sell to customers. Two rules make splits/merges survivable:
+    * customers address by CODE (resolved to the current owner), not by surrogate key, and
+    * every key carries an identity status so a stale key redirects instead of breaking.
+  Plus a change feed (the identity events) so customers can reconcile their local copies.
+  """
+
+  @doc "Identity status of a key, derived from the log: :active | :merged (-> survivor) | :split (-> parts)."
+  def identity_status(log, key) do
+    superseded_by =
+      Enum.find_value(log, fn
+        %Events.IdentitiesMerged{from: from, into: into} -> if key in from and key != into, do: into
+        _ -> nil
+      end)
+
+    split_into =
+      Enum.find_value(log, fn
+        %Events.IdentitySplit{key: ^key, into: into} -> [key | Enum.map(into, &elem(&1, 0))]
+        _ -> nil
+      end)
+
+    cond do
+      superseded_by != nil -> %{status: :merged, superseded_by: superseded_by}
+      split_into != nil -> %{status: :split, split_into: split_into}
+      true -> %{status: :active}
+    end
+  end
+
+  @doc "Resolve any code (canonical OR alias) to the surrogate key that currently owns it."
+  def resolve_key(log, code) do
+    canon = Codes.canonicalize(code)
+    Enum.find_value(ledger(log).members, fn {k, codes} -> if MapSet.member?(codes, canon), do: k end)
+  end
+
+  @doc "Customer lookup by code — the robust access pattern. Returns the current record + identity block."
+  def lookup(log, code, priority) do
+    case resolve_key(log, code) do
+      nil -> {:not_found, Codes.canonicalize(code)}
+      key -> {:ok, get(log, key, priority)}
+    end
+  end
+
+  @doc "Fetch by surrogate key with its identity status (a stale key still answers, with a redirect)."
+  def get(log, key, priority) do
+    variant = log |> History.now(priority) |> Enum.flat_map(& &1.variants) |> Enum.find(&(&1.key == key))
+    %{key: key, identity: identity_status(log, key), variant: variant}
+  end
+
+  @doc "Change feed: identity events after `cursor`, so customers can repair local copies after churn."
+  def changes_since(log, cursor) do
+    Enum.filter(log, fn e -> identity_event?(e) and (e.order || 0) > cursor end)
+  end
+
+  defp identity_event?(%Events.IdentityMinted{}), do: true
+  defp identity_event?(%Events.IdentityMembersChanged{}), do: true
+  defp identity_event?(%Events.IdentitiesMerged{}), do: true
+  defp identity_event?(%Events.IdentitySplit{}), do: true
+  defp identity_event?(_), do: false
+
+  defp ledger(log), do: Enum.reduce(log, IdentityLedger.new(), &IdentityLedger.evolve(&2, &1))
+end
+
+defmodule PublicId do
+  @moduledoc """
+  Identity-grade, customer-facing schemes like CNK. The surrogate key is internal; CNK is the
+  public key — strictly unique, never shared. Two sources giving different CNKs for the same
+  product is fine: they become canonical + alias(es) on one key, with the canonical chosen by
+  priority. The customer resolves by ANY of them.
+  """
+
+  @doc "Canonical public id of `scheme` for `key` (by source priority), plus its aliases."
+  def canonical(scheme, key, log, priority) do
+    codes = ledger(log).members |> Map.get(key, MapSet.new()) |> Enum.filter(fn {s, _} -> s == scheme end)
+
+    case codes do
+      [] ->
+        nil
+
+      _ ->
+        idclaims = identity_claims(log)
+        entries = for code <- codes, src <- sources_of(code, idclaims), do: %{source: src, value: code, order: 0}
+        winner = if entries == [], do: hd(codes), else: Survivorship.decide(scheme, entries, priority).value
+        %{canonical: winner, aliases: List.delete(codes, winner)}
+    end
+  end
+
+  @doc "Identity-grade INVARIANT check: a code of `scheme` must never own >1 key. Returns violations."
+  def collisions(scheme, log) do
+    ledger(log).members
+    |> Enum.flat_map(fn {k, codes} -> for {s, _} = c <- codes, s == scheme, do: {c, k} end)
+    |> Enum.group_by(fn {c, _} -> c end, fn {_, k} -> k end)
+    |> Enum.filter(fn {_c, keys} -> length(Enum.uniq(keys)) > 1 end)
+    |> Enum.map(fn {c, keys} -> %{code: c, keys: Enum.sort(Enum.uniq(keys))} end)
+  end
+
+  defp sources_of(code, idclaims), do: for(c <- idclaims, code in c.data.codes, do: c.source)
+  defp identity_claims(log), do: (for %Events.ClaimAsserted{kind: :identity} = e <- log, do: e) |> Substrate.current()
+  defp ledger(log), do: Enum.reduce(log, IdentityLedger.new(), &IdentityLedger.evolve(&2, &1))
 end

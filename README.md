@@ -17,12 +17,14 @@ event log.
 | `golden_record_core.ex` | The engine (library): contexts, aggregates, events, resolution, projection. No demo. |
 | `golden_record_ddd.exs` | DDD + event-sourced walkthrough — event log, golden as a fold, transaction/valid-time travel, conflict events, steward verdicts. |
 | `golden_record_stress.exs` | Stress tests — multiple products + JSON output (Act 1), code collision → shared (Act 2), 3-way contradictions (Act 3), media re-homing on split (Act 4). |
+| `golden_record_api.exs` | The customer-facing layer — ATC collections, CNK public identity (canonical + aliases), the read API (resolve-by-code, identity status/redirects, change feed). |
 | `golden_record.exs` | The original, pre-DDD procedural version (kept for comparison). |
-| `golden_record_test.exs` | ExUnit suite (22 tests) covering GTIN normalization + every engine behaviour. |
+| `golden_record_test.exs` | ExUnit suite (32 tests) covering GTIN normalization + every engine behaviour. |
 
 ```sh
 elixir golden_record_ddd.exs        # the guided tour
 elixir golden_record_stress.exs     # the hard cases
+elixir golden_record_api.exs        # collections, CNK, the read API
 elixir golden_record_test.exs       # the test suite
 ```
 
@@ -53,6 +55,12 @@ any past point and trace any key's full lineage.
 - **Public identity (CNK)** is *not* the internal key: it's an identity-grade, strictly-unique,
   redirect-on-reassign **alias** of the surrogate key. The API resolves any CNK → surrogate key →
   canonical CNK, so churn underneath stays invisible to customers.
+- **Collections (e.g. ATC)** are nodes-with-codes, and membership/hierarchy are **edge-claims** —
+  so a collection is the projection of its live edges (union, per-member contradiction, full
+  history), and memberships **re-home** through splits/merges exactly like media.
+- **The read API** (`Api`/`PublicId`) exposes `resolve_key`/`lookup` (by code, the robust pattern),
+  `identity_status` (active / merged→survivor / split→parts) for stale-key redirects, `changes_since`
+  (a cursored change feed of identity events), and a CNK uniqueness invariant check.
 
 ### Known limits (by design, not bugs)
 

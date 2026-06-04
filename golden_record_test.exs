@@ -66,6 +66,26 @@ defmodule CodesTest do
       refute Codes.restricted?({:ean, "5012345678900"})
     end
   end
+
+  describe "real-world codes" do
+    test "EAN-13 4057598014359 is valid and zero-fills to indicator-0 (the base unit)" do
+      assert Codes.valid_gtin?({:ean, "4057598014359"})
+      assert Codes.canonicalize({:ean, "4057598014359"}) == {:gtin, "04057598014359"}
+      assert Codes.indicator({:ean, "4057598014359"}) == 0
+    end
+
+    test "GTIN-14 24057598014353 is valid and carries indicator 2 (a packaging level)" do
+      assert Codes.valid_gtin?({:gtin, "24057598014353"})
+      assert Codes.indicator({:gtin, "24057598014353"}) == 2
+    end
+
+    test "the GTIN-14 is NOT the padded EAN-13 — different indicator means a different trade item" do
+      # they share the same item body but sit at different packaging levels, so they must NOT merge
+      refute Codes.same?({:ean, "4057598014359"}, {:gtin, "24057598014353"})
+      # the true 14-digit form of the base unit is indicator 0, not 2:
+      assert Codes.canonicalize({:ean, "4057598014359"}) == {:gtin, "04057598014359"}
+    end
+  end
 end
 
 defmodule EngineTest do
@@ -79,7 +99,8 @@ defmodule EngineTest do
               %{
                 weight_g: [[:manufacturer], [:supplier], [:marketplace]],
                 color: [[:supplier, :manufacturer, :marketplace]],
-                product: [[:manufacturer], [:supplier], [:marketplace]]
+                product: [[:manufacturer], [:supplier], [:marketplace]],
+                cnk: [[:manufacturer], [:supplier]]
               },
               [[:manufacturer], [:supplier], [:marketplace]]
             )
@@ -275,6 +296,118 @@ defmodule EngineTest do
         ])
 
       assert fold(log, IdentityLedger.new()).members == ledger.members
+    end
+  end
+
+  describe "collections (ATC classification)" do
+    test "a variant lists its collections, and membership re-homes on a split" do
+      phase1 = [
+        claim(:supplier, :identity, %{ref: "S", codes: [{:gtin, "0111"}, {:upc, "9111"}]}, @d1, @d1),
+        claim(:who, :member_of, %{member_code: {:gtin, "0111"}, collection: {:atc, "A10"}}, @d1, @d1),
+        claim(:who, :member_of, %{member_code: {:upc, "9111"}, collection: {:atc, "A10BA02"}}, @d1, @d1)
+      ]
+
+      {c1, o} = stamp(phase1, 1)
+      res1 = IdentityLedger.decide(IdentityLedger.new(), {:reconcile, clusters(c1), @d1})
+      {res1, o} = stamp(res1, o)
+      ledger1 = fold(res1, IdentityLedger.new())
+
+      before = History.now(c1 ++ res1, @priority) |> find_variant({:gtin, "0111"})
+      assert before.categories == [{:atc, "A10"}, {:atc, "A10BA02"}]
+
+      phase2 = [
+        claim(:supplier, :identity, %{ref: "S", codes: [{:gtin, "0111"}]}, @d2, @d2),
+        claim(:marketplace, :identity, %{ref: "M", codes: [{:upc, "9111"}]}, @d2, @d2)
+      ]
+
+      {c2, o} = stamp(phase2, o)
+      res2 = IdentityLedger.decide(ledger1, {:reconcile, clusters(c1 ++ c2), @d2})
+      {res2, _} = stamp(res2, o)
+      golden = History.now(c1 ++ res1 ++ c2 ++ res2, @priority)
+
+      assert find_variant(golden, {:gtin, "0111"}).categories == [{:atc, "A10"}]
+      assert find_variant(golden, {:upc, "9111"}).categories == [{:atc, "A10BA02"}]
+    end
+  end
+
+  describe "customer API (resolve by code, redirects, change feed)" do
+    test "lookup by code lands on the current owner and reports an active identity" do
+      {log, _} =
+        resolve([claim(:supplier, :identity, %{ref: "A", codes: [{:gtin, "0111"}]}, @d1, @d1)])
+
+      assert {:ok, %{identity: %{status: :active}, variant: v}} = Api.lookup(log, {:gtin, "0111"}, @priority)
+      assert {:gtin, "0111"} in v.codes
+    end
+
+    test "a merged key redirects to its survivor; the code resolves to the survivor" do
+      {log, ledger} =
+        resolve([
+          claim(:supplier, :identity, %{ref: "A", codes: [{:gtin, "0111"}]}, @d1, @d1),
+          claim(:supplier, :identity, %{ref: "B", codes: [{:gtin, "0222"}]}, @d1, @d1)
+        ])
+
+      merge =
+        ledger.members
+        |> then(&Stewardship.approve_merge(&1, ["SK_1", "SK_2"], :alice, @d2))
+        |> Enum.with_index(length(log) + 1)
+        |> Enum.map(fn {e, i} -> %{e | order: i} end)
+
+      log2 = log ++ merge
+      assert Api.identity_status(log2, "SK_2") == %{status: :merged, superseded_by: "SK_1"}
+      assert Api.resolve_key(log2, {:gtin, "0222"}) == "SK_1"
+    end
+
+    test "the change feed returns identity events after a cursor" do
+      {log, _} =
+        resolve([claim(:supplier, :identity, %{ref: "A", codes: [{:gtin, "0111"}]}, @d1, @d1)])
+
+      changes = Api.changes_since(log, 0)
+      assert Enum.any?(changes, &match?(%Events.IdentityMinted{}, &1))
+      assert Api.changes_since(log, 999) == []
+    end
+  end
+
+  describe "CNK identity-grade (canonical id + aliases)" do
+    test "two sources, two CNKs, same product -> canonical by priority + alias, resolvable by either" do
+      {log, _} =
+        resolve([
+          claim(:manufacturer, :identity, %{ref: "A", codes: [{:cnk, "0111"}, {:gtin, "5001"}]}, @d1, @d1),
+          claim(:supplier, :identity, %{ref: "B", codes: [{:cnk, "0222"}, {:gtin, "5001"}]}, @d1, @d1)
+        ])
+
+      key = Api.resolve_key(log, {:gtin, "5001"})
+      result = PublicId.canonical(:cnk, key, log, @priority)
+      assert result.canonical == {:cnk, "0111"}, "manufacturer outranks supplier for :cnk"
+      assert result.aliases == [{:cnk, "0222"}]
+      # a customer can look up by the alias and still land on the same product
+      assert Api.resolve_key(log, {:cnk, "0222"}) == key
+    end
+
+    test "no identity-grade collision in the normal case" do
+      {log, _} =
+        resolve([claim(:manufacturer, :identity, %{ref: "A", codes: [{:cnk, "0111"}]}, @d1, @d1)])
+
+      assert PublicId.collisions(:cnk, log) == []
+    end
+
+    test "the guard catches a CNK that wrongly ends up on two keys" do
+      claims = [
+        claim(:manufacturer, :identity, %{ref: "A", codes: [{:cnk, "9"}, {:gtin, "A1"}]}, @d1, @d1),
+        claim(:supplier, :identity, %{ref: "B", codes: [{:cnk, "9"}, {:gtin, "B1"}]}, @d1, @d1)
+      ]
+
+      {c, o} = stamp(claims, 1)
+      res1 = IdentityLedger.decide(IdentityLedger.new(), {:reconcile, clusters(c), @d1})
+      {res1, _} = stamp(res1, o)
+      ledger1 = fold(res1, IdentityLedger.new())
+      assert PublicId.collisions(:cnk, c ++ res1) == [], "while merged, the CNK owns one key"
+
+      # marking an identity-grade code shared is forbidden — do it to prove the guard fires
+      shared = Stewardship.shared_codes(Stewardship.mark_shared({:cnk, "9"}, :rogue, @d2))
+      res2 = IdentityLedger.decide(ledger1, {:reconcile, Cluster.variants(Substrate.current(c), shared), shared, @d2})
+
+      assert [%{code: {:cnk, "9"}, keys: keys}] = PublicId.collisions(:cnk, c ++ res1 ++ res2)
+      assert length(keys) == 2
     end
   end
 end
