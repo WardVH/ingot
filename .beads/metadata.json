@@ -1,0 +1,7 @@
+{
+  "database": "dolt",
+  "backend": "dolt",
+  "dolt_mode": "embedded",
+  "dolt_database": "brainstorming_experiments",
+  "project_id": "35458058-7aa5-4d1d-8614-ac105e454f7f"
+}
