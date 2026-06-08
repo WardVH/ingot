@@ -97,15 +97,33 @@ is the events JSON). Keep `gen_422156` reproducible.
 `acl13` and the EANs (the single-entity `:stable` analog of 422156). Plus the existing BE 422156 path
 and unit tests on representative canonicalization (`pzn` → 8, `cip_acl7` → 7, GTIN width folding).
 
-## Out of scope (own bead): over-merge / bridging policy
+## Over-merge guard (gr-ose) — validated design
 
 A from-scratch batch re-derivation clusters on **every** shared identity code with no prior key to gate
-against, so two legacy entities sharing a single reused/reassigned barcode silently fuse into one SK
-(no collision flagged). medipim never auto-merges a shared-code match — it marks it **Ambiguous** and
-flags (`ProductCodeIdentityMatch`, bug MED-11207). French products carry 8+ recycled EANs, so this is
-real. The fix (e.g. flag a cluster that fuses ≥2 distinct legacy entities via a shared barcode, using
-the legacy entity as a tripwire, not a clustering input) is its **own design** — 347025 alone (one
-entity) does not hit it; the cross-entity cases will.
+against, so two distinct legacy entities sharing a single reused/reassigned barcode silently fuse into
+one SK with nothing flagged (`PublicId.collisions` only fires when a code lands on >1 *key*; once they
+merge into one key there is nothing to find). medipim never auto-merges a shared-code match — it marks
+it **Ambiguous** and flags (`ProductCodeIdentityMatch`, bug MED-11207). French products carry 8+
+recycled EANs, so this is real.
+
+**The guard is a refinement of `LegacyXref`'s `:merged` relation — not a change to clustering or the
+engine.** Decisions (validated):
+
+- **Trip condition — barcode-only merges only.** An SK descending from ≥2 legacy entities (already the
+  `:merged` case) is **suspect** only when those entities are connected *solely via a barcode/GS1 code*,
+  not a national identity code. A merge sharing a national code (`:cnk`, `:cip_acl7`, …) stays plain
+  `:merged` — the re-derivation working as intended; national codes are identity-grade.
+- **Behavior — apply and flag (not hold).** The merge is still applied (codes win, per option X — one
+  SK is minted); the guard only tags the relation `{:merged, :suspect}` so the migration diff surfaces
+  it as needs-review. No hold/gate, no `ConflictFlagged` in reconcile.
+- **National-vs-barcode partition (in `CodeRegistry`, the single source).** national/identity-grade =
+  `cnk, cip_acl7, cefip, pzn, pzn_austria, sukl, national_code, cn, pdk, ndc, hri, pin, lppr, fred,
+  zcode`; barcode/GS1 (suspect) = `gtin` (the GTIN family), `acl13`, `cip13`.
+- **Surface.** The `:suspect` flag rides the relation into `resolve_legacy` and the `gr-swc` diff view
+  (needs-review). gr-ose enriches; gr-swc presents.
+
+Scope: `lib/ingest/legacy_xref.ex` + a `CodeRegistry` helper + tests. No engine, no clustering, no
+`ConflictFlagged`-gating. 347025 alone (one entity) does not hit it; the cross-entity cases will.
 
 ## Executable specification (bead D) — written FIRST
 
@@ -142,5 +160,7 @@ un-skips the 347025 fixture scenario, each driving red→green inside its own PR
   greens D's scheme-canonicalization scenarios. Synthetic-test updates. **Depends on D.**
 - **B (gr-lmt) — fixture + gen.** Generalise `gen.exs`, CSV → raw.jsonl, decode 347025, FR
   re-derivation test; un-skips + greens D's 347025 scenario. **Depends on A.**
-- **C (gr-ose) — over-merge / bridging policy.** The deferred design above. **Depends on A**; needed
-  before cross-entity extracts land.
+- **C (gr-ose) — over-merge guard.** The validated design above: refine `LegacyXref`'s `:merged` into
+  `{:merged, :suspect}` for barcode-only cross-entity merges; `CodeRegistry` national-vs-barcode
+  partition; apply-and-flag (no gating). **Depends on A** (and `LegacyXref`/gr-0c2); needed before
+  cross-entity extracts land. Surfaced by `gr-swc` (diff view).
