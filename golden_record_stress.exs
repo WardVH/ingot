@@ -1,14 +1,12 @@
 # golden_record_stress.exs — stress tests on the shared engine (golden_record_core.ex).
 #
-#   Run:  elixir golden_record_stress.exs
+#   Run:  mix run golden_record_stress.exs
 #
 # Answers three questions:
 #   ACT 1 — what is the ACTUAL produced end result?         (the golden catalog, as data + JSON)
 #   ACT 1 — does it work with MULTIPLE products at once?    (3 products, 4 variants, 3 sources)
 #   ACT 2 — two sources claim the SAME id but they are two   (code collision -> steward marks the
 #           different products — what happens?                code SHARED -> clean two-product split)
-
-Code.require_file("golden_record_core.ex", __DIR__)
 
 defmodule Stress do
   import Substrate, only: [claim: 5]
@@ -39,23 +37,47 @@ defmodule Stress do
       claim(:supplier, :attribute, %{code: {:gtin, "0111"}, field: :weight_g, value: 260}, @at, @at),
       claim(:manufacturer, :attribute, %{code: {:gtin, "0111"}, field: :weight_g, value: 255}, @at, @at),
       claim(:supplier, :attribute, %{code: {:gtin, "0111"}, field: :name, value: "Shampoo"}, @at, @at),
-      claim(:marketplace, :attribute, %{code: {:gtin, "0111"}, field: :name, value: "Lavender Shampoo 250ml"}, @at, @at),
+      claim(
+        :marketplace,
+        :attribute,
+        %{code: {:gtin, "0111"}, field: :name, value: "Lavender Shampoo 250ml"},
+        @at,
+        @at
+      ),
       claim(:supplier, :identity, %{ref: "S2", codes: [{:gtin, "0222"}]}, @at, @at),
       claim(:supplier, :grouping, %{code: {:gtin, "0222"}, product: {:mpn, "SH-LAV"}}, @at, @at),
       claim(:supplier, :attribute, %{code: {:gtin, "0222"}, field: :weight_g, value: 520}, @at, @at),
-      claim(:supplier, :attribute, %{code: {:gtin, "0222"}, field: :name, value: "Lavender Shampoo 500ml"}, @at, @at),
+      claim(
+        :supplier,
+        :attribute,
+        %{code: {:gtin, "0222"}, field: :name, value: "Lavender Shampoo 500ml"},
+        @at,
+        @at
+      ),
 
       # Product TB-MINT — one variant, supplier & manufacturer disagree on weight
       claim(:manufacturer, :identity, %{ref: "M2", codes: [{:gtin, "0333"}]}, @at, @at),
       claim(:manufacturer, :grouping, %{code: {:gtin, "0333"}, product: {:mpn, "TB-MINT"}}, @at, @at),
-      claim(:manufacturer, :attribute, %{code: {:gtin, "0333"}, field: :name, value: "Mint Toothbrush"}, @at, @at),
+      claim(
+        :manufacturer,
+        :attribute,
+        %{code: {:gtin, "0333"}, field: :name, value: "Mint Toothbrush"},
+        @at,
+        @at
+      ),
       claim(:manufacturer, :attribute, %{code: {:gtin, "0333"}, field: :weight_g, value: 30}, @at, @at),
       claim(:supplier, :attribute, %{code: {:gtin, "0333"}, field: :weight_g, value: 28}, @at, @at),
 
       # Product SOAP-OAT — one variant
       claim(:supplier, :identity, %{ref: "S3", codes: [{:gtin, "0444"}, {:upc, "0445"}]}, @at, @at),
       claim(:supplier, :grouping, %{code: {:gtin, "0444"}, product: {:mpn, "SOAP-OAT"}}, @at, @at),
-      claim(:marketplace, :attribute, %{code: {:gtin, "0444"}, field: :name, value: "Oat Soap Bar"}, @at, @at),
+      claim(
+        :marketplace,
+        :attribute,
+        %{code: {:gtin, "0444"}, field: :name, value: "Oat Soap Bar"},
+        @at,
+        @at
+      ),
       claim(:supplier, :attribute, %{code: {:gtin, "0444"}, field: :weight_g, value: 100}, @at, @at)
     ]
   end
@@ -101,10 +123,28 @@ defmodule Stress do
     [
       claim(:supplier, :identity, %{ref: "S-100", codes: [{:gtin, "0111"}, {:upc, "9111"}]}, @at1, @at1),
       claim(:supplier, :grouping, %{code: {:gtin, "0111"}, product: {:mpn, "SH-LAV"}}, @at1, @at1),
-      claim(:supplier, :attribute, %{code: {:gtin, "0111"}, field: :name, value: "Lavender Shampoo 250ml"}, @at1, @at1),
+      claim(
+        :supplier,
+        :attribute,
+        %{code: {:gtin, "0111"}, field: :name, value: "Lavender Shampoo 250ml"},
+        @at1,
+        @at1
+      ),
       # the packshot is keyed to upc:9111; the front render to gtin:0111
-      claim(:manufacturer, :media, %{asset: {:dam, "IMG-PACK"}, target: {:upc, "9111"}, role: :primary, uri: "cdn://pack.jpg"}, @at1, @at1),
-      claim(:marketplace, :media, %{asset: {:dam, "IMG-FRONT"}, target: {:gtin, "0111"}, role: :gallery, uri: "cdn://front.jpg"}, @at1, @at1)
+      claim(
+        :manufacturer,
+        :media,
+        %{asset: {:dam, "IMG-PACK"}, target: {:upc, "9111"}, role: :primary, uri: "cdn://pack.jpg"},
+        @at1,
+        @at1
+      ),
+      claim(
+        :marketplace,
+        :media,
+        %{asset: {:dam, "IMG-FRONT"}, target: {:gtin, "0111"}, role: :gallery, uri: "cdn://front.jpg"},
+        @at1,
+        @at1
+      )
     ]
   end
 
@@ -113,7 +153,13 @@ defmodule Stress do
       claim(:supplier, :identity, %{ref: "S-100", codes: [{:gtin, "0111"}]}, @at2, @at2),
       claim(:marketplace, :identity, %{ref: "M-9", codes: [{:upc, "9111"}]}, @at2, @at2),
       claim(:marketplace, :grouping, %{code: {:upc, "9111"}, product: {:mpn, "SH-MINI"}}, @at2, @at2),
-      claim(:marketplace, :attribute, %{code: {:upc, "9111"}, field: :name, value: "Lavender Sample 10ml"}, @at2, @at2)
+      claim(
+        :marketplace,
+        :attribute,
+        %{code: {:upc, "9111"}, field: :name, value: "Lavender Sample 10ml"},
+        @at2,
+        @at2
+      )
     ]
   end
 
@@ -254,7 +300,8 @@ defmodule Stress do
               "product_status" => to_string(v.product.status),
               "attributes" =>
                 Map.new(v.attributes, fn {f, d} ->
-                  {to_string(f), %{"value" => d.value, "source" => to_string(d.winner), "status" => to_string(d.status)}}
+                  {to_string(f),
+                   %{"value" => d.value, "source" => to_string(d.winner), "status" => to_string(d.status)}}
                 end),
               "media" =>
                 Enum.map(v.media, fn m ->
@@ -280,13 +327,16 @@ defmodule Stress do
   defp describe(%Events.IdentityMinted{} = e), do: "MINT    #{e.key}  {#{codes(e.codes)}}"
 
   defp describe(%Events.IdentitySplit{} = e),
-    do: "SPLIT   #{e.key} keeps {#{codes(e.kept_codes)}}, spins off " <>
-          Enum.map_join(e.into, ", ", fn {k, c} -> "#{k}{#{codes(c)}}" end)
+    do:
+      "SPLIT   #{e.key} keeps {#{codes(e.kept_codes)}}, spins off " <>
+        Enum.map_join(e.into, ", ", fn {k, c} -> "#{k}{#{codes(c)}}" end)
 
   defp describe(%Events.IdentityMembersChanged{} = e), do: "MEMBERS #{e.key}  -> {#{codes(e.codes)}}"
 
   defp describe(%Events.ConflictFlagged{subject: {:collision, key}} = e) do
-    prods = e.candidates |> Enum.map(fn %{source: s, product: p} -> "#{s}->#{label(p)}" end) |> Enum.join(", ")
+    prods =
+      e.candidates |> Enum.map(fn %{source: s, product: p} -> "#{s}->#{label(p)}" end) |> Enum.join(", ")
+
     "FLAG    collision on #{key}: grouping points at >1 product (#{prods})"
   end
 
@@ -335,7 +385,10 @@ defmodule Stress do
           IO.puts("        #{pad(field, 9)}= #{pad(val(d.value), 28)} (#{d.winner})#{mark}")
 
           if length(d.candidates) > 1,
-            do: IO.puts("          claims: " <> Enum.map_join(d.candidates, ", ", fn {s, x} -> "#{s}=#{val(x)}" end))
+            do:
+              IO.puts(
+                "          claims: " <> Enum.map_join(d.candidates, ", ", fn {s, x} -> "#{s}=#{val(x)}" end)
+              )
         end)
 
         Enum.each(v.media, fn m ->
@@ -349,7 +402,12 @@ defmodule Stress do
 
   defp print_product_line(%{value: v, winner: w, status: status, candidates: cands}) do
     note = if status == :needs_review, do: "CONTESTED", else: "by steward"
-    extra = if cands == [], do: "", else: " — claims: " <> Enum.map_join(cands, ", ", fn {s, p} -> "#{s}->#{val(p)}" end)
+
+    extra =
+      if cands == [],
+        do: "",
+        else: " — claims: " <> Enum.map_join(cands, ", ", fn {s, p} -> "#{s}->#{val(p)}" end)
+
     IO.puts("        product  = #{pad(val(v), 28)} (#{w})  <-- #{note}#{extra}")
   end
 end

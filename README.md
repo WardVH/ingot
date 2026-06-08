@@ -5,27 +5,35 @@ many codes (EAN/GTIN, CNK, MPN, supplier refs), codes come from **multiple sourc
 contradict each other**, and a **priority list** resolves the conflicts into a clean, unique,
 **event-sourced** golden record.
 
-It is an *explainer*, not a production system: every file runs with plain `elixir`, no mix
-project, no database. The engine is pure data + functions (no GenServers — there's no runtime
-state to manage), and history is first-class because the system of record is an append-only
-event log.
+It is an *explainer*, not a production system: a dependency-free **Mix project** (stdlib only —
+the built-in `JSON` module means no `Jason`). The engine is pure data + functions (no GenServers —
+there's no runtime state to manage), and history is first-class because the system of record is an
+append-only event log.
 
-## Files
+## Layout
 
-| File | What it is |
+A dependency-free Mix project: engine + ingest in `lib/`, suites in `test/`, runnable explainers
+at the repo root.
+
+| Path | What it is |
 |------|------------|
-| `golden_record_core.ex` | The engine (library): contexts, aggregates, events, resolution, projection. No demo. |
-| `golden_record_ddd.exs` | DDD + event-sourced walkthrough — event log, golden as a fold, transaction/valid-time travel, conflict events, steward verdicts. |
-| `golden_record_stress.exs` | Stress tests — multiple products + JSON output (Act 1), code collision → shared (Act 2), 3-way contradictions (Act 3), media re-homing on split (Act 4). |
-| `golden_record_api.exs` | The customer-facing layer — ATC collections, CNK public identity (canonical + aliases), the read API (resolve-by-code, identity status/redirects, change feed). |
-| `golden_record.exs` | The original, pre-DDD procedural version (kept for comparison). |
-| `golden_record_test.exs` | ExUnit suite (32 tests) covering GTIN normalization + every engine behaviour. |
+| `lib/golden_record_core.ex` | The engine (library): contexts, aggregates, events, resolution, projection. |
+| `lib/ingest/envelope_loader.ex` | Legacy-medipim ingest stage 1 — load + validate `HistoryEnvelope` JSON (contract C). |
+| `lib/ingest/claim_mapping.ex` | Ingest stage 2 — fold listings, canonicalize/partition, build engine claims. |
+| `docs/HISTORY_ENVELOPE.md` | The contract-C spec the ingest consumes. |
+| `test/` | ExUnit suites (72 tests). Fixtures — incl. the real entity 422156 — under `test/ingest/fixtures/`. |
+| `golden_record_ddd.exs` | DDD + event-sourced walkthrough — event log, golden as a fold, time travel, conflicts, verdicts. |
+| `golden_record_stress.exs` | Stress tests — multiple products + JSON, code collision → shared, 3-way contradictions, media re-homing. |
+| `golden_record_api.exs` | Customer-facing layer — ATC collections, CNK public identity, the read API. |
+| `golden_record.exs` | The original pre-DDD procedural version (standalone; kept for comparison). |
 
 ```sh
-elixir golden_record_ddd.exs        # the guided tour
-elixir golden_record_stress.exs     # the hard cases
-elixir golden_record_api.exs        # collections, CNK, the read API
-elixir golden_record_test.exs       # the test suite
+mix test                            # the suites (72 tests)
+mix test --cover                    # with coverage
+mix run golden_record_ddd.exs       # the guided tour
+mix run golden_record_stress.exs    # the hard cases
+mix run golden_record_api.exs       # collections, CNK, the read API
+elixir golden_record.exs            # the standalone pre-DDD version
 ```
 
 ## The model in one paragraph

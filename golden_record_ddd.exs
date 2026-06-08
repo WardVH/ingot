@@ -1,11 +1,9 @@
-# golden_record_ddd.exs — DDD + event-sourced demo (engine lives in golden_record_core.ex).
+# golden_record_ddd.exs — DDD + event-sourced demo (engine lives in lib/golden_record_core.ex).
 #
-#   Run:  elixir golden_record_ddd.exs
+#   Run:  mix run golden_record_ddd.exs
 #
 # Shows: an append-only event log as system of record; golden as a fold; transaction-time and
 # valid-time travel; conflict events (attribute tie + a gated identity merge); steward verdicts.
-
-Code.require_file("golden_record_core.ex", __DIR__)
 
 defmodule Demo do
   import Substrate, only: [claim: 5]
@@ -35,7 +33,13 @@ defmodule Demo do
       claim(:supplier, :attribute, %{code: {:gtin, "0111"}, field: :weight_g, value: 260}, @d1, @d1),
       claim(:manufacturer, :attribute, %{code: {:gtin, "0111"}, field: :weight_g, value: 255}, @d1, @d1),
       claim(:supplier, :attribute, %{code: {:gtin, "0111"}, field: :name, value: "Shampoo 250"}, @d1, @d1),
-      claim(:marketplace, :attribute, %{code: {:gtin, "0111"}, field: :name, value: "Brand X Lavender Shampoo 250ml"}, @d1, @d1),
+      claim(
+        :marketplace,
+        :attribute,
+        %{code: {:gtin, "0111"}, field: :name, value: "Brand X Lavender Shampoo 250ml"},
+        @d1,
+        @d1
+      ),
       claim(:supplier, :attribute, %{code: {:gtin, "0222"}, field: :weight_g, value: 520}, @d1, @d1),
       claim(:marketplace, :attribute, %{code: {:gtin, "0222"}, field: :weight_g, value: 525}, @d1, @d1),
       claim(:supplier, :attribute, %{code: {:gtin, "0222"}, field: :name, value: "Shampoo 500"}, @d1, @d1)
@@ -44,11 +48,23 @@ defmodule Demo do
 
   defp run2 do
     [
-      claim(:manufacturer, :attribute, %{code: {:gtin, "0111"}, field: :weight_g, value: 250}, ~D[2026-01-01], @d2),
+      claim(
+        :manufacturer,
+        :attribute,
+        %{code: {:gtin, "0111"}, field: :weight_g, value: 250},
+        ~D[2026-01-01],
+        @d2
+      ),
       claim(:supplier, :identity, %{ref: "S-100", codes: [{:gtin, "0111"}]}, @d2, @d2),
       claim(:marketplace, :identity, %{ref: "M-9", codes: [{:upc, "9111"}]}, @d2, @d2),
       claim(:marketplace, :grouping, %{code: {:upc, "9111"}, product: {:mpn, "SH-MINI"}}, @d2, @d2),
-      claim(:marketplace, :attribute, %{code: {:upc, "9111"}, field: :name, value: "Lavender Sample 10ml"}, @d2, @d2)
+      claim(
+        :marketplace,
+        :attribute,
+        %{code: {:upc, "9111"}, field: :name, value: "Lavender Sample 10ml"},
+        @d2,
+        @d2
+      )
     ]
   end
 
@@ -95,7 +111,10 @@ defmodule Demo do
     Enum.each(History.lineage(log, "SK_1"), &IO.puts("    " <> describe(&1)))
 
     replayed = fold(log, IdentityLedger.new()).members
-    IO.puts("\n    (replay check: #{if replayed == ledger2.members, do: "ok — fold(log) == live ledger", else: "MISMATCH"})")
+
+    IO.puts(
+      "\n    (replay check: #{if replayed == ledger2.members, do: "ok — fold(log) == live ledger", else: "MISMATCH"})"
+    )
   end
 
   defp clusters(claims), do: Cluster.variants(Substrate.current(claims))
@@ -125,7 +144,8 @@ defmodule Demo do
     do: "##{pad(e.order, 3)} #{clock(e)}  CLAIM   #{pad(s, 12)} group    #{pad(code(c), 10)}-> #{code(p)}"
 
   defp describe(%Events.ClaimAsserted{kind: :attribute, source: s, data: %{code: c, field: f, value: v}} = e),
-    do: "##{pad(e.order, 3)} #{clock(e)}  CLAIM   #{pad(s, 12)} attr     #{pad(code(c), 10)}.  #{pad(f, 8)}= #{val(v)}"
+    do:
+      "##{pad(e.order, 3)} #{clock(e)}  CLAIM   #{pad(s, 12)} attr     #{pad(code(c), 10)}.  #{pad(f, 8)}= #{val(v)}"
 
   defp describe(%Events.IdentityMinted{} = e),
     do: "##{pad(e.order, 3)} #{clock(e)}  MINT    #{e.key}  {#{codes(e.codes)}}"
@@ -137,20 +157,23 @@ defmodule Demo do
     do: "##{pad(e.order, 3)} #{clock(e)}  MERGE   #{Enum.join(e.from, " + ")} -> #{e.into}"
 
   defp describe(%Events.IdentitySplit{} = e),
-    do: "##{pad(e.order, 3)} #{clock(e)}  SPLIT   #{e.key} keeps {#{codes(e.kept_codes)}}, spins off " <>
-          Enum.map_join(e.into, ", ", fn {k, c} -> "#{k}{#{codes(c)}}" end)
+    do:
+      "##{pad(e.order, 3)} #{clock(e)}  SPLIT   #{e.key} keeps {#{codes(e.kept_codes)}}, spins off " <>
+        Enum.map_join(e.into, ", ", fn {k, c} -> "#{k}{#{codes(c)}}" end)
 
   defp describe(%Events.ConflictFlagged{subject: {:attr, key, dim}} = e),
     do: "##{pad(e.order, 3)} #{clock(e)}  FLAG    #{key}.#{dim} undecidable: #{pairs(e.candidates)}"
 
   defp describe(%Events.ConflictFlagged{subject: {:merge, keys}} = e),
-    do: "##{pad(e.order, 3)} #{clock(e)}  FLAG    merge? #{Enum.join(keys, " + ")} bridged by {#{codes(e.candidates)}} — HELD for review"
+    do:
+      "##{pad(e.order, 3)} #{clock(e)}  FLAG    merge? #{Enum.join(keys, " + ")} bridged by {#{codes(e.candidates)}} — HELD for review"
 
   defp describe(%Events.ConflictResolved{subject: {:attr, key, dim}, decision: {:pick, v}, by: by} = e),
     do: "##{pad(e.order, 3)} #{clock(e)}  RESOLVE #{key}.#{dim} := #{val(v)} (by #{by})"
 
   defp describe(%Events.ConflictResolved{subject: {:merge, keys}, decision: d, by: by} = e),
-    do: "##{pad(e.order, 3)} #{clock(e)}  RESOLVE merge #{Enum.join(keys, " + ")} #{String.upcase(to_string(d))} (by #{by})"
+    do:
+      "##{pad(e.order, 3)} #{clock(e)}  RESOLVE merge #{Enum.join(keys, " + ")} #{String.upcase(to_string(d))} (by #{by})"
 
   defp print_queue(queue) do
     Enum.each(queue, fn {flag, verdict} ->
@@ -203,7 +226,9 @@ defmodule Demo do
       IO.puts("    as-known #{k}  :   #{cells}")
     end)
 
-    IO.puts("\n    (rows = what we KNEW by that date · cols = what was TRUE on that date · '—' = unknown/not-yet-effective)")
+    IO.puts(
+      "\n    (rows = what we KNEW by that date · cols = what was TRUE on that date · '—' = unknown/not-yet-effective)"
+    )
   end
 
   defp grid_cell(log, as_known, effective_on) do
@@ -211,11 +236,14 @@ defmodule Demo do
     |> Enum.flat_map(& &1.variants)
     |> Enum.find(fn v -> {:gtin, "0111"} in v.codes end)
     |> case do
-      nil -> "—"
-      v -> case List.keyfind(v.attributes, :weight_g, 0) do
-             {_, d} -> val(d.value)
-             nil -> "—"
-           end
+      nil ->
+        "—"
+
+      v ->
+        case List.keyfind(v.attributes, :weight_g, 0) do
+          {_, d} -> val(d.value)
+          nil -> "—"
+        end
     end
   end
 end

@@ -6,13 +6,13 @@
 # (`medipim_be_422156.raw.jsonl`, a faithful dump) and emits the decoded-but-
 # unresolved `HistoryEnvelope` (`medipim_be_422156.json`) per contract C.
 #
-# This script applies medipim's decode rules (documented in ../HISTORY_ENVELOPE.md,
+# This script applies medipim's decode rules (documented in docs/HISTORY_ENVELOPE.md,
 # reverse-engineered from medipimv2's ProductDeltaApplier / Event / GtinCodeHelper /
 # ProductMetaFieldBuilder). It is NOT the production decoder: the real system-of-record
 # ingest consumes envelopes emitted by medipim's own PHP endpoint (bead gr-867), which
 # reuses medipim's battle-tested code. This generator exists only to bootstrap a committed
 # fixture from a one-time dump — and its output is precisely the contract that endpoint must
-# reproduce. Regenerate:  elixir ingest/fixtures/gen_422156.exs
+# reproduce. Regenerate:  elixir test/ingest/fixtures/gen_422156.exs
 #
 # Decode rules applied here (validated against the real 422156 data):
 #   - opcode 1=set 2=add 3=remove 4=delete; the string opcode "update_sources" is dropped
@@ -33,7 +33,7 @@ defmodule Gen422156 do
   @raw Path.join(@here, "medipim_be_422156.raw.jsonl")
   @out Path.join(@here, "medipim_be_422156.json")
 
-  @legacy_entity 422156
+  @legacy_entity 422_156
   @source_system "medipim-be"
   @schema_version "1"
 
@@ -167,6 +167,7 @@ defmodule Gen422156 do
 
   defp strip_gtin_prefix(field, code) do
     prefix = field <> "_"
+
     if field in @gtin_prefixed and String.starts_with?(code, prefix),
       do: String.replace_prefix(code, prefix, ""),
       else: code
