@@ -127,6 +127,11 @@ defmodule EnvelopeLoaderTest do
                HE.from_map(env_with(%{"op" => "add", "kind" => "edge", "value" => 1}))
     end
 
+    test "media event missing asset" do
+      assert {:error, {:event, 0, {:missing_keys, ["asset"]}}} =
+               HE.from_map(env_with(%{"op" => "add", "kind" => "media", "collection" => "media"}))
+    end
+
     test "non-object envelope" do
       assert {:error, :not_an_object} = HE.from_map("nope")
     end

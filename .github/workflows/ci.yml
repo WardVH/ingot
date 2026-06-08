@@ -2,24 +2,34 @@ name: CI
 
 on: [push, pull_request]
 
+# Least privilege: the suites only read the checked-out tree.
+permissions:
+  contents: read
+
 concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
   test:
-    name: Elixir tests (no mix project)
+    name: Elixir tests (${{ matrix.elixir }})
     runs-on: ubuntu-latest
+    # Run inside the official Elixir image — the tag pins Elixir+OTP and is the *same*
+    # image you can run locally, e.g.:
+    #   docker run --rm -v "$PWD":/app -w /app elixir:1.18-otp-27 elixir golden_record_test.exs
+    container: elixir:${{ matrix.elixir }}
+    strategy:
+      fail-fast: false
+      matrix:
+        elixir:
+          - "1.18-otp-27" # supported floor — built-in JSON module landed in Elixir 1.18
+          - "1.19-otp-28" # matches local dev
     steps:
       - uses: actions/checkout@v4
-
-      - name: Set up Elixir/OTP
-        uses: erlef/setup-beam@v1
         with:
-          otp-version: "27"
-          elixir-version: "1.18"
+          persist-credentials: false
 
-      # Plain .exs scripts — each requires its target, starts ExUnit, and autoruns.
+      # Plain .exs ExUnit scripts: each requires its target, starts ExUnit, and autoruns.
       # A failing suite exits non-zero, so these steps gate the build.
       - name: Engine suite
         run: elixir golden_record_test.exs

@@ -182,7 +182,9 @@ defmodule HistoryEnvelope do
   end
 
   defp payload(:media, _op, m) do
-    require_keys(m, ["collection"], fn -> %{collection: m["collection"], asset: m["asset"]} end)
+    require_keys(m, ["collection", "asset"], fn ->
+      %{collection: m["collection"], asset: m["asset"]}
+    end)
   end
 
   defp require_keys(m, keys, build) do
