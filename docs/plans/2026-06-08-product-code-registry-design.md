@@ -102,10 +102,12 @@ real. The fix (e.g. flag a cluster that fuses ≥2 distinct legacy entities via 
 the legacy entity as a tripwire, not a clustering input) is its **own design** — 347025 alone (one
 entity) does not hit it; the cross-entity cases will.
 
-## Executable specification (bead D)
+## Executable specification (bead D) — written FIRST
 
-A **BDD-style walkthrough test** that doubles as living documentation of the ubiquitous language —
-read top-to-bottom it teaches the model before showing the legacy as one application:
+**This is authored before A and B — it is the outside-in acceptance spec that pulls them into
+existence (red → green).** A **BDD-style walkthrough test** that doubles as living documentation of
+the ubiquitous language — read top-to-bottom it teaches the model before showing the legacy as one
+application:
 
 - **Part 1 — `product` and `variant`, from first principles (no legacy).** Build claims directly via
   the engine (`Substrate.claim` → `Cluster.variants` → `IdentityLedger` → `Catalog.project`), with
@@ -121,14 +123,19 @@ read top-to-bottom it teaches the model before showing the legacy as one applica
 
 Emphasis is readability (descriptive `describe`/`test` names + narrative comments), not coverage.
 
-## Build order (beads)
+**Red→green convention.** Part 1 and the BE 422156 example are green against today's `main` (engine +
+ingest already exist). The French multi-scheme scenarios are written now but `@tag :skip`-ped with
+`RED TARGET:` markers, so `main` CI stays green; A un-skips the scheme-canonicalisation scenarios and B
+un-skips the 347025 fixture scenario, each driving red→green inside its own PR.
 
-- **A — registry + engine canonicalisation.** The registry module, `Codes` pad map + GTIN-family
-  confirmation, `ClaimMapping` driven by the registry, `primary/1` generalised. Synthetic-test updates.
+## Build order (beads) — spec-first
+
+- **D (gr-ccf) — BDD walkthrough / executable spec. Written FIRST**, the red→green driver (above).
+  Ready now (engine + ingest already exist); no blockers.
+- **A (gr-6k4) — registry + engine canonicalisation.** The registry module, `Codes` pad map +
+  GTIN-family confirmation, `ClaimMapping` driven by the registry, `primary/1` generalised. Un-skips +
+  greens D's scheme-canonicalisation scenarios. Synthetic-test updates. **Depends on D.**
 - **B (gr-lmt) — fixture + gen.** Generalise `gen.exs`, CSV → raw.jsonl, decode 347025, FR
-  re-derivation test. **Depends on A.**
-- **C — over-merge / bridging policy.** The deferred design above. Depends on A; needed before
-  cross-entity extracts land.
-- **D — BDD walkthrough / executable spec.** Product & variant from first principles, then the legacy
-  as one input (above). **Depends on B** (so the multi-source model and the 347025 legacy example are
-  both in place); the Part-1 concepts could be drafted against the engine earlier if useful.
+  re-derivation test; un-skips + greens D's 347025 scenario. **Depends on A.**
+- **C (gr-ose) — over-merge / bridging policy.** The deferred design above. **Depends on A**; needed
+  before cross-entity extracts land.
