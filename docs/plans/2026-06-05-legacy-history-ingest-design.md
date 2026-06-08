@@ -53,6 +53,14 @@ products_deltas                       │
 - **Build PoC-first.** Prove the loop in Elixir against a fixture of the real entity `422156`
   history before writing any PHP. The fixture *is* the contract the endpoint will later emit.
 
+- **Decode stays in medipim — reading MySQL directly was considered and rejected (2026-06-08).**
+  A direct Elixir MySQL adapter over `products_deltas` would skip the PHP endpoint, but it means
+  re-implementing medipim's decode (`ProductDeltaApplier`/meta: opcode/key grammar,
+  `eanGtin13_`/`eanGtin14_` value-prefix stripping, field→scheme/kind, touch-only dropping) from
+  scratch in a second language — a correctness risk on the exact quirk-handling that contract C
+  exists to isolate. We keep the decode in medipim (it reuses its own battle-tested code) and
+  consume `HistoryEnvelope` over the endpoint. The PoC still runs on the hand-translated fixture.
+
 ## The `HistoryEnvelope` (contract C)
 
 One envelope = one legacy entity. The ingest accepts a **list** of envelopes and clusters across
