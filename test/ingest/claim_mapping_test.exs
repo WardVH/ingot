@@ -87,6 +87,27 @@ defmodule ClaimMappingTest do
       env = envelope(1, [id("A", "set", "mysteryScheme", "XYZ", 10)])
       assert ClaimMapping.listings([env]) == %{{1, "A"} => MapSet.new([{"mysteryScheme", "XYZ"}])}
     end
+
+    # gr-6k4: a French listing's medipim fields map to their engine scheme atoms via CodeRegistry
+    # (cipOrAcl7 -> :cip_acl7, acl13 -> :acl13). The whole GTIN family still folds to :gtin.
+    test "French national fields map to their own engine schemes (cip_acl7, acl13)" do
+      env =
+        envelope(1, [id("A", "set", "cipOrAcl7", "4440813", 10), id("A", "set", "acl13", "3401344408137", 20)])
+
+      assert ClaimMapping.listings([env]) ==
+               %{{1, "A"} => MapSet.new([{:cip_acl7, "4440813"}, {:acl13, "3401344408137"}])}
+    end
+
+    test "the whole GTIN family still folds to :gtin (eanGtin12 + upc12 + usaGtinCode)" do
+      env =
+        envelope(1, [
+          id("A", "set", "eanGtin12", "036000291452", 10),
+          id("A", "add", "upc12", "036000291452", 20),
+          id("A", "add", "usaGtinCode", "036000291452", 30)
+        ])
+
+      assert ClaimMapping.listings([env]) == %{{1, "A"} => MapSet.new([{:gtin, "00036000291452"}])}
+    end
   end
 
   # ── partition / shared ──────────────────────────────────────────────────────

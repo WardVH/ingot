@@ -56,10 +56,38 @@ defmodule Codes do
   """
   @gtin_schemes [:gtin, :ean, :upc]
 
+  # National short codes that medipim zero-pads to a fixed width. canonicalize left-pads an
+  # all-digit value to the scheme's width so a query for "44813" matches a stored "0044813".
+  # Real medipim data is already full-width, so padding is a no-op there.
+  #
+  # :cnk is DELIBERATELY EXCLUDED — real medipim cnk is always 7 digits (padding would be a no-op),
+  # and ~10 existing tests use short fake cnk values ({:cnk,"0111"}/"0222"/"9"/"100"/"111"/"222"/
+  # "555") that padding to 7 would silently break. (The design doc listed cnk:7; this exclusion is
+  # a refinement after pre-dispatch verification.) Trim-only schemes (acl13, cip13, ndc, pdk, …)
+  # are not listed — the default clause below trims them and that is all they need.
+  @pad %{
+    cip_acl7: 7,
+    pzn: 8,
+    pzn_austria: 7,
+    sukl: 7,
+    cefip: 7,
+    national_code: 7,
+    cn: 6
+  }
+
   @doc "Canonical (scheme, value) for matching. GTIN family -> {:gtin, 14-digit zero-filled}."
   def canonicalize({scheme, value}) when scheme in @gtin_schemes do
     v = String.trim(value)
     if gtinish?(v), do: {:gtin, String.pad_leading(v, 14, "0")}, else: {scheme, v}
+  end
+
+  def canonicalize({scheme, value}) when is_map_key(@pad, scheme) do
+    v = String.trim(value)
+    width = Map.fetch!(@pad, scheme)
+
+    if all_digits?(v) and String.length(v) < width,
+      do: {scheme, String.pad_leading(v, width, "0")},
+      else: {scheme, v}
   end
 
   def canonicalize({scheme, value}), do: {scheme, String.trim(value)}
@@ -99,6 +127,8 @@ defmodule Codes do
   end
 
   defp gtinish?(v), do: v =~ ~r/^\d+$/ and String.length(v) in [8, 12, 13, 14]
+
+  defp all_digits?(v), do: v != "" and v =~ ~r/^\d+$/
 
   defp check_digit(payload) do
     sum =
