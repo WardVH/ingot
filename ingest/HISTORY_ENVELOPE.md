@@ -125,7 +125,7 @@ its own GTIN-14 canonicalization downstream (not here).
 > `source` on the per-source events — downstream claim mapping may ignore it. `legacyId` is
 > medipim's *own* previous-system id, not a product code, so it is dropped (not identity-grade).
 > The authoritative field→kind mapping used to generate the 422156 fixture lives in
-> `fixtures/gen_422156.py`.
+> `fixtures/gen_422156.exs`.
 
 ### identity payload
 `scheme` (cnk \| ean \| gtin \| eanGtin8 \| eanGtin12 \| eanGtin13 \| eanGtin14) + `code` (stripped).

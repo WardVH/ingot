@@ -8,13 +8,13 @@ wash gel), used as the PoC fixture for the ingest pipeline. It is **real data**,
 | file | what |
 |------|------|
 | `medipim_be_422156.raw.jsonl` | **Ground truth.** 1676 real `products_deltas` rows, one JSON object per line, time-ordered, undecoded. Exactly as stored in medipim (`[opcode, key, value]` event triples). No decode decisions baked in. |
-| `gen_422156.py` | The decoder/**oracle** that applies contract-C decode rules to the raw dump and emits the envelope. One-off fixture tooling — **not** the runtime ingest (see below). |
-| `medipim_be_422156.json` | The decoded-but-unresolved **`HistoryEnvelope`** (contract C). Generated from the raw dump by `gen_422156.py`. This is what the ingest pipeline consumes and what medipim's future PHP endpoint (bead gr-867) must reproduce. |
+| `gen_422156.exs` | The decoder/**oracle** that applies contract-C decode rules to the raw dump and emits the envelope. One-off fixture tooling — **not** the runtime ingest (see below). |
+| `medipim_be_422156.json` | The decoded-but-unresolved **`HistoryEnvelope`** (contract C). Generated from the raw dump by `gen_422156.exs`. This is what the ingest pipeline consumes and what medipim's future PHP endpoint (bead gr-867) must reproduce. |
 
 Regenerate the envelope after editing decode rules:
 
 ```bash
-python3 ingest/fixtures/gen_422156.py
+elixir ingest/fixtures/gen_422156.exs
 ```
 
 ### Provenance
@@ -23,11 +23,11 @@ Exported 2026-06-08 from a production dump (`medipim_db_08-06-2026...csv`) loade
 `medipim2-mysql` Docker container (`medipim_test.products_deltas`, FK checks off — only the deltas
 were needed). The raw JSONL is a faithful re-export of those 1676 rows as utf8mb4.
 
-### Why a Python oracle and not the Elixir loader
+### Why a one-off oracle and not the production loader
 
 Contract C keeps medipim's decode (`ProductDeltaApplier`/meta) on medipim's side of the wall; the
 production system-of-record ingest consumes envelopes emitted by medipim's own PHP endpoint
-(gr-867), reusing battle-tested code. `gen_422156.py` exists **only** to bootstrap this committed
+(gr-867), reusing battle-tested code. `gen_422156.exs` exists **only** to bootstrap this committed
 fixture from a one-time dump. Its output *is* the contract the endpoint must match — so when gr-867
 is built, diff its emitted envelope for 422156 against `medipim_be_422156.json` to validate.
 
@@ -47,7 +47,7 @@ fold sees one clean cluster ("legacy was right"); the temporal pass recovers *wh
 in. The history also exercises the GTIN scheme migration (`ean`→`eanGtin13`→`eanGtin14`), an op-4
 delete, and 2026 set-null cleanups.
 
-### Classification decisions (see `gen_422156.py` for the authoritative map)
+### Classification decisions (see `gen_422156.exs` for the authoritative map)
 
 - `legacyId` (medipim's own previous-system id) → dropped as meta; it is not a product code.
 - `organizations` → `edge` (structural; derivable from per-source events, may be ignored downstream).
