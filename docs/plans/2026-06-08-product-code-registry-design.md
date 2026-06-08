@@ -47,13 +47,13 @@ stripped at decode; (2) the only field-name ≠ canonical-code mismatch is `cipO
   `:entity_id` is the envelope's legacy entity, not a code claim.
   - *Whether external refs (cbId/ospId/…) should bridge* is deliberately **out of scope** here — it is
     the over-merge/bridging-policy question (own bead). Default for now: they do not bridge.
-- **Canonicalisation lives in the engine `Codes`** (the single canonical-form function used on both the
+- **Canonicalization lives in the engine `Codes`** (the single canonical-form function used on both the
   ingest path and the query path — `Substrate`, `Cluster`, `Api`, `PublicId`). Putting national-code
   padding only in the ingest would let a query (`cnk "34567"`) miss a stored padded value
   (`"0034567"`). Real medipim data is full-width, so padding is a no-op there; the only cost is updating
   a few **synthetic** tests that use short fake codes.
 - **GTIN family folds via the registry mapping.** Every GTIN-width field maps to the engine atom
-  `:gtin`; `Codes` already canonicalises `:gtin` to GTIN-14. No per-width engine logic needed.
+  `:gtin`; `Codes` already canonicalizes `:gtin` to GTIN-14. No per-width engine logic needed.
 - **The fixture oracle generalises, it is not a production decoder.** `gen.exs` stays a one-off
   bootstrap (the PHP endpoint, gr-867, remains the eventual production path). It gains an
   `(entity_id, source_system, raw_path)` signature, a registry-driven identity set, and a generic
@@ -62,6 +62,7 @@ stripped at decode; (2) the only field-name ≠ canonical-code mismatch is `cipO
 ## Design
 
 ### 1. Code registry (`lib/ingest/`)
+
 A table keyed by medipim field name, e.g. `%{ "cnk" => {:cnk, :identity, {:pad, 7}}, "cipOrAcl7" =>
 {:cip_acl7, :identity, {:pad, 7}}, "acl13" => {:acl13, :identity, :trim}, "eanGtin13" => {:gtin,
 :identity, :gtin}, "cbId" => {:cb_id, :external_ref, :trim}, … }`. Unknown fields fall back to a
@@ -69,28 +70,32 @@ conservative `:attribute`/`:trim` default. Exposes helpers: `scheme(field)`, `cl
 `identity_field?(field)`, and the set of identity field names (for the gen oracle).
 
 ### 2. Engine `Codes`
+
 - Keep GTIN-family folding (`@gtin_schemes`, GTIN-14).
 - Add a **pad map** for national short codes: `%{cnk: 7, cip_acl7: 7, pzn: 8, pznAustria: 7, sukl: 7,
   cefip: 7, national_code: 7, cn: 6}` → `canonicalize({scheme, v})` left-pads all-digit values to the
   scheme's width. Trim-only schemes (acl13, cip13, ndc, pdk, …) use the existing pass-through.
 
 ### 3. `ClaimMapping`
+
 Replace `@identity_scheme` with registry lookups. Identity-class fields → identity claims (GTIN family
 collapses to `:gtin`); external-ref/attribute fields → attribute claims. Generalise `primary/1`: prefer
 a national short code (`:cnk` ▸ `:cip_acl7` ▸ other national) ▸ canonical GTIN ▸ `:acl13`/`:cip13` ▸
 lowest code.
 
 ### 4. gen oracle → `gen.exs`
+
 Parameterise `(entity_id, source_system, raw_path, out_path)`; identity set from the registry; strip a
 leading `{field}_` prefix for **any** field whose value carries it; add a CSV reader
 (`french_results.csv` → `medipim_fr_347025.raw.jsonl`: split first-2 + last-3 comma fields, the middle
 is the events JSON). Keep `gen_422156` reproducible.
 
 ### 5. Fixture + tests
+
 `medipim_fr_347025.json` (`source_system: "medipim-fr"`, `legacy_entity: 347025`). Re-derivation test:
 347025's listings cluster into **one** product / one SK whose codes include canonical `cip_acl7`,
 `acl13` and the EANs (the single-entity `:stable` analog of 422156). Plus the existing BE 422156 path
-and unit tests on representative canonicalisation (`pzn` → 8, `cip_acl7` → 7, GTIN width folding).
+and unit tests on representative canonicalization (`pzn` → 8, `cip_acl7` → 7, GTIN width folding).
 
 ## Out of scope (own bead): over-merge / bridging policy
 
@@ -125,16 +130,16 @@ Emphasis is readability (descriptive `describe`/`test` names + narrative comment
 
 **Red→green convention.** Part 1 and the BE 422156 example are green against today's `main` (engine +
 ingest already exist). The French multi-scheme scenarios are written now but `@tag :skip`-ped with
-`RED TARGET:` markers, so `main` CI stays green; A un-skips the scheme-canonicalisation scenarios and B
+`RED TARGET:` markers, so `main` CI stays green; A un-skips the scheme-canonicalization scenarios and B
 un-skips the 347025 fixture scenario, each driving red→green inside its own PR.
 
 ## Build order (beads) — spec-first
 
 - **D (gr-ccf) — BDD walkthrough / executable spec. Written FIRST**, the red→green driver (above).
   Ready now (engine + ingest already exist); no blockers.
-- **A (gr-6k4) — registry + engine canonicalisation.** The registry module, `Codes` pad map +
+- **A (gr-6k4) — registry + engine canonicalization.** The registry module, `Codes` pad map +
   GTIN-family confirmation, `ClaimMapping` driven by the registry, `primary/1` generalised. Un-skips +
-  greens D's scheme-canonicalisation scenarios. Synthetic-test updates. **Depends on D.**
+  greens D's scheme-canonicalization scenarios. Synthetic-test updates. **Depends on D.**
 - **B (gr-lmt) — fixture + gen.** Generalise `gen.exs`, CSV → raw.jsonl, decode 347025, FR
   re-derivation test; un-skips + greens D's 347025 scenario. **Depends on A.**
 - **C (gr-ose) — over-merge / bridging policy.** The deferred design above. **Depends on A**; needed
