@@ -1,0 +1,8539 @@
+{
+  "schema_version": "1",
+  "source_system": "medipim-be",
+  "legacy_entity": 422156,
+  "last_touched_at": 1778976623,
+  "dropped_meta_count": 819,
+  "events": [
+    {
+      "recorded_at": 1535726805,
+      "by": 2,
+      "tag": "import_871",
+      "op": "set",
+      "kind": "identity",
+      "source": "1034",
+      "scheme": "cnk",
+      "code": "3612173"
+    },
+    {
+      "recorded_at": 1535726805,
+      "by": 2,
+      "tag": "import_871",
+      "op": "set",
+      "kind": "attribute",
+      "source": "1034",
+      "field": "status",
+      "value": "active"
+    },
+    {
+      "recorded_at": 1535726805,
+      "by": 2,
+      "tag": "import_871",
+      "op": "set",
+      "kind": "attribute",
+      "source": "1034",
+      "field": "apbCategory",
+      "value": "cosmetics"
+    },
+    {
+      "recorded_at": 1535726805,
+      "by": 2,
+      "tag": "import_871",
+      "op": "set",
+      "kind": "attribute",
+      "field": "prescription",
+      "value": false
+    },
+    {
+      "recorded_at": 1535726805,
+      "by": 2,
+      "tag": "import_871",
+      "op": "set",
+      "kind": "attribute",
+      "source": "1034",
+      "field": "publicPrice",
+      "value": 1450
+    },
+    {
+      "recorded_at": 1535726805,
+      "by": 2,
+      "tag": "import_871",
+      "op": "set",
+      "kind": "attribute",
+      "source": "1034",
+      "field": "tax",
+      "value": 2100
+    },
+    {
+      "recorded_at": 1535726805,
+      "by": 2,
+      "tag": "import_871",
+      "op": "set",
+      "kind": "attribute",
+      "source": "1034",
+      "field": "name",
+      "locale": "fr",
+      "value": "Aderma Primalba Gel Lavant 2en1 750ml"
+    },
+    {
+      "recorded_at": 1535726805,
+      "by": 2,
+      "tag": "import_871",
+      "op": "set",
+      "kind": "attribute",
+      "source": "1034",
+      "field": "name",
+      "locale": "nl",
+      "value": "Aderma Primalba Wasgel 2in1 750ml"
+    },
+    {
+      "recorded_at": 1535726805,
+      "by": 2,
+      "tag": "import_871",
+      "op": "add",
+      "kind": "edge",
+      "collection": "organizations",
+      "value": 44
+    },
+    {
+      "recorded_at": 1536088674,
+      "by": 11,
+      "tag": "import_872",
+      "op": "add",
+      "kind": "edge",
+      "collection": "organizations",
+      "value": 1035
+    },
+    {
+      "recorded_at": 1536088674,
+      "by": 11,
+      "tag": "import_872",
+      "op": "set",
+      "kind": "identity",
+      "source": "1035",
+      "scheme": "cnk",
+      "code": "3612173"
+    },
+    {
+      "recorded_at": 1536088674,
+      "by": 11,
+      "tag": "import_872",
+      "op": "set",
+      "kind": "attribute",
+      "source": "1035",
+      "field": "name",
+      "locale": "nl",
+      "value": "ADERMA PRIMALBA WASGEL 2IN1 750 ML"
+    },
+    {
+      "recorded_at": 1536088674,
+      "by": 11,
+      "tag": "import_872",
+      "op": "set",
+      "kind": "attribute",
+      "source": "1035",
+      "field": "name",
+      "locale": "fr",
+      "value": "ADERMA PRIMALBA GEL LAVANT 2EN1 750 ML"
+    },
+    {
+      "recorded_at": 1536088674,
+      "by": 11,
+      "tag": "import_872",
+      "op": "set",
+      "kind": "attribute",
+      "source": "1035",
+      "field": "tax",
+      "value": 2100
+    },
+    {
+      "recorded_at": 1536088674,
+      "by": 11,
+      "tag": "import_872",
+      "op": "set",
+      "kind": "attribute",
+      "source": "1035",
+      "field": "pharmacistPrice",
+      "value": 827
+    },
+    {
+      "recorded_at": 1536088674,
+      "by": 11,
+      "tag": "import_872",
+      "op": "set",
+      "kind": "attribute",
+      "source": "1035",
+      "field": "publicPrice",
+      "value": 1450
+    },
+    {
+      "recorded_at": 1536088674,
+      "by": 11,
+      "tag": "import_872",
+      "op": "set",
+      "kind": "attribute",
+      "source": "1035",
+      "field": "expires",
+      "value": true
+    },
+    {
+      "recorded_at": 1536088674,
+      "by": 11,
+      "tag": "import_872",
+      "op": "set",
+      "kind": "attribute",
+      "source": "1035",
+      "field": "tradeInRefundValue",
+      "value": 0
+    },
+    {
+      "recorded_at": 1536088674,
+      "by": 11,
+      "tag": "import_872",
+      "op": "set",
+      "kind": "attribute",
+      "source": "1035",
+      "field": "limitedExport",
+      "value": false
+    },
+    {
+      "recorded_at": 1536765705,
+      "by": 134,
+      "tag": "product_update",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 158717
+    },
+    {
+      "recorded_at": 1536765707,
+      "by": 134,
+      "tag": "product_update",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 158719
+    },
+    {
+      "recorded_at": 1536911789,
+      "by": 2,
+      "tag": "import_881",
+      "op": "add",
+      "kind": "attribute",
+      "source": "1034",
+      "field": "allowedSpecies",
+      "value": "human"
+    },
+    {
+      "recorded_at": 1537171222,
+      "by": 11,
+      "tag": "product_update",
+      "op": "add",
+      "kind": "edge",
+      "collection": "publicCategories",
+      "value": 531
+    },
+    {
+      "recorded_at": 1537171222,
+      "by": 11,
+      "tag": "product_update",
+      "op": "add",
+      "kind": "edge",
+      "collection": "brands",
+      "value": 9
+    },
+    {
+      "recorded_at": 1542628648,
+      "by": 2,
+      "tag": "import_929",
+      "op": "add",
+      "kind": "identity",
+      "source": "44",
+      "scheme": "ean",
+      "code": "3282770049374"
+    },
+    {
+      "recorded_at": 1542628648,
+      "by": 2,
+      "tag": "import_929",
+      "op": "set",
+      "kind": "attribute",
+      "source": "44",
+      "field": "packageQuantity",
+      "value": "750 ml"
+    },
+    {
+      "recorded_at": 1542628776,
+      "by": 2,
+      "tag": "import_930",
+      "op": "add",
+      "kind": "media",
+      "collection": "descriptions",
+      "asset": 401512
+    },
+    {
+      "recorded_at": 1542628826,
+      "by": 2,
+      "tag": "import_931",
+      "op": "add",
+      "kind": "media",
+      "collection": "descriptions",
+      "asset": 401617
+    },
+    {
+      "recorded_at": 1542628859,
+      "by": 2,
+      "tag": "import_932",
+      "op": "add",
+      "kind": "media",
+      "collection": "descriptions",
+      "asset": 401722
+    },
+    {
+      "recorded_at": 1542628888,
+      "by": 2,
+      "tag": "import_933",
+      "op": "add",
+      "kind": "media",
+      "collection": "descriptions",
+      "asset": 401827
+    },
+    {
+      "recorded_at": 1547142400,
+      "by": 2,
+      "tag": "import_968",
+      "op": "set",
+      "kind": "attribute",
+      "source": "1034",
+      "field": "conservation",
+      "value": "room"
+    },
+    {
+      "recorded_at": 1554122658,
+      "by": 2,
+      "tag": "import_1013",
+      "op": "set",
+      "kind": "attribute",
+      "source": "1035",
+      "field": "status",
+      "value": "active"
+    },
+    {
+      "recorded_at": 1556094006,
+      "by": 2,
+      "tag": "import_1025",
+      "op": "set",
+      "kind": "attribute",
+      "source": "1035",
+      "field": "length",
+      "value": 243
+    },
+    {
+      "recorded_at": 1556094006,
+      "by": 2,
+      "tag": "import_1025",
+      "op": "set",
+      "kind": "attribute",
+      "source": "1035",
+      "field": "width",
+      "value": 111
+    },
+    {
+      "recorded_at": 1556094006,
+      "by": 2,
+      "tag": "import_1025",
+      "op": "set",
+      "kind": "attribute",
+      "source": "1035",
+      "field": "depth",
+      "value": 60
+    },
+    {
+      "recorded_at": 1556105651,
+      "by": 2,
+      "tag": "import_1026",
+      "op": "set",
+      "kind": "attribute",
+      "source": "1035",
+      "field": "weight",
+      "value": 859
+    },
+    {
+      "recorded_at": 1572592701,
+      "by": 2,
+      "tag": "import_1204",
+      "op": "add",
+      "kind": "identity",
+      "source": "1035",
+      "scheme": "ean",
+      "code": "3282770114577"
+    },
+    {
+      "recorded_at": 1590992801,
+      "by": 11,
+      "tag": "product_update",
+      "op": "add",
+      "kind": "media",
+      "collection": "descriptions",
+      "asset": 424053
+    },
+    {
+      "recorded_at": 1590992827,
+      "by": 11,
+      "tag": "product_update",
+      "op": "add",
+      "kind": "media",
+      "collection": "descriptions",
+      "asset": 424054
+    },
+    {
+      "recorded_at": 1590992835,
+      "by": 11,
+      "tag": "product_update",
+      "op": "add",
+      "kind": "media",
+      "collection": "descriptions",
+      "asset": 424055
+    },
+    {
+      "recorded_at": 1598540467,
+      "by": 2,
+      "tag": "import_1494",
+      "op": "set",
+      "kind": "attribute",
+      "source": "1034",
+      "field": "publicPrice",
+      "value": null
+    },
+    {
+      "recorded_at": 1620751930,
+      "by": 2,
+      "tag": "import_1909",
+      "op": "add",
+      "kind": "edge",
+      "collection": "labos",
+      "value": 1663
+    },
+    {
+      "recorded_at": 1620751930,
+      "by": 2,
+      "tag": "import_1909",
+      "op": "add",
+      "kind": "edge",
+      "collection": "labos",
+      "value": 549
+    },
+    {
+      "recorded_at": 1635635500,
+      "by": 3954,
+      "tag": "product_update",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 207672
+    },
+    {
+      "recorded_at": 1635635507,
+      "by": 3954,
+      "tag": "product_update",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 207676
+    },
+    {
+      "recorded_at": 1641374321,
+      "by": 3611,
+      "tag": "import_2278",
+      "op": "set",
+      "kind": "attribute",
+      "source": "1035",
+      "field": "status",
+      "value": "inactive"
+    },
+    {
+      "recorded_at": 1650014224,
+      "by": 4081,
+      "tag": "import_2468",
+      "op": "set",
+      "kind": "attribute",
+      "source": "44",
+      "field": "hsCode",
+      "value": "340130"
+    },
+    {
+      "recorded_at": 1664537218,
+      "by": 3611,
+      "tag": "import_2960",
+      "op": "set",
+      "kind": "attribute",
+      "source": "1035",
+      "field": "tax",
+      "value": 2100
+    },
+    {
+      "recorded_at": 1664537218,
+      "by": 3611,
+      "tag": "import_2960",
+      "op": "set",
+      "kind": "attribute",
+      "source": "1035",
+      "field": "pharmacistPrice",
+      "value": 906
+    },
+    {
+      "recorded_at": 1664537218,
+      "by": 3611,
+      "tag": "import_2960",
+      "op": "set",
+      "kind": "attribute",
+      "source": "1035",
+      "field": "publicPrice",
+      "value": 1590
+    },
+    {
+      "recorded_at": 1664783051,
+      "by": 3611,
+      "tag": "import_2961",
+      "op": "set",
+      "kind": "attribute",
+      "source": "1035",
+      "field": "tax",
+      "value": 2100
+    },
+    {
+      "recorded_at": 1672735518,
+      "by": 4269,
+      "tag": "import_3261",
+      "op": "set",
+      "kind": "attribute",
+      "source": "1035",
+      "field": "tax",
+      "value": 2100
+    },
+    {
+      "recorded_at": 1672735518,
+      "by": 4269,
+      "tag": "import_3261",
+      "op": "set",
+      "kind": "attribute",
+      "source": "1035",
+      "field": "pharmacistPrice",
+      "value": 941
+    },
+    {
+      "recorded_at": 1672735518,
+      "by": 4269,
+      "tag": "import_3261",
+      "op": "set",
+      "kind": "attribute",
+      "source": "1035",
+      "field": "publicPrice",
+      "value": 1650
+    },
+    {
+      "recorded_at": 1672737639,
+      "by": 4269,
+      "tag": "import_3262",
+      "op": "set",
+      "kind": "attribute",
+      "source": "1035",
+      "field": "tax",
+      "value": 2100
+    },
+    {
+      "recorded_at": 1692888552,
+      "by": 4573,
+      "tag": "product_update",
+      "op": "set",
+      "kind": "attribute",
+      "source": "44",
+      "field": "weight",
+      "value": 780
+    },
+    {
+      "recorded_at": 1692888552,
+      "by": 4573,
+      "tag": "product_update",
+      "op": "set",
+      "kind": "attribute",
+      "source": "44",
+      "field": "width",
+      "value": 110
+    },
+    {
+      "recorded_at": 1692888552,
+      "by": 4573,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "identity",
+      "source": "44",
+      "scheme": "ean",
+      "code": "3282770049374"
+    },
+    {
+      "recorded_at": 1692888552,
+      "by": 4573,
+      "tag": "product_update",
+      "op": "add",
+      "kind": "identity",
+      "source": "44",
+      "scheme": "ean",
+      "code": "3282770146004"
+    },
+    {
+      "recorded_at": 1692888553,
+      "by": 4573,
+      "tag": "product_update",
+      "op": "set",
+      "kind": "attribute",
+      "source": "44",
+      "field": "seoName",
+      "locale": "nl",
+      "value": "A-DERMA - PRIMALBA 2-IN-1 BABY WASGEL VOOR LICHAAM EN HAAR - PRIMALBA"
+    },
+    {
+      "recorded_at": 1692888553,
+      "by": 4573,
+      "tag": "product_update",
+      "op": "add",
+      "kind": "media",
+      "collection": "descriptions",
+      "asset": 543782
+    },
+    {
+      "recorded_at": 1692888559,
+      "by": 4573,
+      "tag": "product_update",
+      "op": "set",
+      "kind": "attribute",
+      "source": "44",
+      "field": "seoName",
+      "locale": "fr",
+      "value": "A-DERMA - PRIMALBA GEL LAVANT 2 EN 1 BEBE CORPS ET CHEVEUX - PRIMALBA"
+    },
+    {
+      "recorded_at": 1692888559,
+      "by": 4573,
+      "tag": "product_update",
+      "op": "add",
+      "kind": "media",
+      "collection": "descriptions",
+      "asset": 543816
+    },
+    {
+      "recorded_at": 1692888559,
+      "by": 4573,
+      "tag": "product_update",
+      "op": "add",
+      "kind": "media",
+      "collection": "descriptions",
+      "asset": 543817
+    },
+    {
+      "recorded_at": 1692888559,
+      "by": 4573,
+      "tag": "product_update",
+      "op": "add",
+      "kind": "media",
+      "collection": "descriptions",
+      "asset": 543818
+    },
+    {
+      "recorded_at": 1692888559,
+      "by": 4573,
+      "tag": "product_update",
+      "op": "add",
+      "kind": "media",
+      "collection": "descriptions",
+      "asset": 543819
+    },
+    {
+      "recorded_at": 1692890470,
+      "by": 4573,
+      "tag": "product_update",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 280595
+    },
+    {
+      "recorded_at": 1692890471,
+      "by": 4573,
+      "tag": "product_update",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 280596
+    },
+    {
+      "recorded_at": 1692890504,
+      "by": 4573,
+      "tag": "product_update",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 280632
+    },
+    {
+      "recorded_at": 1692890505,
+      "by": 4573,
+      "tag": "product_update",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 280633
+    },
+    {
+      "recorded_at": 1692890506,
+      "by": 4573,
+      "tag": "product_update",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 280634
+    },
+    {
+      "recorded_at": 1693315183,
+      "by": 4081,
+      "tag": "import_4318",
+      "op": "remove",
+      "kind": "media",
+      "collection": "descriptions",
+      "asset": 424055
+    },
+    {
+      "recorded_at": 1693315183,
+      "by": 4081,
+      "tag": "import_4318",
+      "op": "remove",
+      "kind": "media",
+      "collection": "descriptions",
+      "asset": 424053
+    },
+    {
+      "recorded_at": 1693315183,
+      "by": 4081,
+      "tag": "import_4318",
+      "op": "remove",
+      "kind": "media",
+      "collection": "descriptions",
+      "asset": 424054
+    },
+    {
+      "recorded_at": 1694221626,
+      "by": 4573,
+      "tag": "product_update",
+      "op": "set",
+      "kind": "attribute",
+      "source": "44",
+      "field": "length",
+      "value": 243
+    },
+    {
+      "recorded_at": 1694221626,
+      "by": 4573,
+      "tag": "product_update",
+      "op": "set",
+      "kind": "attribute",
+      "source": "44",
+      "field": "depth",
+      "value": 60
+    },
+    {
+      "recorded_at": 1700050388,
+      "by": 4081,
+      "tag": "import_4653",
+      "op": "add",
+      "kind": "identity",
+      "source": "1035",
+      "scheme": "ean",
+      "code": "3282770146004"
+    },
+    {
+      "recorded_at": 1702990760,
+      "by": 4081,
+      "tag": "import_4778",
+      "op": "add",
+      "kind": "identity",
+      "source": "1034",
+      "scheme": "ean",
+      "code": "3282770146004"
+    },
+    {
+      "recorded_at": 1705572053,
+      "by": 2839,
+      "tag": "product_update_ean_gtin_migration_2024_01_18",
+      "op": "set",
+      "kind": "identity",
+      "source": "44",
+      "scheme": "eanGtin13",
+      "code": "3282770146004"
+    },
+    {
+      "recorded_at": 1705572053,
+      "by": 2839,
+      "tag": "product_update_ean_gtin_migration_2024_01_18",
+      "op": "set",
+      "kind": "identity",
+      "source": "1034",
+      "scheme": "eanGtin13",
+      "code": "3282770146004"
+    },
+    {
+      "recorded_at": 1706722540,
+      "by": 4081,
+      "tag": "import_4968",
+      "op": "delete",
+      "kind": "identity",
+      "source": "1034",
+      "scheme": "eanGtin13"
+    },
+    {
+      "recorded_at": 1706729197,
+      "by": 4081,
+      "tag": "import_4969",
+      "op": "set",
+      "kind": "identity",
+      "source": "1034",
+      "scheme": "eanGtin13",
+      "code": "3282770146004"
+    },
+    {
+      "recorded_at": 1708077539,
+      "by": 4573,
+      "tag": "product_update",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 302932
+    },
+    {
+      "recorded_at": 1708077540,
+      "by": 4573,
+      "tag": "product_update",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 302933
+    },
+    {
+      "recorded_at": 1708077542,
+      "by": 4573,
+      "tag": "product_update",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 302934
+    },
+    {
+      "recorded_at": 1708077543,
+      "by": 4573,
+      "tag": "product_update",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 302935
+    },
+    {
+      "recorded_at": 1708080804,
+      "by": 4573,
+      "tag": "product_update",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 304811
+    },
+    {
+      "recorded_at": 1708080805,
+      "by": 4573,
+      "tag": "product_update",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 304812
+    },
+    {
+      "recorded_at": 1708080807,
+      "by": 4573,
+      "tag": "product_update",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 304813
+    },
+    {
+      "recorded_at": 1708080808,
+      "by": 4573,
+      "tag": "product_update",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 304814
+    },
+    {
+      "recorded_at": 1708132153,
+      "by": 4573,
+      "tag": "product_update",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 306168
+    },
+    {
+      "recorded_at": 1708132956,
+      "by": 4573,
+      "tag": "product_update",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 306350
+    },
+    {
+      "recorded_at": 1709024653,
+      "by": 4573,
+      "tag": "product_update",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 307469
+    },
+    {
+      "recorded_at": 1709024859,
+      "by": 4573,
+      "tag": "product_update",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 307536
+    },
+    {
+      "recorded_at": 1709024983,
+      "by": 4573,
+      "tag": "product_update",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 307606
+    },
+    {
+      "recorded_at": 1709025075,
+      "by": 4573,
+      "tag": "product_update",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 307672
+    },
+    {
+      "recorded_at": 1709025202,
+      "by": 4573,
+      "tag": "product_update",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 307740
+    },
+    {
+      "recorded_at": 1709025292,
+      "by": 4573,
+      "tag": "product_update",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 307806
+    },
+    {
+      "recorded_at": 1709025412,
+      "by": 4573,
+      "tag": "product_update",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 307874
+    },
+    {
+      "recorded_at": 1709025506,
+      "by": 4573,
+      "tag": "product_update",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 307940
+    },
+    {
+      "recorded_at": 1709025623,
+      "by": 4573,
+      "tag": "product_update",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 308008
+    },
+    {
+      "recorded_at": 1709025715,
+      "by": 4573,
+      "tag": "product_update",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 308074
+    },
+    {
+      "recorded_at": 1709082572,
+      "by": 4573,
+      "tag": "product_update",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 308393
+    },
+    {
+      "recorded_at": 1709083274,
+      "by": 4573,
+      "tag": "product_update",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 308552
+    },
+    {
+      "recorded_at": 1710378301,
+      "by": 4573,
+      "tag": "product_update",
+      "op": "set",
+      "kind": "identity",
+      "source": "44",
+      "scheme": "cnk",
+      "code": "3612173"
+    },
+    {
+      "recorded_at": 1710406014,
+      "by": 4081,
+      "tag": "import_5151",
+      "op": "delete",
+      "kind": "attribute",
+      "source": "1035",
+      "field": "status"
+    },
+    {
+      "recorded_at": 1712692859,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 280595
+    },
+    {
+      "recorded_at": 1712779257,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 280596
+    },
+    {
+      "recorded_at": 1712779258,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 280634
+    },
+    {
+      "recorded_at": 1712779303,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 302932
+    },
+    {
+      "recorded_at": 1712779303,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 302935
+    },
+    {
+      "recorded_at": 1712779389,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 306168
+    },
+    {
+      "recorded_at": 1712779407,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 307469
+    },
+    {
+      "recorded_at": 1712779415,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 307536
+    },
+    {
+      "recorded_at": 1712779423,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 307606
+    },
+    {
+      "recorded_at": 1712779430,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 307672
+    },
+    {
+      "recorded_at": 1712779440,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 307740
+    },
+    {
+      "recorded_at": 1712779450,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 307806
+    },
+    {
+      "recorded_at": 1712779458,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 307874
+    },
+    {
+      "recorded_at": 1712779467,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 307940
+    },
+    {
+      "recorded_at": 1712779474,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 308008
+    },
+    {
+      "recorded_at": 1712779481,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 308074
+    },
+    {
+      "recorded_at": 1712779493,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 308393
+    },
+    {
+      "recorded_at": 1715198433,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 302933
+    },
+    {
+      "recorded_at": 1715198433,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 302934
+    },
+    {
+      "recorded_at": 1715198510,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 304812
+    },
+    {
+      "recorded_at": 1715198510,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 304813
+    },
+    {
+      "recorded_at": 1715198510,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 304814
+    },
+    {
+      "recorded_at": 1715198601,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 306350
+    },
+    {
+      "recorded_at": 1716967791,
+      "by": 4081,
+      "tag": "import_5511",
+      "op": "set",
+      "kind": "identity",
+      "source": "1034",
+      "scheme": "eanGtin13",
+      "code": "3282770146004"
+    },
+    {
+      "recorded_at": 1718608082,
+      "by": 4081,
+      "tag": "import_5580",
+      "op": "set",
+      "kind": "identity",
+      "source": "1034",
+      "scheme": "eanGtin13",
+      "code": "3282770146004"
+    },
+    {
+      "recorded_at": 1719321304,
+      "by": 4573,
+      "tag": "product_update",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 344369
+    },
+    {
+      "recorded_at": 1719321305,
+      "by": 4573,
+      "tag": "product_update",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 344370
+    },
+    {
+      "recorded_at": 1719321305,
+      "by": 4573,
+      "tag": "product_update",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 344371
+    },
+    {
+      "recorded_at": 1724751575,
+      "by": 4081,
+      "tag": "import_5880",
+      "op": "set",
+      "kind": "attribute",
+      "source": "1035",
+      "field": "status",
+      "value": "inactive"
+    },
+    {
+      "recorded_at": 1724979881,
+      "by": 4573,
+      "tag": "product_update",
+      "op": "set",
+      "kind": "attribute",
+      "source": "44",
+      "field": "seoName",
+      "locale": "fr",
+      "value": "A-DERMA - PRIMALBA GEL LAVANT 2 EN 1 BEBE CORPS ET CHEVEUX - Peaux fragiles du bébé "
+    },
+    {
+      "recorded_at": 1724980029,
+      "by": 4573,
+      "tag": "product_update",
+      "op": "set",
+      "kind": "attribute",
+      "source": "44",
+      "field": "seoName",
+      "locale": "nl",
+      "value": "A-DERMA - PRIMALBA 2-IN-1 BABY WASGEL VOOR LICHAAM EN HAAR -  Kwetsbare babyhuid "
+    },
+    {
+      "recorded_at": 1732842293,
+      "by": 4573,
+      "tag": "product_update",
+      "op": "set",
+      "kind": "attribute",
+      "source": "44",
+      "field": "seoName",
+      "locale": "fr",
+      "value": "A-DERMA - PRIMALBA GEL LAVANT 2 EN 1 BEBE CORPS ET CHEVEUX - Peaux fragiles du bébé"
+    },
+    {
+      "recorded_at": 1732842515,
+      "by": 4573,
+      "tag": "product_update",
+      "op": "set",
+      "kind": "attribute",
+      "source": "44",
+      "field": "seoName",
+      "locale": "nl",
+      "value": "A-DERMA - PRIMALBA 2-IN-1 BABY WASGEL VOOR LICHAAM EN HAAR -  Kwetsbare babyhuid"
+    },
+    {
+      "recorded_at": 1734360539,
+      "by": 4081,
+      "tag": "import_6313",
+      "op": "set",
+      "kind": "identity",
+      "source": "1034",
+      "scheme": "eanGtin14",
+      "code": "03282770146004"
+    },
+    {
+      "recorded_at": 1734599091,
+      "by": 4573,
+      "tag": "product_update",
+      "op": "add",
+      "kind": "identity",
+      "source": "44",
+      "scheme": "gtin",
+      "code": "03282770146004"
+    },
+    {
+      "recorded_at": 1734599091,
+      "by": 4573,
+      "tag": "product_update",
+      "op": "set",
+      "kind": "identity",
+      "source": "44",
+      "scheme": "eanGtin14",
+      "code": "03282770146004"
+    },
+    {
+      "recorded_at": 1735002859,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 375492
+    },
+    {
+      "recorded_at": 1735002860,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 375493
+    },
+    {
+      "recorded_at": 1735002862,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 375494
+    },
+    {
+      "recorded_at": 1735004555,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 376968
+    },
+    {
+      "recorded_at": 1735004556,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 376969
+    },
+    {
+      "recorded_at": 1735004556,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 376970
+    },
+    {
+      "recorded_at": 1736539233,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 280632
+    },
+    {
+      "recorded_at": 1736539234,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 280633
+    },
+    {
+      "recorded_at": 1736539260,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 304811
+    },
+    {
+      "recorded_at": 1736539273,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 308552
+    },
+    {
+      "recorded_at": 1736539328,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 344369
+    },
+    {
+      "recorded_at": 1736539329,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 344370
+    },
+    {
+      "recorded_at": 1736539329,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 344371
+    },
+    {
+      "recorded_at": 1737078154,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 384654
+    },
+    {
+      "recorded_at": 1737078155,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 384655
+    },
+    {
+      "recorded_at": 1737078155,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 384656
+    },
+    {
+      "recorded_at": 1737078156,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 384657
+    },
+    {
+      "recorded_at": 1737078157,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 384658
+    },
+    {
+      "recorded_at": 1737078158,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 384659
+    },
+    {
+      "recorded_at": 1737080259,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 386350
+    },
+    {
+      "recorded_at": 1737080260,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 386351
+    },
+    {
+      "recorded_at": 1737080261,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 386352
+    },
+    {
+      "recorded_at": 1737080261,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 386353
+    },
+    {
+      "recorded_at": 1737080262,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 386354
+    },
+    {
+      "recorded_at": 1737422593,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 387083
+    },
+    {
+      "recorded_at": 1737681657,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 388494
+    },
+    {
+      "recorded_at": 1737682451,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 388574
+    },
+    {
+      "recorded_at": 1739497450,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 394615
+    },
+    {
+      "recorded_at": 1739497451,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 394616
+    },
+    {
+      "recorded_at": 1739497451,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 394617
+    },
+    {
+      "recorded_at": 1739497452,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 394618
+    },
+    {
+      "recorded_at": 1739497453,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 394619
+    },
+    {
+      "recorded_at": 1739584201,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 396457
+    },
+    {
+      "recorded_at": 1739584201,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 396458
+    },
+    {
+      "recorded_at": 1739584202,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 396459
+    },
+    {
+      "recorded_at": 1739584203,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 396460
+    },
+    {
+      "recorded_at": 1739584204,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 396461
+    },
+    {
+      "recorded_at": 1739929606,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 399267
+    },
+    {
+      "recorded_at": 1739929607,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 399268
+    },
+    {
+      "recorded_at": 1739929607,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 399269
+    },
+    {
+      "recorded_at": 1739929608,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 399270
+    },
+    {
+      "recorded_at": 1739929609,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 399271
+    },
+    {
+      "recorded_at": 1739929610,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 399272
+    },
+    {
+      "recorded_at": 1739929611,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 399273
+    },
+    {
+      "recorded_at": 1739929611,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 399274
+    },
+    {
+      "recorded_at": 1739929612,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 399275
+    },
+    {
+      "recorded_at": 1739932780,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 402757
+    },
+    {
+      "recorded_at": 1739932781,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 402758
+    },
+    {
+      "recorded_at": 1739932782,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 402759
+    },
+    {
+      "recorded_at": 1739932783,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 402760
+    },
+    {
+      "recorded_at": 1739932783,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 402761
+    },
+    {
+      "recorded_at": 1739932784,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 402762
+    },
+    {
+      "recorded_at": 1739932785,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 402763
+    },
+    {
+      "recorded_at": 1739932786,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 402764
+    },
+    {
+      "recorded_at": 1740103024,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 407001
+    },
+    {
+      "recorded_at": 1740103025,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 407002
+    },
+    {
+      "recorded_at": 1740103026,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 407003
+    },
+    {
+      "recorded_at": 1740103027,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 407004
+    },
+    {
+      "recorded_at": 1740103028,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 407005
+    },
+    {
+      "recorded_at": 1740103029,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 407006
+    },
+    {
+      "recorded_at": 1740103030,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 407007
+    },
+    {
+      "recorded_at": 1740103031,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 407008
+    },
+    {
+      "recorded_at": 1740103032,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 407009
+    },
+    {
+      "recorded_at": 1740106696,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 410533
+    },
+    {
+      "recorded_at": 1740106697,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 410534
+    },
+    {
+      "recorded_at": 1740106698,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 410535
+    },
+    {
+      "recorded_at": 1740106699,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 410536
+    },
+    {
+      "recorded_at": 1740106699,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 410537
+    },
+    {
+      "recorded_at": 1740106701,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 410538
+    },
+    {
+      "recorded_at": 1740106701,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 410539
+    },
+    {
+      "recorded_at": 1740106702,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 410540
+    },
+    {
+      "recorded_at": 1740276133,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 414740
+    },
+    {
+      "recorded_at": 1740276134,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 414741
+    },
+    {
+      "recorded_at": 1740276135,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 414742
+    },
+    {
+      "recorded_at": 1740276136,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 414743
+    },
+    {
+      "recorded_at": 1740276137,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 414744
+    },
+    {
+      "recorded_at": 1740276138,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 414745
+    },
+    {
+      "recorded_at": 1740276139,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 414746
+    },
+    {
+      "recorded_at": 1740276140,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 414747
+    },
+    {
+      "recorded_at": 1740276141,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 414748
+    },
+    {
+      "recorded_at": 1740280147,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 418275
+    },
+    {
+      "recorded_at": 1740280148,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 418276
+    },
+    {
+      "recorded_at": 1740280149,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 418277
+    },
+    {
+      "recorded_at": 1740280150,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 418278
+    },
+    {
+      "recorded_at": 1740280151,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 418279
+    },
+    {
+      "recorded_at": 1740280152,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 418280
+    },
+    {
+      "recorded_at": 1740280153,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 418281
+    },
+    {
+      "recorded_at": 1740280154,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 418282
+    },
+    {
+      "recorded_at": 1740449630,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 422173
+    },
+    {
+      "recorded_at": 1740449631,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 422174
+    },
+    {
+      "recorded_at": 1740449632,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 422175
+    },
+    {
+      "recorded_at": 1740449633,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 422176
+    },
+    {
+      "recorded_at": 1740449634,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 422177
+    },
+    {
+      "recorded_at": 1740449635,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 422178
+    },
+    {
+      "recorded_at": 1740449636,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 422179
+    },
+    {
+      "recorded_at": 1740449637,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 422180
+    },
+    {
+      "recorded_at": 1740449638,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 422181
+    },
+    {
+      "recorded_at": 1740453830,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 425742
+    },
+    {
+      "recorded_at": 1740453831,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 425743
+    },
+    {
+      "recorded_at": 1740453832,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 425744
+    },
+    {
+      "recorded_at": 1740453833,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 425745
+    },
+    {
+      "recorded_at": 1740453834,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 425746
+    },
+    {
+      "recorded_at": 1740453835,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 425747
+    },
+    {
+      "recorded_at": 1740453836,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 425748
+    },
+    {
+      "recorded_at": 1740453837,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 425749
+    },
+    {
+      "recorded_at": 1740621242,
+      "by": 4573,
+      "tag": "product_update",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 430000
+    },
+    {
+      "recorded_at": 1740621244,
+      "by": 4573,
+      "tag": "product_update",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 430001
+    },
+    {
+      "recorded_at": 1740621245,
+      "by": 4573,
+      "tag": "product_update",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 430002
+    },
+    {
+      "recorded_at": 1740621247,
+      "by": 4573,
+      "tag": "product_update",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 430003
+    },
+    {
+      "recorded_at": 1740621248,
+      "by": 4573,
+      "tag": "product_update",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 430004
+    },
+    {
+      "recorded_at": 1740621249,
+      "by": 4573,
+      "tag": "product_update",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 430005
+    },
+    {
+      "recorded_at": 1740621250,
+      "by": 4573,
+      "tag": "product_update",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 430006
+    },
+    {
+      "recorded_at": 1740621251,
+      "by": 4573,
+      "tag": "product_update",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 430007
+    },
+    {
+      "recorded_at": 1740621253,
+      "by": 4573,
+      "tag": "product_update",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 430008
+    },
+    {
+      "recorded_at": 1740626368,
+      "by": 4573,
+      "tag": "product_update",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 432808
+    },
+    {
+      "recorded_at": 1740626370,
+      "by": 4573,
+      "tag": "product_update",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 432809
+    },
+    {
+      "recorded_at": 1740626371,
+      "by": 4573,
+      "tag": "product_update",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 432810
+    },
+    {
+      "recorded_at": 1740648770,
+      "by": 4573,
+      "tag": "product_update",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 434965
+    },
+    {
+      "recorded_at": 1740648772,
+      "by": 4573,
+      "tag": "product_update",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 434966
+    },
+    {
+      "recorded_at": 1740648774,
+      "by": 4573,
+      "tag": "product_update",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 434967
+    },
+    {
+      "recorded_at": 1740707835,
+      "by": 4573,
+      "tag": "product_update",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 438613
+    },
+    {
+      "recorded_at": 1740707836,
+      "by": 4573,
+      "tag": "product_update",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 438614
+    },
+    {
+      "recorded_at": 1740707837,
+      "by": 4573,
+      "tag": "product_update",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 438615
+    },
+    {
+      "recorded_at": 1740707839,
+      "by": 4573,
+      "tag": "product_update",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 438616
+    },
+    {
+      "recorded_at": 1740707840,
+      "by": 4573,
+      "tag": "product_update",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 438617
+    },
+    {
+      "recorded_at": 1740707841,
+      "by": 4573,
+      "tag": "product_update",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 438618
+    },
+    {
+      "recorded_at": 1740707842,
+      "by": 4573,
+      "tag": "product_update",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 438619
+    },
+    {
+      "recorded_at": 1740707843,
+      "by": 4573,
+      "tag": "product_update",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 438620
+    },
+    {
+      "recorded_at": 1740707844,
+      "by": 4573,
+      "tag": "product_update",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 438621
+    },
+    {
+      "recorded_at": 1740714190,
+      "by": 4573,
+      "tag": "product_update",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 441265
+    },
+    {
+      "recorded_at": 1740714191,
+      "by": 4573,
+      "tag": "product_update",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 441266
+    },
+    {
+      "recorded_at": 1740714193,
+      "by": 4573,
+      "tag": "product_update",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 441267
+    },
+    {
+      "recorded_at": 1740794387,
+      "by": 4573,
+      "tag": "product_update",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 443813
+    },
+    {
+      "recorded_at": 1740794388,
+      "by": 4573,
+      "tag": "product_update",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 443814
+    },
+    {
+      "recorded_at": 1740794389,
+      "by": 4573,
+      "tag": "product_update",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 443815
+    },
+    {
+      "recorded_at": 1740794390,
+      "by": 4573,
+      "tag": "product_update",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 443816
+    },
+    {
+      "recorded_at": 1740794392,
+      "by": 4573,
+      "tag": "product_update",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 443817
+    },
+    {
+      "recorded_at": 1740794393,
+      "by": 4573,
+      "tag": "product_update",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 443818
+    },
+    {
+      "recorded_at": 1740794394,
+      "by": 4573,
+      "tag": "product_update",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 443819
+    },
+    {
+      "recorded_at": 1740794395,
+      "by": 4573,
+      "tag": "product_update",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 443820
+    },
+    {
+      "recorded_at": 1740794396,
+      "by": 4573,
+      "tag": "product_update",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 443821
+    },
+    {
+      "recorded_at": 1740800893,
+      "by": 4573,
+      "tag": "product_update",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 446468
+    },
+    {
+      "recorded_at": 1740800895,
+      "by": 4573,
+      "tag": "product_update",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 446469
+    },
+    {
+      "recorded_at": 1740800896,
+      "by": 4573,
+      "tag": "product_update",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 446470
+    },
+    {
+      "recorded_at": 1740881213,
+      "by": 4573,
+      "tag": "product_update",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 449043
+    },
+    {
+      "recorded_at": 1740881214,
+      "by": 4573,
+      "tag": "product_update",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 449044
+    },
+    {
+      "recorded_at": 1740881215,
+      "by": 4573,
+      "tag": "product_update",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 449045
+    },
+    {
+      "recorded_at": 1740881217,
+      "by": 4573,
+      "tag": "product_update",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 449046
+    },
+    {
+      "recorded_at": 1740881218,
+      "by": 4573,
+      "tag": "product_update",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 449047
+    },
+    {
+      "recorded_at": 1740881219,
+      "by": 4573,
+      "tag": "product_update",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 449048
+    },
+    {
+      "recorded_at": 1740881221,
+      "by": 4573,
+      "tag": "product_update",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 449049
+    },
+    {
+      "recorded_at": 1740881222,
+      "by": 4573,
+      "tag": "product_update",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 449050
+    },
+    {
+      "recorded_at": 1740881224,
+      "by": 4573,
+      "tag": "product_update",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 449051
+    },
+    {
+      "recorded_at": 1740888082,
+      "by": 4573,
+      "tag": "product_update",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 451698
+    },
+    {
+      "recorded_at": 1740888084,
+      "by": 4573,
+      "tag": "product_update",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 451699
+    },
+    {
+      "recorded_at": 1740888086,
+      "by": 4573,
+      "tag": "product_update",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 451700
+    },
+    {
+      "recorded_at": 1740967366,
+      "by": 4573,
+      "tag": "product_update",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 454273
+    },
+    {
+      "recorded_at": 1740967367,
+      "by": 4573,
+      "tag": "product_update",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 454274
+    },
+    {
+      "recorded_at": 1740967369,
+      "by": 4573,
+      "tag": "product_update",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 454275
+    },
+    {
+      "recorded_at": 1740967370,
+      "by": 4573,
+      "tag": "product_update",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 454276
+    },
+    {
+      "recorded_at": 1740967372,
+      "by": 4573,
+      "tag": "product_update",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 454277
+    },
+    {
+      "recorded_at": 1740967373,
+      "by": 4573,
+      "tag": "product_update",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 454278
+    },
+    {
+      "recorded_at": 1740967375,
+      "by": 4573,
+      "tag": "product_update",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 454279
+    },
+    {
+      "recorded_at": 1740967376,
+      "by": 4573,
+      "tag": "product_update",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 454280
+    },
+    {
+      "recorded_at": 1740967377,
+      "by": 4573,
+      "tag": "product_update",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 454281
+    },
+    {
+      "recorded_at": 1740974258,
+      "by": 4573,
+      "tag": "product_update",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 456928
+    },
+    {
+      "recorded_at": 1740974259,
+      "by": 4573,
+      "tag": "product_update",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 456929
+    },
+    {
+      "recorded_at": 1740974261,
+      "by": 4573,
+      "tag": "product_update",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 456930
+    },
+    {
+      "recorded_at": 1741053077,
+      "by": 4573,
+      "tag": "product_update",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 459707
+    },
+    {
+      "recorded_at": 1741053078,
+      "by": 4573,
+      "tag": "product_update",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 459708
+    },
+    {
+      "recorded_at": 1741053080,
+      "by": 4573,
+      "tag": "product_update",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 459709
+    },
+    {
+      "recorded_at": 1741053081,
+      "by": 4573,
+      "tag": "product_update",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 459710
+    },
+    {
+      "recorded_at": 1741053082,
+      "by": 4573,
+      "tag": "product_update",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 459711
+    },
+    {
+      "recorded_at": 1741053084,
+      "by": 4573,
+      "tag": "product_update",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 459712
+    },
+    {
+      "recorded_at": 1741053085,
+      "by": 4573,
+      "tag": "product_update",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 459713
+    },
+    {
+      "recorded_at": 1741053086,
+      "by": 4573,
+      "tag": "product_update",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 459714
+    },
+    {
+      "recorded_at": 1741053088,
+      "by": 4573,
+      "tag": "product_update",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 459715
+    },
+    {
+      "recorded_at": 1741118425,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 384658
+    },
+    {
+      "recorded_at": 1741291234,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 384659
+    },
+    {
+      "recorded_at": 1741291270,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 386354
+    },
+    {
+      "recorded_at": 1742807339,
+      "by": 2839,
+      "tag": "product_update_cleanup_values_from_sources_other_than_febelco",
+      "op": "delete",
+      "kind": "attribute",
+      "source": "1034",
+      "field": "publicPrice"
+    },
+    {
+      "recorded_at": 1743105833,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 375492
+    },
+    {
+      "recorded_at": 1743105834,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 375493
+    },
+    {
+      "recorded_at": 1743105834,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 375494
+    },
+    {
+      "recorded_at": 1743106323,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 384657
+    },
+    {
+      "recorded_at": 1743106383,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 388494
+    },
+    {
+      "recorded_at": 1743192101,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 376968
+    },
+    {
+      "recorded_at": 1743192101,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 376969
+    },
+    {
+      "recorded_at": 1743192102,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 376970
+    },
+    {
+      "recorded_at": 1743192542,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 386353
+    },
+    {
+      "recorded_at": 1743192594,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 388574
+    },
+    {
+      "recorded_at": 1743451554,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 394615
+    },
+    {
+      "recorded_at": 1743451554,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 394616
+    },
+    {
+      "recorded_at": 1743451555,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 394617
+    },
+    {
+      "recorded_at": 1743451555,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 394618
+    },
+    {
+      "recorded_at": 1743451555,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 394619
+    },
+    {
+      "recorded_at": 1743538177,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 384654
+    },
+    {
+      "recorded_at": 1743538177,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 384655
+    },
+    {
+      "recorded_at": 1743538177,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 384656
+    },
+    {
+      "recorded_at": 1743538464,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 386350
+    },
+    {
+      "recorded_at": 1743538464,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 386351
+    },
+    {
+      "recorded_at": 1743538465,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 386352
+    },
+    {
+      "recorded_at": 1743538504,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 387083
+    },
+    {
+      "recorded_at": 1743538821,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 396457
+    },
+    {
+      "recorded_at": 1743538821,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 396458
+    },
+    {
+      "recorded_at": 1743538821,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 396459
+    },
+    {
+      "recorded_at": 1743538821,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 396460
+    },
+    {
+      "recorded_at": 1743538822,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 396461
+    },
+    {
+      "recorded_at": 1743710839,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 399267
+    },
+    {
+      "recorded_at": 1743710839,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 399268
+    },
+    {
+      "recorded_at": 1743710839,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 399269
+    },
+    {
+      "recorded_at": 1743710839,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 399270
+    },
+    {
+      "recorded_at": 1743710840,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 399271
+    },
+    {
+      "recorded_at": 1743710840,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 399272
+    },
+    {
+      "recorded_at": 1743710840,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 399273
+    },
+    {
+      "recorded_at": 1743710840,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 399274
+    },
+    {
+      "recorded_at": 1743710840,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 399275
+    },
+    {
+      "recorded_at": 1743711715,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 402757
+    },
+    {
+      "recorded_at": 1743711715,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 402758
+    },
+    {
+      "recorded_at": 1743711715,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 402759
+    },
+    {
+      "recorded_at": 1743711716,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 402760
+    },
+    {
+      "recorded_at": 1743711716,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 402761
+    },
+    {
+      "recorded_at": 1743711716,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 402762
+    },
+    {
+      "recorded_at": 1743711716,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 402763
+    },
+    {
+      "recorded_at": 1743711716,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 402764
+    },
+    {
+      "recorded_at": 1743883617,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 407001
+    },
+    {
+      "recorded_at": 1743883617,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 407002
+    },
+    {
+      "recorded_at": 1743883617,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 407003
+    },
+    {
+      "recorded_at": 1743883617,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 407004
+    },
+    {
+      "recorded_at": 1743883618,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 407005
+    },
+    {
+      "recorded_at": 1743883618,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 407006
+    },
+    {
+      "recorded_at": 1743883618,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 407007
+    },
+    {
+      "recorded_at": 1743883618,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 407008
+    },
+    {
+      "recorded_at": 1743883619,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 407009
+    },
+    {
+      "recorded_at": 1743884431,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 410533
+    },
+    {
+      "recorded_at": 1743884431,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 410534
+    },
+    {
+      "recorded_at": 1743884432,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 410535
+    },
+    {
+      "recorded_at": 1743884432,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 410536
+    },
+    {
+      "recorded_at": 1743884432,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 410537
+    },
+    {
+      "recorded_at": 1743884432,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 410538
+    },
+    {
+      "recorded_at": 1743884432,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 410539
+    },
+    {
+      "recorded_at": 1743884433,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 410540
+    },
+    {
+      "recorded_at": 1744056405,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 414740
+    },
+    {
+      "recorded_at": 1744056405,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 414741
+    },
+    {
+      "recorded_at": 1744056406,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 414742
+    },
+    {
+      "recorded_at": 1744056406,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 414743
+    },
+    {
+      "recorded_at": 1744056406,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 414744
+    },
+    {
+      "recorded_at": 1744056406,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 414745
+    },
+    {
+      "recorded_at": 1744056406,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 414746
+    },
+    {
+      "recorded_at": 1744056407,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 414747
+    },
+    {
+      "recorded_at": 1744056407,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 414748
+    },
+    {
+      "recorded_at": 1744057170,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 418275
+    },
+    {
+      "recorded_at": 1744057170,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 418276
+    },
+    {
+      "recorded_at": 1744057171,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 418277
+    },
+    {
+      "recorded_at": 1744057171,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 418278
+    },
+    {
+      "recorded_at": 1744057171,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 418279
+    },
+    {
+      "recorded_at": 1744057171,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 418280
+    },
+    {
+      "recorded_at": 1744057171,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 418281
+    },
+    {
+      "recorded_at": 1744057172,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 418282
+    },
+    {
+      "recorded_at": 1744142658,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 422173
+    },
+    {
+      "recorded_at": 1744142658,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 422174
+    },
+    {
+      "recorded_at": 1744142658,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 422177
+    },
+    {
+      "recorded_at": 1744142658,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 422179
+    },
+    {
+      "recorded_at": 1744142659,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 422181
+    },
+    {
+      "recorded_at": 1744228998,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 422175
+    },
+    {
+      "recorded_at": 1744228998,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 422176
+    },
+    {
+      "recorded_at": 1744228998,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 422178
+    },
+    {
+      "recorded_at": 1744228998,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 422180
+    },
+    {
+      "recorded_at": 1744229526,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 425742
+    },
+    {
+      "recorded_at": 1744229526,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 425743
+    },
+    {
+      "recorded_at": 1744229527,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 425744
+    },
+    {
+      "recorded_at": 1744229527,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 425745
+    },
+    {
+      "recorded_at": 1744229527,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 425746
+    },
+    {
+      "recorded_at": 1744229527,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 425747
+    },
+    {
+      "recorded_at": 1744229527,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 425748
+    },
+    {
+      "recorded_at": 1744229527,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 425749
+    },
+    {
+      "recorded_at": 1744315758,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 430000
+    },
+    {
+      "recorded_at": 1744315759,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 430001
+    },
+    {
+      "recorded_at": 1744315759,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 430002
+    },
+    {
+      "recorded_at": 1744315759,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 430003
+    },
+    {
+      "recorded_at": 1744315759,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 430004
+    },
+    {
+      "recorded_at": 1744315760,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 430005
+    },
+    {
+      "recorded_at": 1744315760,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 430006
+    },
+    {
+      "recorded_at": 1744315760,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 430007
+    },
+    {
+      "recorded_at": 1744315760,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 430008
+    },
+    {
+      "recorded_at": 1744316269,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 432808
+    },
+    {
+      "recorded_at": 1744316269,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 432809
+    },
+    {
+      "recorded_at": 1744316269,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 432810
+    },
+    {
+      "recorded_at": 1744401707,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 434965
+    },
+    {
+      "recorded_at": 1744401707,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 434966
+    },
+    {
+      "recorded_at": 1744401707,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 434967
+    },
+    {
+      "recorded_at": 1744401967,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 438613
+    },
+    {
+      "recorded_at": 1744401968,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 438614
+    },
+    {
+      "recorded_at": 1744401968,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 438615
+    },
+    {
+      "recorded_at": 1744401968,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 438616
+    },
+    {
+      "recorded_at": 1744401968,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 438617
+    },
+    {
+      "recorded_at": 1744401968,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 438618
+    },
+    {
+      "recorded_at": 1744401968,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 438619
+    },
+    {
+      "recorded_at": 1744401968,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 438620
+    },
+    {
+      "recorded_at": 1744401968,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 438621
+    },
+    {
+      "recorded_at": 1744488099,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 441265
+    },
+    {
+      "recorded_at": 1744488099,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 441266
+    },
+    {
+      "recorded_at": 1744488099,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 441267
+    },
+    {
+      "recorded_at": 1744488336,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 443813
+    },
+    {
+      "recorded_at": 1744488336,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 443814
+    },
+    {
+      "recorded_at": 1744488336,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 443815
+    },
+    {
+      "recorded_at": 1744488336,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 443816
+    },
+    {
+      "recorded_at": 1744488336,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 443817
+    },
+    {
+      "recorded_at": 1744488336,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 443818
+    },
+    {
+      "recorded_at": 1744488336,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 443819
+    },
+    {
+      "recorded_at": 1744488336,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 443820
+    },
+    {
+      "recorded_at": 1744488337,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 443821
+    },
+    {
+      "recorded_at": 1744574488,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 446468
+    },
+    {
+      "recorded_at": 1744574488,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 446469
+    },
+    {
+      "recorded_at": 1744574488,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 446470
+    },
+    {
+      "recorded_at": 1744574714,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 449043
+    },
+    {
+      "recorded_at": 1744574714,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 449044
+    },
+    {
+      "recorded_at": 1744574714,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 449045
+    },
+    {
+      "recorded_at": 1744574714,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 449046
+    },
+    {
+      "recorded_at": 1744574714,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 449047
+    },
+    {
+      "recorded_at": 1744574715,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 449048
+    },
+    {
+      "recorded_at": 1744574715,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 449049
+    },
+    {
+      "recorded_at": 1744574715,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 449050
+    },
+    {
+      "recorded_at": 1744574715,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 449051
+    },
+    {
+      "recorded_at": 1744660889,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 451698
+    },
+    {
+      "recorded_at": 1744660889,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 451699
+    },
+    {
+      "recorded_at": 1744660889,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 451700
+    },
+    {
+      "recorded_at": 1744661117,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 454273
+    },
+    {
+      "recorded_at": 1744661117,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 454274
+    },
+    {
+      "recorded_at": 1744661117,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 454275
+    },
+    {
+      "recorded_at": 1744661117,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 454276
+    },
+    {
+      "recorded_at": 1744661117,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 454277
+    },
+    {
+      "recorded_at": 1744661117,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 454278
+    },
+    {
+      "recorded_at": 1744661118,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 454279
+    },
+    {
+      "recorded_at": 1744661118,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 454280
+    },
+    {
+      "recorded_at": 1744661118,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 454281
+    },
+    {
+      "recorded_at": 1745975154,
+      "by": 4573,
+      "tag": "product_update",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 472275
+    },
+    {
+      "recorded_at": 1745975155,
+      "by": 4573,
+      "tag": "product_update",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 472276
+    },
+    {
+      "recorded_at": 1746061529,
+      "by": 4573,
+      "tag": "product_update",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 472756
+    },
+    {
+      "recorded_at": 1747963762,
+      "by": 4573,
+      "tag": "product_update",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 475100
+    },
+    {
+      "recorded_at": 1749585738,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 459713
+    },
+    {
+      "recorded_at": 1749585738,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 459714
+    },
+    {
+      "recorded_at": 1749585739,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 459715
+    },
+    {
+      "recorded_at": 1750433408,
+      "by": 4081,
+      "tag": "import_7343",
+      "op": "set",
+      "kind": "attribute",
+      "source": "1035",
+      "field": "manufacturerPrice",
+      "value": 941
+    },
+    {
+      "recorded_at": 1750988013,
+      "by": 4573,
+      "tag": "product_update_auto_link",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 483390
+    },
+    {
+      "recorded_at": 1750988016,
+      "by": 4573,
+      "tag": "product_update_auto_link",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 483391
+    },
+    {
+      "recorded_at": 1750988020,
+      "by": 4573,
+      "tag": "product_update_auto_link",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 483392
+    },
+    {
+      "recorded_at": 1750988022,
+      "by": 4573,
+      "tag": "product_update_auto_link",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 483393
+    },
+    {
+      "recorded_at": 1750988024,
+      "by": 4573,
+      "tag": "product_update_auto_link",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 483394
+    },
+    {
+      "recorded_at": 1750988026,
+      "by": 4573,
+      "tag": "product_update_auto_link",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 483395
+    },
+    {
+      "recorded_at": 1750988028,
+      "by": 4573,
+      "tag": "product_update_auto_link",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 483396
+    },
+    {
+      "recorded_at": 1750988030,
+      "by": 4573,
+      "tag": "product_update_auto_link",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 483397
+    },
+    {
+      "recorded_at": 1750988032,
+      "by": 4573,
+      "tag": "product_update_auto_link",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 483398
+    },
+    {
+      "recorded_at": 1750999221,
+      "by": 4573,
+      "tag": "product_update_auto_link",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 487280
+    },
+    {
+      "recorded_at": 1750999223,
+      "by": 4573,
+      "tag": "product_update_auto_link",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 487281
+    },
+    {
+      "recorded_at": 1750999226,
+      "by": 4573,
+      "tag": "product_update_auto_link",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 487282
+    },
+    {
+      "recorded_at": 1751074625,
+      "by": 4573,
+      "tag": "product_update_auto_link",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 491125
+    },
+    {
+      "recorded_at": 1751074627,
+      "by": 4573,
+      "tag": "product_update_auto_link",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 491126
+    },
+    {
+      "recorded_at": 1751074629,
+      "by": 4573,
+      "tag": "product_update_auto_link",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 491127
+    },
+    {
+      "recorded_at": 1751074631,
+      "by": 4573,
+      "tag": "product_update_auto_link",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 491128
+    },
+    {
+      "recorded_at": 1751074634,
+      "by": 4573,
+      "tag": "product_update_auto_link",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 491129
+    },
+    {
+      "recorded_at": 1751074636,
+      "by": 4573,
+      "tag": "product_update_auto_link",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 491130
+    },
+    {
+      "recorded_at": 1751074638,
+      "by": 4573,
+      "tag": "product_update_auto_link",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 491131
+    },
+    {
+      "recorded_at": 1751074640,
+      "by": 4573,
+      "tag": "product_update_auto_link",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 491132
+    },
+    {
+      "recorded_at": 1751074643,
+      "by": 4573,
+      "tag": "product_update_auto_link",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 491133
+    },
+    {
+      "recorded_at": 1751086934,
+      "by": 4573,
+      "tag": "product_update_auto_link",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 495015
+    },
+    {
+      "recorded_at": 1751086937,
+      "by": 4573,
+      "tag": "product_update_auto_link",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 495016
+    },
+    {
+      "recorded_at": 1751086940,
+      "by": 4573,
+      "tag": "product_update_auto_link",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 495017
+    },
+    {
+      "recorded_at": 1751161289,
+      "by": 4573,
+      "tag": "product_update_auto_link",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 497957
+    },
+    {
+      "recorded_at": 1751161291,
+      "by": 4573,
+      "tag": "product_update_auto_link",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 497958
+    },
+    {
+      "recorded_at": 1751161294,
+      "by": 4573,
+      "tag": "product_update_auto_link",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 497959
+    },
+    {
+      "recorded_at": 1751161297,
+      "by": 4573,
+      "tag": "product_update_auto_link",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 497960
+    },
+    {
+      "recorded_at": 1751161300,
+      "by": 4573,
+      "tag": "product_update_auto_link",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 497961
+    },
+    {
+      "recorded_at": 1751161302,
+      "by": 4573,
+      "tag": "product_update_auto_link",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 497962
+    },
+    {
+      "recorded_at": 1751161305,
+      "by": 4573,
+      "tag": "product_update_auto_link",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 497963
+    },
+    {
+      "recorded_at": 1751161308,
+      "by": 4573,
+      "tag": "product_update_auto_link",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 497964
+    },
+    {
+      "recorded_at": 1751161311,
+      "by": 4573,
+      "tag": "product_update_auto_link",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 497965
+    },
+    {
+      "recorded_at": 1751174118,
+      "by": 4573,
+      "tag": "product_update_auto_link",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 501849
+    },
+    {
+      "recorded_at": 1751174121,
+      "by": 4573,
+      "tag": "product_update_auto_link",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 501850
+    },
+    {
+      "recorded_at": 1751174123,
+      "by": 4573,
+      "tag": "product_update_auto_link",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 501851
+    },
+    {
+      "recorded_at": 1751247556,
+      "by": 4573,
+      "tag": "product_update_auto_link",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 504791
+    },
+    {
+      "recorded_at": 1751247558,
+      "by": 4573,
+      "tag": "product_update_auto_link",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 504792
+    },
+    {
+      "recorded_at": 1751247561,
+      "by": 4573,
+      "tag": "product_update_auto_link",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 504793
+    },
+    {
+      "recorded_at": 1751247563,
+      "by": 4573,
+      "tag": "product_update_auto_link",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 504794
+    },
+    {
+      "recorded_at": 1751247565,
+      "by": 4573,
+      "tag": "product_update_auto_link",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 504795
+    },
+    {
+      "recorded_at": 1751247567,
+      "by": 4573,
+      "tag": "product_update_auto_link",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 504796
+    },
+    {
+      "recorded_at": 1751247570,
+      "by": 4573,
+      "tag": "product_update_auto_link",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 504797
+    },
+    {
+      "recorded_at": 1751247572,
+      "by": 4573,
+      "tag": "product_update_auto_link",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 504798
+    },
+    {
+      "recorded_at": 1751247574,
+      "by": 4573,
+      "tag": "product_update_auto_link",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 504799
+    },
+    {
+      "recorded_at": 1751261131,
+      "by": 4573,
+      "tag": "product_update_auto_link",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 508683
+    },
+    {
+      "recorded_at": 1751261134,
+      "by": 4573,
+      "tag": "product_update_auto_link",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 508684
+    },
+    {
+      "recorded_at": 1751261136,
+      "by": 4573,
+      "tag": "product_update_auto_link",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 508685
+    },
+    {
+      "recorded_at": 1751333863,
+      "by": 4573,
+      "tag": "product_update_auto_link",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 511789
+    },
+    {
+      "recorded_at": 1751333866,
+      "by": 4573,
+      "tag": "product_update_auto_link",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 511790
+    },
+    {
+      "recorded_at": 1751333868,
+      "by": 4573,
+      "tag": "product_update_auto_link",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 511791
+    },
+    {
+      "recorded_at": 1751333871,
+      "by": 4573,
+      "tag": "product_update_auto_link",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 511792
+    },
+    {
+      "recorded_at": 1751333874,
+      "by": 4573,
+      "tag": "product_update_auto_link",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 511793
+    },
+    {
+      "recorded_at": 1751333876,
+      "by": 4573,
+      "tag": "product_update_auto_link",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 511794
+    },
+    {
+      "recorded_at": 1751333878,
+      "by": 4573,
+      "tag": "product_update_auto_link",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 511795
+    },
+    {
+      "recorded_at": 1751333881,
+      "by": 4573,
+      "tag": "product_update_auto_link",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 511796
+    },
+    {
+      "recorded_at": 1751333884,
+      "by": 4573,
+      "tag": "product_update_auto_link",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 511797
+    },
+    {
+      "recorded_at": 1751347977,
+      "by": 4573,
+      "tag": "product_update_auto_link",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 515686
+    },
+    {
+      "recorded_at": 1751347980,
+      "by": 4573,
+      "tag": "product_update_auto_link",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 515687
+    },
+    {
+      "recorded_at": 1751347983,
+      "by": 4573,
+      "tag": "product_update_auto_link",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 515688
+    },
+    {
+      "recorded_at": 1751420153,
+      "by": 4573,
+      "tag": "product_update_auto_link",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 518568
+    },
+    {
+      "recorded_at": 1751420155,
+      "by": 4573,
+      "tag": "product_update_auto_link",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 518569
+    },
+    {
+      "recorded_at": 1751420158,
+      "by": 4573,
+      "tag": "product_update_auto_link",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 518570
+    },
+    {
+      "recorded_at": 1751420161,
+      "by": 4573,
+      "tag": "product_update_auto_link",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 518571
+    },
+    {
+      "recorded_at": 1751420164,
+      "by": 4573,
+      "tag": "product_update_auto_link",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 518572
+    },
+    {
+      "recorded_at": 1751420167,
+      "by": 4573,
+      "tag": "product_update_auto_link",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 518573
+    },
+    {
+      "recorded_at": 1751420169,
+      "by": 4573,
+      "tag": "product_update_auto_link",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 518574
+    },
+    {
+      "recorded_at": 1751420172,
+      "by": 4573,
+      "tag": "product_update_auto_link",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 518575
+    },
+    {
+      "recorded_at": 1751420175,
+      "by": 4573,
+      "tag": "product_update_auto_link",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 518576
+    },
+    {
+      "recorded_at": 1751434106,
+      "by": 4573,
+      "tag": "product_update_auto_link",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 522472
+    },
+    {
+      "recorded_at": 1751434108,
+      "by": 4573,
+      "tag": "product_update_auto_link",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 522473
+    },
+    {
+      "recorded_at": 1751434111,
+      "by": 4573,
+      "tag": "product_update_auto_link",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 522474
+    },
+    {
+      "recorded_at": 1751486413,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 456930
+    },
+    {
+      "recorded_at": 1751506733,
+      "by": 4573,
+      "tag": "product_update_auto_link",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 525822
+    },
+    {
+      "recorded_at": 1751506735,
+      "by": 4573,
+      "tag": "product_update_auto_link",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 525823
+    },
+    {
+      "recorded_at": 1751506738,
+      "by": 4573,
+      "tag": "product_update_auto_link",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 525824
+    },
+    {
+      "recorded_at": 1751506741,
+      "by": 4573,
+      "tag": "product_update_auto_link",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 525825
+    },
+    {
+      "recorded_at": 1751506744,
+      "by": 4573,
+      "tag": "product_update_auto_link",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 525826
+    },
+    {
+      "recorded_at": 1751506746,
+      "by": 4573,
+      "tag": "product_update_auto_link",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 525827
+    },
+    {
+      "recorded_at": 1751506749,
+      "by": 4573,
+      "tag": "product_update_auto_link",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 525828
+    },
+    {
+      "recorded_at": 1751506752,
+      "by": 4573,
+      "tag": "product_update_auto_link",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 525829
+    },
+    {
+      "recorded_at": 1751506754,
+      "by": 4573,
+      "tag": "product_update_auto_link",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 525830
+    },
+    {
+      "recorded_at": 1751521249,
+      "by": 4573,
+      "tag": "product_update_auto_link",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 529755
+    },
+    {
+      "recorded_at": 1751521252,
+      "by": 4573,
+      "tag": "product_update_auto_link",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 529756
+    },
+    {
+      "recorded_at": 1751521255,
+      "by": 4573,
+      "tag": "product_update_auto_link",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 529757
+    },
+    {
+      "recorded_at": 1751593276,
+      "by": 4573,
+      "tag": "product_update_auto_link",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 532810
+    },
+    {
+      "recorded_at": 1751593279,
+      "by": 4573,
+      "tag": "product_update_auto_link",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 532811
+    },
+    {
+      "recorded_at": 1751593282,
+      "by": 4573,
+      "tag": "product_update_auto_link",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 532812
+    },
+    {
+      "recorded_at": 1751593285,
+      "by": 4573,
+      "tag": "product_update_auto_link",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 532813
+    },
+    {
+      "recorded_at": 1751593288,
+      "by": 4573,
+      "tag": "product_update_auto_link",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 532814
+    },
+    {
+      "recorded_at": 1751593291,
+      "by": 4573,
+      "tag": "product_update_auto_link",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 532815
+    },
+    {
+      "recorded_at": 1751593294,
+      "by": 4573,
+      "tag": "product_update_auto_link",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 532816
+    },
+    {
+      "recorded_at": 1751593297,
+      "by": 4573,
+      "tag": "product_update_auto_link",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 532817
+    },
+    {
+      "recorded_at": 1751593300,
+      "by": 4573,
+      "tag": "product_update_auto_link",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 532818
+    },
+    {
+      "recorded_at": 1751609605,
+      "by": 4573,
+      "tag": "product_update_auto_link",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 536746
+    },
+    {
+      "recorded_at": 1751609608,
+      "by": 4573,
+      "tag": "product_update_auto_link",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 536747
+    },
+    {
+      "recorded_at": 1751609611,
+      "by": 4573,
+      "tag": "product_update_auto_link",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 536748
+    },
+    {
+      "recorded_at": 1751679679,
+      "by": 4573,
+      "tag": "product_update_auto_link",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 539886
+    },
+    {
+      "recorded_at": 1751679682,
+      "by": 4573,
+      "tag": "product_update_auto_link",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 539887
+    },
+    {
+      "recorded_at": 1751679685,
+      "by": 4573,
+      "tag": "product_update_auto_link",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 539888
+    },
+    {
+      "recorded_at": 1751679688,
+      "by": 4573,
+      "tag": "product_update_auto_link",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 539889
+    },
+    {
+      "recorded_at": 1751679691,
+      "by": 4573,
+      "tag": "product_update_auto_link",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 539890
+    },
+    {
+      "recorded_at": 1751679694,
+      "by": 4573,
+      "tag": "product_update_auto_link",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 539891
+    },
+    {
+      "recorded_at": 1751679697,
+      "by": 4573,
+      "tag": "product_update_auto_link",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 539892
+    },
+    {
+      "recorded_at": 1751679700,
+      "by": 4573,
+      "tag": "product_update_auto_link",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 539893
+    },
+    {
+      "recorded_at": 1751679703,
+      "by": 4573,
+      "tag": "product_update_auto_link",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 539894
+    },
+    {
+      "recorded_at": 1751696133,
+      "by": 4573,
+      "tag": "product_update_auto_link",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 543822
+    },
+    {
+      "recorded_at": 1751696137,
+      "by": 4573,
+      "tag": "product_update_auto_link",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 543823
+    },
+    {
+      "recorded_at": 1751696140,
+      "by": 4573,
+      "tag": "product_update_auto_link",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 543824
+    },
+    {
+      "recorded_at": 1751766311,
+      "by": 4573,
+      "tag": "product_update_auto_link",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 546768
+    },
+    {
+      "recorded_at": 1751766315,
+      "by": 4573,
+      "tag": "product_update_auto_link",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 546769
+    },
+    {
+      "recorded_at": 1751766318,
+      "by": 4573,
+      "tag": "product_update_auto_link",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 546770
+    },
+    {
+      "recorded_at": 1751766322,
+      "by": 4573,
+      "tag": "product_update_auto_link",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 546771
+    },
+    {
+      "recorded_at": 1751766326,
+      "by": 4573,
+      "tag": "product_update_auto_link",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 546772
+    },
+    {
+      "recorded_at": 1751766330,
+      "by": 4573,
+      "tag": "product_update_auto_link",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 546773
+    },
+    {
+      "recorded_at": 1751766333,
+      "by": 4573,
+      "tag": "product_update_auto_link",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 546774
+    },
+    {
+      "recorded_at": 1751766337,
+      "by": 4573,
+      "tag": "product_update_auto_link",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 546775
+    },
+    {
+      "recorded_at": 1751766341,
+      "by": 4573,
+      "tag": "product_update_auto_link",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 546776
+    },
+    {
+      "recorded_at": 1751783153,
+      "by": 4573,
+      "tag": "product_update_auto_link",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 550704
+    },
+    {
+      "recorded_at": 1751783157,
+      "by": 4573,
+      "tag": "product_update_auto_link",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 550705
+    },
+    {
+      "recorded_at": 1751783160,
+      "by": 4573,
+      "tag": "product_update_auto_link",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 550706
+    },
+    {
+      "recorded_at": 1751852544,
+      "by": 4573,
+      "tag": "product_update_auto_link",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 553650
+    },
+    {
+      "recorded_at": 1751852547,
+      "by": 4573,
+      "tag": "product_update_auto_link",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 553651
+    },
+    {
+      "recorded_at": 1751852550,
+      "by": 4573,
+      "tag": "product_update_auto_link",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 553652
+    },
+    {
+      "recorded_at": 1751852553,
+      "by": 4573,
+      "tag": "product_update_auto_link",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 553653
+    },
+    {
+      "recorded_at": 1751852556,
+      "by": 4573,
+      "tag": "product_update_auto_link",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 553654
+    },
+    {
+      "recorded_at": 1751852560,
+      "by": 4573,
+      "tag": "product_update_auto_link",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 553655
+    },
+    {
+      "recorded_at": 1751852563,
+      "by": 4573,
+      "tag": "product_update_auto_link",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 553656
+    },
+    {
+      "recorded_at": 1751852566,
+      "by": 4573,
+      "tag": "product_update_auto_link",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 553657
+    },
+    {
+      "recorded_at": 1751852569,
+      "by": 4573,
+      "tag": "product_update_auto_link",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 553658
+    },
+    {
+      "recorded_at": 1751870312,
+      "by": 4573,
+      "tag": "product_update_auto_link",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 557582
+    },
+    {
+      "recorded_at": 1751870315,
+      "by": 4573,
+      "tag": "product_update_auto_link",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 557583
+    },
+    {
+      "recorded_at": 1751870319,
+      "by": 4573,
+      "tag": "product_update_auto_link",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 557584
+    },
+    {
+      "recorded_at": 1751939141,
+      "by": 4573,
+      "tag": "product_update_auto_link",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 560735
+    },
+    {
+      "recorded_at": 1751939145,
+      "by": 4573,
+      "tag": "product_update_auto_link",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 560736
+    },
+    {
+      "recorded_at": 1751939149,
+      "by": 4573,
+      "tag": "product_update_auto_link",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 560737
+    },
+    {
+      "recorded_at": 1751939152,
+      "by": 4573,
+      "tag": "product_update_auto_link",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 560738
+    },
+    {
+      "recorded_at": 1751939157,
+      "by": 4573,
+      "tag": "product_update_auto_link",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 560739
+    },
+    {
+      "recorded_at": 1751939161,
+      "by": 4573,
+      "tag": "product_update_auto_link",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 560740
+    },
+    {
+      "recorded_at": 1751939165,
+      "by": 4573,
+      "tag": "product_update_auto_link",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 560741
+    },
+    {
+      "recorded_at": 1751939169,
+      "by": 4573,
+      "tag": "product_update_auto_link",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 560742
+    },
+    {
+      "recorded_at": 1751939173,
+      "by": 4573,
+      "tag": "product_update_auto_link",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 560743
+    },
+    {
+      "recorded_at": 1751958034,
+      "by": 4573,
+      "tag": "product_update_auto_link",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 564672
+    },
+    {
+      "recorded_at": 1751958039,
+      "by": 4573,
+      "tag": "product_update_auto_link",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 564673
+    },
+    {
+      "recorded_at": 1751958044,
+      "by": 4573,
+      "tag": "product_update_auto_link",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 564674
+    },
+    {
+      "recorded_at": 1752025386,
+      "by": 4573,
+      "tag": "product_update_auto_link",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 567636
+    },
+    {
+      "recorded_at": 1752025389,
+      "by": 4573,
+      "tag": "product_update_auto_link",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 567637
+    },
+    {
+      "recorded_at": 1752025392,
+      "by": 4573,
+      "tag": "product_update_auto_link",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 567638
+    },
+    {
+      "recorded_at": 1752025395,
+      "by": 4573,
+      "tag": "product_update_auto_link",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 567639
+    },
+    {
+      "recorded_at": 1752025398,
+      "by": 4573,
+      "tag": "product_update_auto_link",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 567640
+    },
+    {
+      "recorded_at": 1752025401,
+      "by": 4573,
+      "tag": "product_update_auto_link",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 567641
+    },
+    {
+      "recorded_at": 1752025404,
+      "by": 4573,
+      "tag": "product_update_auto_link",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 567642
+    },
+    {
+      "recorded_at": 1752025407,
+      "by": 4573,
+      "tag": "product_update_auto_link",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 567643
+    },
+    {
+      "recorded_at": 1752025411,
+      "by": 4573,
+      "tag": "product_update_auto_link",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 567644
+    },
+    {
+      "recorded_at": 1752043604,
+      "by": 4573,
+      "tag": "product_update_auto_link",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 571572
+    },
+    {
+      "recorded_at": 1752043608,
+      "by": 4573,
+      "tag": "product_update_auto_link",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 571573
+    },
+    {
+      "recorded_at": 1752043611,
+      "by": 4573,
+      "tag": "product_update_auto_link",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 571574
+    },
+    {
+      "recorded_at": 1752067169,
+      "by": 2839,
+      "tag": "product_update_computed_field",
+      "op": "add",
+      "kind": "edge",
+      "collection": "internationalBrands",
+      "value": "ib_0371fddc-0c7d-4fa7-b3b3-b9de7a15bcdc"
+    },
+    {
+      "recorded_at": 1752112137,
+      "by": 4573,
+      "tag": "product_update_auto_link",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 574602
+    },
+    {
+      "recorded_at": 1752112141,
+      "by": 4573,
+      "tag": "product_update_auto_link",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 574603
+    },
+    {
+      "recorded_at": 1752112144,
+      "by": 4573,
+      "tag": "product_update_auto_link",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 574604
+    },
+    {
+      "recorded_at": 1752112148,
+      "by": 4573,
+      "tag": "product_update_auto_link",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 574605
+    },
+    {
+      "recorded_at": 1752112152,
+      "by": 4573,
+      "tag": "product_update_auto_link",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 574606
+    },
+    {
+      "recorded_at": 1752112156,
+      "by": 4573,
+      "tag": "product_update_auto_link",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 574607
+    },
+    {
+      "recorded_at": 1752112159,
+      "by": 4573,
+      "tag": "product_update_auto_link",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 574608
+    },
+    {
+      "recorded_at": 1752112163,
+      "by": 4573,
+      "tag": "product_update_auto_link",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 574609
+    },
+    {
+      "recorded_at": 1752112166,
+      "by": 4573,
+      "tag": "product_update_auto_link",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 574610
+    },
+    {
+      "recorded_at": 1752132973,
+      "by": 4573,
+      "tag": "product_update_auto_link",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 578550
+    },
+    {
+      "recorded_at": 1752132977,
+      "by": 4573,
+      "tag": "product_update_auto_link",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 578551
+    },
+    {
+      "recorded_at": 1752132982,
+      "by": 4573,
+      "tag": "product_update_auto_link",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 578552
+    },
+    {
+      "recorded_at": 1753256309,
+      "by": 2839,
+      "tag": "product_update_international_brands",
+      "op": "remove",
+      "kind": "edge",
+      "collection": "internationalBrands",
+      "value": "ib_0371fddc-0c7d-4fa7-b3b3-b9de7a15bcdc"
+    },
+    {
+      "recorded_at": 1753256309,
+      "by": 2839,
+      "tag": "product_update_international_brands",
+      "op": "add",
+      "kind": "edge",
+      "collection": "internationalBrands",
+      "value": "ib_cd1e7045-c4b9-4f2a-994a-25d86cfc0cbe"
+    },
+    {
+      "recorded_at": 1755389701,
+      "by": 2839,
+      "tag": "product_update_product_pricing_history_created",
+      "op": "set",
+      "kind": "attribute",
+      "source": "4996",
+      "field": "averageSalesPrice",
+      "value": 1515
+    },
+    {
+      "recorded_at": 1755389701,
+      "by": 2839,
+      "tag": "product_update_product_pricing_history_created",
+      "op": "set",
+      "kind": "attribute",
+      "source": "4996",
+      "field": "medianSalesPrice",
+      "value": 1566
+    },
+    {
+      "recorded_at": 1755389701,
+      "by": 2839,
+      "tag": "product_update_product_pricing_history_created",
+      "op": "set",
+      "kind": "attribute",
+      "source": "4996",
+      "field": "minimumSalesPrice",
+      "value": 1137
+    },
+    {
+      "recorded_at": 1755389701,
+      "by": 2839,
+      "tag": "product_update_product_pricing_history_created",
+      "op": "set",
+      "kind": "attribute",
+      "source": "4996",
+      "field": "maximumSalesPrice",
+      "value": 1650
+    },
+    {
+      "recorded_at": 1755635052,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 456928
+    },
+    {
+      "recorded_at": 1755635053,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 456929
+    },
+    {
+      "recorded_at": 1755637678,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 459707
+    },
+    {
+      "recorded_at": 1755637679,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 459708
+    },
+    {
+      "recorded_at": 1755637680,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 459709
+    },
+    {
+      "recorded_at": 1755637681,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 459710
+    },
+    {
+      "recorded_at": 1755637683,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 459711
+    },
+    {
+      "recorded_at": 1755637684,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 459712
+    },
+    {
+      "recorded_at": 1755641503,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 472275
+    },
+    {
+      "recorded_at": 1755641504,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 472276
+    },
+    {
+      "recorded_at": 1755641735,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 472756
+    },
+    {
+      "recorded_at": 1755641859,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 475100
+    },
+    {
+      "recorded_at": 1755642708,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 483390
+    },
+    {
+      "recorded_at": 1755642709,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 483391
+    },
+    {
+      "recorded_at": 1755642710,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 483392
+    },
+    {
+      "recorded_at": 1755642711,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 483393
+    },
+    {
+      "recorded_at": 1755642712,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 483394
+    },
+    {
+      "recorded_at": 1755642713,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 483395
+    },
+    {
+      "recorded_at": 1755642714,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 483396
+    },
+    {
+      "recorded_at": 1755642714,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 483397
+    },
+    {
+      "recorded_at": 1755642715,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 483398
+    },
+    {
+      "recorded_at": 1755647167,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 487280
+    },
+    {
+      "recorded_at": 1755647168,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 487281
+    },
+    {
+      "recorded_at": 1755647169,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 487282
+    },
+    {
+      "recorded_at": 1755650728,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 491125
+    },
+    {
+      "recorded_at": 1755650729,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 491126
+    },
+    {
+      "recorded_at": 1755650730,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 491127
+    },
+    {
+      "recorded_at": 1755650731,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 491128
+    },
+    {
+      "recorded_at": 1755650734,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 491129
+    },
+    {
+      "recorded_at": 1755650735,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 491130
+    },
+    {
+      "recorded_at": 1755650736,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 491131
+    },
+    {
+      "recorded_at": 1755650737,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 491132
+    },
+    {
+      "recorded_at": 1755650738,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 491133
+    },
+    {
+      "recorded_at": 1755655387,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 495015
+    },
+    {
+      "recorded_at": 1755655388,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 495016
+    },
+    {
+      "recorded_at": 1755655389,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 495017
+    },
+    {
+      "recorded_at": 1755658787,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 497957
+    },
+    {
+      "recorded_at": 1755658788,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 497958
+    },
+    {
+      "recorded_at": 1755658789,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 497959
+    },
+    {
+      "recorded_at": 1755658790,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 497960
+    },
+    {
+      "recorded_at": 1755658790,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 497961
+    },
+    {
+      "recorded_at": 1755658791,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 497962
+    },
+    {
+      "recorded_at": 1755658792,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 497963
+    },
+    {
+      "recorded_at": 1755658793,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 497964
+    },
+    {
+      "recorded_at": 1755658794,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 497965
+    },
+    {
+      "recorded_at": 1755663255,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 501849
+    },
+    {
+      "recorded_at": 1755663256,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 501850
+    },
+    {
+      "recorded_at": 1755663257,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 501851
+    },
+    {
+      "recorded_at": 1755667063,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 504791
+    },
+    {
+      "recorded_at": 1755667064,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 504792
+    },
+    {
+      "recorded_at": 1755667065,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 504793
+    },
+    {
+      "recorded_at": 1755667066,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 504794
+    },
+    {
+      "recorded_at": 1755667067,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 504795
+    },
+    {
+      "recorded_at": 1755667067,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 504796
+    },
+    {
+      "recorded_at": 1755667068,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 504797
+    },
+    {
+      "recorded_at": 1755667069,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 504798
+    },
+    {
+      "recorded_at": 1755667070,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 504799
+    },
+    {
+      "recorded_at": 1755671541,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 508683
+    },
+    {
+      "recorded_at": 1755671542,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 508684
+    },
+    {
+      "recorded_at": 1755671543,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 508685
+    },
+    {
+      "recorded_at": 1755675201,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 511789
+    },
+    {
+      "recorded_at": 1755675202,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 511790
+    },
+    {
+      "recorded_at": 1755675203,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 511791
+    },
+    {
+      "recorded_at": 1755675204,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 511792
+    },
+    {
+      "recorded_at": 1755675205,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 511793
+    },
+    {
+      "recorded_at": 1755675206,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 511794
+    },
+    {
+      "recorded_at": 1755675207,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 511795
+    },
+    {
+      "recorded_at": 1755675208,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 511796
+    },
+    {
+      "recorded_at": 1755675209,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 511797
+    },
+    {
+      "recorded_at": 1755684187,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 515686
+    },
+    {
+      "recorded_at": 1755684188,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 515687
+    },
+    {
+      "recorded_at": 1755684189,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 515688
+    },
+    {
+      "recorded_at": 1755762278,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 518568
+    },
+    {
+      "recorded_at": 1755762279,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 518569
+    },
+    {
+      "recorded_at": 1755762280,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 518570
+    },
+    {
+      "recorded_at": 1755762281,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 518571
+    },
+    {
+      "recorded_at": 1755762282,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 518572
+    },
+    {
+      "recorded_at": 1755762283,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 518573
+    },
+    {
+      "recorded_at": 1755762284,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 518574
+    },
+    {
+      "recorded_at": 1755762285,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 518575
+    },
+    {
+      "recorded_at": 1755762286,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 518576
+    },
+    {
+      "recorded_at": 1755770005,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 522472
+    },
+    {
+      "recorded_at": 1755770005,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 522473
+    },
+    {
+      "recorded_at": 1755770006,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 522474
+    },
+    {
+      "recorded_at": 1755771540,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 525822
+    },
+    {
+      "recorded_at": 1755771540,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 525823
+    },
+    {
+      "recorded_at": 1755771540,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 525824
+    },
+    {
+      "recorded_at": 1755771542,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 525825
+    },
+    {
+      "recorded_at": 1755771542,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 525826
+    },
+    {
+      "recorded_at": 1755771542,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 525827
+    },
+    {
+      "recorded_at": 1755771543,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 525828
+    },
+    {
+      "recorded_at": 1755771543,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 525829
+    },
+    {
+      "recorded_at": 1755771544,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 525830
+    },
+    {
+      "recorded_at": 1755773470,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 529755
+    },
+    {
+      "recorded_at": 1755773471,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 529756
+    },
+    {
+      "recorded_at": 1755773471,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 529757
+    },
+    {
+      "recorded_at": 1755774969,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 532810
+    },
+    {
+      "recorded_at": 1755774969,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 532811
+    },
+    {
+      "recorded_at": 1755774969,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 532812
+    },
+    {
+      "recorded_at": 1755774971,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 532813
+    },
+    {
+      "recorded_at": 1755774971,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 532814
+    },
+    {
+      "recorded_at": 1755774971,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 532815
+    },
+    {
+      "recorded_at": 1755774971,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 532816
+    },
+    {
+      "recorded_at": 1755774972,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 532817
+    },
+    {
+      "recorded_at": 1755774973,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 532818
+    },
+    {
+      "recorded_at": 1755776800,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 536746
+    },
+    {
+      "recorded_at": 1755776800,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 536747
+    },
+    {
+      "recorded_at": 1755776800,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 536748
+    },
+    {
+      "recorded_at": 1755778273,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 539886
+    },
+    {
+      "recorded_at": 1755778273,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 539887
+    },
+    {
+      "recorded_at": 1755778273,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 539888
+    },
+    {
+      "recorded_at": 1755778275,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 539890
+    },
+    {
+      "recorded_at": 1755778275,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 539889
+    },
+    {
+      "recorded_at": 1755778275,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 539891
+    },
+    {
+      "recorded_at": 1755778275,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 539892
+    },
+    {
+      "recorded_at": 1755778275,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 539893
+    },
+    {
+      "recorded_at": 1755778277,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 539894
+    },
+    {
+      "recorded_at": 1755780057,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 543822
+    },
+    {
+      "recorded_at": 1755780058,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 543823
+    },
+    {
+      "recorded_at": 1755780059,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 543824
+    },
+    {
+      "recorded_at": 1755781502,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 546768
+    },
+    {
+      "recorded_at": 1755781503,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 546769
+    },
+    {
+      "recorded_at": 1755781503,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 546770
+    },
+    {
+      "recorded_at": 1755781505,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 546771
+    },
+    {
+      "recorded_at": 1755781505,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 546772
+    },
+    {
+      "recorded_at": 1755781506,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 546773
+    },
+    {
+      "recorded_at": 1755781506,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 546774
+    },
+    {
+      "recorded_at": 1755781506,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 546775
+    },
+    {
+      "recorded_at": 1755781508,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 546776
+    },
+    {
+      "recorded_at": 1755783635,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 550704
+    },
+    {
+      "recorded_at": 1755783635,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 550705
+    },
+    {
+      "recorded_at": 1755783635,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 550706
+    },
+    {
+      "recorded_at": 1755785137,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 553650
+    },
+    {
+      "recorded_at": 1755785137,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 553651
+    },
+    {
+      "recorded_at": 1755785137,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 553652
+    },
+    {
+      "recorded_at": 1755785139,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 553653
+    },
+    {
+      "recorded_at": 1755785139,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 553654
+    },
+    {
+      "recorded_at": 1755785139,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 553655
+    },
+    {
+      "recorded_at": 1755785140,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 553656
+    },
+    {
+      "recorded_at": 1755785140,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 553657
+    },
+    {
+      "recorded_at": 1755785141,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 553658
+    },
+    {
+      "recorded_at": 1755787110,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 557582
+    },
+    {
+      "recorded_at": 1755787110,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 557583
+    },
+    {
+      "recorded_at": 1755787110,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 557584
+    },
+    {
+      "recorded_at": 1755788567,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 560735
+    },
+    {
+      "recorded_at": 1755788568,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 560736
+    },
+    {
+      "recorded_at": 1755788568,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 560737
+    },
+    {
+      "recorded_at": 1755788569,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 560738
+    },
+    {
+      "recorded_at": 1755788570,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 560739
+    },
+    {
+      "recorded_at": 1755788570,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 560740
+    },
+    {
+      "recorded_at": 1755788570,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 560741
+    },
+    {
+      "recorded_at": 1755788570,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 560742
+    },
+    {
+      "recorded_at": 1755788571,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 560743
+    },
+    {
+      "recorded_at": 1755790385,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 564672
+    },
+    {
+      "recorded_at": 1755790385,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 564673
+    },
+    {
+      "recorded_at": 1755790385,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 564674
+    },
+    {
+      "recorded_at": 1755791654,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 567636
+    },
+    {
+      "recorded_at": 1755791654,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 567637
+    },
+    {
+      "recorded_at": 1755791654,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 567638
+    },
+    {
+      "recorded_at": 1755791655,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 567639
+    },
+    {
+      "recorded_at": 1755791655,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 567640
+    },
+    {
+      "recorded_at": 1755791655,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 567641
+    },
+    {
+      "recorded_at": 1755791656,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 567642
+    },
+    {
+      "recorded_at": 1755791656,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 567643
+    },
+    {
+      "recorded_at": 1755791657,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 567644
+    },
+    {
+      "recorded_at": 1755793410,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 571572
+    },
+    {
+      "recorded_at": 1755793410,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 571573
+    },
+    {
+      "recorded_at": 1755793410,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 571574
+    },
+    {
+      "recorded_at": 1756281237,
+      "by": 4081,
+      "tag": "import_7663",
+      "op": "remove",
+      "kind": "edge",
+      "collection": "organizations",
+      "value": 44
+    },
+    {
+      "recorded_at": 1757207183,
+      "by": 2839,
+      "tag": "product_update_product_pricing_history_created",
+      "op": "set",
+      "kind": "attribute",
+      "source": "4996",
+      "field": "averageSalesPrice",
+      "value": 1484
+    },
+    {
+      "recorded_at": 1757207183,
+      "by": 2839,
+      "tag": "product_update_product_pricing_history_created",
+      "op": "set",
+      "kind": "attribute",
+      "source": "4996",
+      "field": "medianSalesPrice",
+      "value": 1566
+    },
+    {
+      "recorded_at": 1757207183,
+      "by": 2839,
+      "tag": "product_update_product_pricing_history_created",
+      "op": "set",
+      "kind": "attribute",
+      "source": "4996",
+      "field": "minimumSalesPrice",
+      "value": 995
+    },
+    {
+      "recorded_at": 1757207183,
+      "by": 2839,
+      "tag": "product_update_product_pricing_history_created",
+      "op": "set",
+      "kind": "attribute",
+      "source": "4996",
+      "field": "maximumSalesPrice",
+      "value": 1650
+    },
+    {
+      "recorded_at": 1757812698,
+      "by": 2839,
+      "tag": "product_update_product_pricing_history_created",
+      "op": "set",
+      "kind": "attribute",
+      "source": "4996",
+      "field": "averageSalesPrice",
+      "value": 1469
+    },
+    {
+      "recorded_at": 1757812698,
+      "by": 2839,
+      "tag": "product_update_product_pricing_history_created",
+      "op": "set",
+      "kind": "attribute",
+      "source": "4996",
+      "field": "medianSalesPrice",
+      "value": 1566
+    },
+    {
+      "recorded_at": 1757812698,
+      "by": 2839,
+      "tag": "product_update_product_pricing_history_created",
+      "op": "set",
+      "kind": "attribute",
+      "source": "4996",
+      "field": "minimumSalesPrice",
+      "value": 966
+    },
+    {
+      "recorded_at": 1757812698,
+      "by": 2839,
+      "tag": "product_update_product_pricing_history_created",
+      "op": "set",
+      "kind": "attribute",
+      "source": "4996",
+      "field": "maximumSalesPrice",
+      "value": 1650
+    },
+    {
+      "recorded_at": 1758802768,
+      "by": 2839,
+      "tag": "product_update_public_page_identifier",
+      "op": "set",
+      "kind": "attribute",
+      "field": "publicPageIdentifier",
+      "value": "d56e1c4a-385d-4951-ad44-d3052af68d02-1758802768"
+    },
+    {
+      "recorded_at": 1759020771,
+      "by": 2839,
+      "tag": "product_update_product_pricing_history_created",
+      "op": "set",
+      "kind": "attribute",
+      "source": "4996",
+      "field": "averageSalesPrice",
+      "value": 1471
+    },
+    {
+      "recorded_at": 1759020771,
+      "by": 2839,
+      "tag": "product_update_product_pricing_history_created",
+      "op": "set",
+      "kind": "attribute",
+      "source": "4996",
+      "field": "medianSalesPrice",
+      "value": 1566
+    },
+    {
+      "recorded_at": 1759020771,
+      "by": 2839,
+      "tag": "product_update_product_pricing_history_created",
+      "op": "set",
+      "kind": "attribute",
+      "source": "4996",
+      "field": "minimumSalesPrice",
+      "value": 944
+    },
+    {
+      "recorded_at": 1759020771,
+      "by": 2839,
+      "tag": "product_update_product_pricing_history_created",
+      "op": "set",
+      "kind": "attribute",
+      "source": "4996",
+      "field": "maximumSalesPrice",
+      "value": 1650
+    },
+    {
+      "recorded_at": 1759624847,
+      "by": 2839,
+      "tag": "product_update_product_pricing_history_created",
+      "op": "set",
+      "kind": "attribute",
+      "source": "4996",
+      "field": "averageSalesPrice",
+      "value": 1467
+    },
+    {
+      "recorded_at": 1759624847,
+      "by": 2839,
+      "tag": "product_update_product_pricing_history_created",
+      "op": "set",
+      "kind": "attribute",
+      "source": "4996",
+      "field": "minimumSalesPrice",
+      "value": 923
+    },
+    {
+      "recorded_at": 1760665229,
+      "by": 4573,
+      "tag": "product_update_auto_link",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 590622
+    },
+    {
+      "recorded_at": 1760665231,
+      "by": 4573,
+      "tag": "product_update_auto_link",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 590623
+    },
+    {
+      "recorded_at": 1760665233,
+      "by": 4573,
+      "tag": "product_update_auto_link",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 590624
+    },
+    {
+      "recorded_at": 1760834623,
+      "by": 2839,
+      "tag": "product_update_product_pricing_history_created",
+      "op": "set",
+      "kind": "attribute",
+      "source": "4996",
+      "field": "averageSalesPrice",
+      "value": 1430
+    },
+    {
+      "recorded_at": 1760834623,
+      "by": 2839,
+      "tag": "product_update_product_pricing_history_created",
+      "op": "set",
+      "kind": "attribute",
+      "source": "4996",
+      "field": "minimumSalesPrice",
+      "value": 926
+    },
+    {
+      "recorded_at": 1761439584,
+      "by": 2839,
+      "tag": "product_update_product_pricing_history_created",
+      "op": "set",
+      "kind": "attribute",
+      "source": "4996",
+      "field": "averageSalesPrice",
+      "value": 1424
+    },
+    {
+      "recorded_at": 1761439584,
+      "by": 2839,
+      "tag": "product_update_product_pricing_history_created",
+      "op": "set",
+      "kind": "attribute",
+      "source": "4996",
+      "field": "minimumSalesPrice",
+      "value": 931
+    },
+    {
+      "recorded_at": 1761940852,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 574602
+    },
+    {
+      "recorded_at": 1761940853,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 574603
+    },
+    {
+      "recorded_at": 1761940854,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 574606
+    },
+    {
+      "recorded_at": 1762043487,
+      "by": 2839,
+      "tag": "product_update_product_pricing_history_created",
+      "op": "set",
+      "kind": "attribute",
+      "source": "4996",
+      "field": "averageSalesPrice",
+      "value": 1418
+    },
+    {
+      "recorded_at": 1762184803,
+      "by": 4081,
+      "tag": "import_7964",
+      "op": "set",
+      "kind": "attribute",
+      "source": "1035",
+      "field": "tradeInRefundValue",
+      "value": null
+    },
+    {
+      "recorded_at": 1762286421,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 590622
+    },
+    {
+      "recorded_at": 1762545609,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 590623
+    },
+    {
+      "recorded_at": 1762648255,
+      "by": 2839,
+      "tag": "product_update_product_pricing_history_created",
+      "op": "set",
+      "kind": "attribute",
+      "source": "4996",
+      "field": "averageSalesPrice",
+      "value": 1397
+    },
+    {
+      "recorded_at": 1762648255,
+      "by": 2839,
+      "tag": "product_update_product_pricing_history_created",
+      "op": "set",
+      "kind": "attribute",
+      "source": "4996",
+      "field": "medianSalesPrice",
+      "value": 1548
+    },
+    {
+      "recorded_at": 1762648255,
+      "by": 2839,
+      "tag": "product_update_product_pricing_history_created",
+      "op": "set",
+      "kind": "attribute",
+      "source": "4996",
+      "field": "minimumSalesPrice",
+      "value": 938
+    },
+    {
+      "recorded_at": 1763252607,
+      "by": 2839,
+      "tag": "product_update_product_pricing_history_created",
+      "op": "set",
+      "kind": "attribute",
+      "source": "4996",
+      "field": "averageSalesPrice",
+      "value": 1386
+    },
+    {
+      "recorded_at": 1763252607,
+      "by": 2839,
+      "tag": "product_update_product_pricing_history_created",
+      "op": "set",
+      "kind": "attribute",
+      "source": "4996",
+      "field": "medianSalesPrice",
+      "value": 1530
+    },
+    {
+      "recorded_at": 1763252607,
+      "by": 2839,
+      "tag": "product_update_product_pricing_history_created",
+      "op": "set",
+      "kind": "attribute",
+      "source": "4996",
+      "field": "minimumSalesPrice",
+      "value": 941
+    },
+    {
+      "recorded_at": 1763856751,
+      "by": 2839,
+      "tag": "product_update_product_pricing_history_created",
+      "op": "set",
+      "kind": "attribute",
+      "source": "4996",
+      "field": "averageSalesPrice",
+      "value": 1372
+    },
+    {
+      "recorded_at": 1763856751,
+      "by": 2839,
+      "tag": "product_update_product_pricing_history_created",
+      "op": "set",
+      "kind": "attribute",
+      "source": "4996",
+      "field": "medianSalesPrice",
+      "value": 1485
+    },
+    {
+      "recorded_at": 1764463386,
+      "by": 2839,
+      "tag": "product_update_product_pricing_history_created",
+      "op": "set",
+      "kind": "attribute",
+      "source": "4996",
+      "field": "averageSalesPrice",
+      "value": 1367
+    },
+    {
+      "recorded_at": 1765068629,
+      "by": 2839,
+      "tag": "product_update_product_pricing_history_created",
+      "op": "set",
+      "kind": "attribute",
+      "source": "4996",
+      "field": "averageSalesPrice",
+      "value": 1358
+    },
+    {
+      "recorded_at": 1765895509,
+      "by": 4081,
+      "tag": "import_8135",
+      "op": "set",
+      "kind": "attribute",
+      "source": "1035",
+      "field": "status",
+      "value": "active"
+    },
+    {
+      "recorded_at": 1766193574,
+      "by": 4573,
+      "tag": "product_update_auto_link",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 603284
+    },
+    {
+      "recorded_at": 1766195764,
+      "by": 4573,
+      "tag": "product_update_auto_link",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 603357
+    },
+    {
+      "recorded_at": 1766278608,
+      "by": 2839,
+      "tag": "product_update_product_pricing_history_created",
+      "op": "set",
+      "kind": "attribute",
+      "source": "4996",
+      "field": "minimumSalesPrice",
+      "value": 948
+    },
+    {
+      "recorded_at": 1766278608,
+      "by": 2839,
+      "tag": "product_update_product_pricing_history_created",
+      "op": "set",
+      "kind": "attribute",
+      "source": "4996",
+      "field": "averageSalesPrice",
+      "value": 1350
+    },
+    {
+      "recorded_at": 1766278608,
+      "by": 2839,
+      "tag": "product_update_product_pricing_history_created",
+      "op": "set",
+      "kind": "attribute",
+      "source": "4996",
+      "field": "medianSalesPrice",
+      "value": 1402
+    },
+    {
+      "recorded_at": 1766881948,
+      "by": 2839,
+      "tag": "product_update_product_pricing_history_created",
+      "op": "set",
+      "kind": "attribute",
+      "source": "4996",
+      "field": "averageSalesPrice",
+      "value": 1338
+    },
+    {
+      "recorded_at": 1767470419,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 574607
+    },
+    {
+      "recorded_at": 1767470441,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 578552
+    },
+    {
+      "recorded_at": 1767485958,
+      "by": 2839,
+      "tag": "product_update_product_pricing_history_created",
+      "op": "set",
+      "kind": "attribute",
+      "source": "4996",
+      "field": "averageSalesPrice",
+      "value": 1332
+    },
+    {
+      "recorded_at": 1767816085,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 603284
+    },
+    {
+      "recorded_at": 1767816109,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 603357
+    },
+    {
+      "recorded_at": 1768092144,
+      "by": 2839,
+      "tag": "product_update_product_pricing_history_created",
+      "op": "set",
+      "kind": "attribute",
+      "source": "4996",
+      "field": "averageSalesPrice",
+      "value": 1329
+    },
+    {
+      "recorded_at": 1768092144,
+      "by": 2839,
+      "tag": "product_update_product_pricing_history_created",
+      "op": "set",
+      "kind": "attribute",
+      "source": "4996",
+      "field": "medianSalesPrice",
+      "value": 1381
+    },
+    {
+      "recorded_at": 1768698244,
+      "by": 2839,
+      "tag": "product_update_product_pricing_history_created",
+      "op": "set",
+      "kind": "attribute",
+      "source": "4996",
+      "field": "minimumSalesPrice",
+      "value": 957
+    },
+    {
+      "recorded_at": 1768698244,
+      "by": 2839,
+      "tag": "product_update_product_pricing_history_created",
+      "op": "set",
+      "kind": "attribute",
+      "source": "4996",
+      "field": "averageSalesPrice",
+      "value": 1328
+    },
+    {
+      "recorded_at": 1768698244,
+      "by": 2839,
+      "tag": "product_update_product_pricing_history_created",
+      "op": "set",
+      "kind": "attribute",
+      "source": "4996",
+      "field": "medianSalesPrice",
+      "value": 1360
+    },
+    {
+      "recorded_at": 1769220339,
+      "by": 4573,
+      "tag": "product_update",
+      "op": "set",
+      "kind": "edge",
+      "source": "44",
+      "collection": "brands",
+      "value": [
+        9
+      ]
+    },
+    {
+      "recorded_at": 1769904559,
+      "by": 2839,
+      "tag": "product_update_product_pricing_history_created",
+      "op": "set",
+      "kind": "attribute",
+      "source": "4996",
+      "field": "averageSalesPrice",
+      "value": 1319
+    },
+    {
+      "recorded_at": 1769904559,
+      "by": 2839,
+      "tag": "product_update_product_pricing_history_created",
+      "op": "set",
+      "kind": "attribute",
+      "source": "4996",
+      "field": "medianSalesPrice",
+      "value": 1320
+    },
+    {
+      "recorded_at": 1770107077,
+      "by": 4269,
+      "tag": "import_8328",
+      "op": "set",
+      "kind": "attribute",
+      "source": "1035",
+      "field": "status",
+      "value": "inactive"
+    },
+    {
+      "recorded_at": 1770509078,
+      "by": 2839,
+      "tag": "product_update_product_pricing_history_created",
+      "op": "set",
+      "kind": "attribute",
+      "source": "4996",
+      "field": "minimumSalesPrice",
+      "value": 966
+    },
+    {
+      "recorded_at": 1770509078,
+      "by": 2839,
+      "tag": "product_update_product_pricing_history_created",
+      "op": "set",
+      "kind": "attribute",
+      "source": "4996",
+      "field": "averageSalesPrice",
+      "value": 1328
+    },
+    {
+      "recorded_at": 1770509078,
+      "by": 2839,
+      "tag": "product_update_product_pricing_history_created",
+      "op": "set",
+      "kind": "attribute",
+      "source": "4996",
+      "field": "medianSalesPrice",
+      "value": 1340
+    },
+    {
+      "recorded_at": 1771114402,
+      "by": 2839,
+      "tag": "product_update_product_pricing_history_created",
+      "op": "set",
+      "kind": "attribute",
+      "source": "4996",
+      "field": "averageSalesPrice",
+      "value": 1318
+    },
+    {
+      "recorded_at": 1771114402,
+      "by": 2839,
+      "tag": "product_update_product_pricing_history_created",
+      "op": "set",
+      "kind": "attribute",
+      "source": "4996",
+      "field": "medianSalesPrice",
+      "value": 1320
+    },
+    {
+      "recorded_at": 1771444803,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "media",
+      "collection": "media",
+      "asset": 590624
+    },
+    {
+      "recorded_at": 1771719195,
+      "by": 2839,
+      "tag": "product_update_product_pricing_history_created",
+      "op": "set",
+      "kind": "attribute",
+      "source": "4996",
+      "field": "averageSalesPrice",
+      "value": 1312
+    },
+    {
+      "recorded_at": 1772324403,
+      "by": 2839,
+      "tag": "product_update_product_pricing_history_created",
+      "op": "set",
+      "kind": "attribute",
+      "source": "4996",
+      "field": "averageSalesPrice",
+      "value": 1307
+    },
+    {
+      "recorded_at": 1772928945,
+      "by": 2839,
+      "tag": "product_update_product_pricing_history_created",
+      "op": "set",
+      "kind": "attribute",
+      "source": "4996",
+      "field": "minimumSalesPrice",
+      "value": 962
+    },
+    {
+      "recorded_at": 1772928945,
+      "by": 2839,
+      "tag": "product_update_product_pricing_history_created",
+      "op": "set",
+      "kind": "attribute",
+      "source": "4996",
+      "field": "averageSalesPrice",
+      "value": 1318
+    },
+    {
+      "recorded_at": 1773657846,
+      "by": 6133,
+      "tag": "product_update_set_medipim_categories",
+      "op": "set",
+      "kind": "edge",
+      "source": "5480",
+      "collection": "medipimCategories",
+      "value": [
+        "medipimCategory-03c6b5d2-d211-4f34-a012-6ce71485be7b"
+      ]
+    },
+    {
+      "recorded_at": 1774138193,
+      "by": 2839,
+      "tag": "product_update_product_pricing_history_created",
+      "op": "set",
+      "kind": "attribute",
+      "source": "4996",
+      "field": "minimumSalesPrice",
+      "value": 964
+    },
+    {
+      "recorded_at": 1774138193,
+      "by": 2839,
+      "tag": "product_update_product_pricing_history_created",
+      "op": "set",
+      "kind": "attribute",
+      "source": "4996",
+      "field": "averageSalesPrice",
+      "value": 1312
+    },
+    {
+      "recorded_at": 1774364273,
+      "by": 4081,
+      "tag": "import_8569",
+      "op": "set",
+      "kind": "attribute",
+      "source": "5480",
+      "field": "packageQuantity",
+      "value": "750"
+    },
+    {
+      "recorded_at": 1774364273,
+      "by": 4081,
+      "tag": "import_8569",
+      "op": "set",
+      "kind": "attribute",
+      "source": "5480",
+      "field": "packagingUnit",
+      "value": "ml"
+    },
+    {
+      "recorded_at": 1774407834,
+      "by": 2839,
+      "tag": "product_update_public_page_identifier",
+      "op": "set",
+      "kind": "attribute",
+      "field": "publicPageIdentifier",
+      "value": "c458cbb0-d79b-43a1-9089-1be7a2b832fa-1774407834"
+    },
+    {
+      "recorded_at": 1775347957,
+      "by": 2839,
+      "tag": "product_update_product_pricing_history_created",
+      "op": "set",
+      "kind": "attribute",
+      "source": "4996",
+      "field": "minimumSalesPrice",
+      "value": 957
+    },
+    {
+      "recorded_at": 1775347957,
+      "by": 2839,
+      "tag": "product_update_product_pricing_history_created",
+      "op": "set",
+      "kind": "attribute",
+      "source": "4996",
+      "field": "averageSalesPrice",
+      "value": 1332
+    },
+    {
+      "recorded_at": 1776557311,
+      "by": 2839,
+      "tag": "product_update_product_pricing_history_created",
+      "op": "set",
+      "kind": "attribute",
+      "source": "4996",
+      "field": "minimumSalesPrice",
+      "value": 953
+    },
+    {
+      "recorded_at": 1776557311,
+      "by": 2839,
+      "tag": "product_update_product_pricing_history_created",
+      "op": "set",
+      "kind": "attribute",
+      "source": "4996",
+      "field": "averageSalesPrice",
+      "value": 1340
+    },
+    {
+      "recorded_at": 1776557311,
+      "by": 2839,
+      "tag": "product_update_product_pricing_history_created",
+      "op": "set",
+      "kind": "attribute",
+      "source": "4996",
+      "field": "medianSalesPrice",
+      "value": 1361
+    },
+    {
+      "recorded_at": 1776698672,
+      "by": 2839,
+      "tag": "product_update_cleanup_indicator_0_stored",
+      "op": "set",
+      "kind": "identity",
+      "source": "1034",
+      "scheme": "eanGtin14",
+      "code": null
+    },
+    {
+      "recorded_at": 1776698673,
+      "by": 2839,
+      "tag": "product_update_cleanup_indicator_0_stored",
+      "op": "set",
+      "kind": "identity",
+      "source": "44",
+      "scheme": "eanGtin14",
+      "code": null
+    },
+    {
+      "recorded_at": 1776698674,
+      "by": 2839,
+      "tag": "product_update_cleanup_indicator_0_stored",
+      "op": "remove",
+      "kind": "identity",
+      "source": "44",
+      "scheme": "gtin",
+      "code": "03282770146004"
+    },
+    {
+      "recorded_at": 1776734398,
+      "by": 4573,
+      "tag": "product_update",
+      "op": "add",
+      "kind": "identity",
+      "source": "44",
+      "scheme": "gtin",
+      "code": "03282770146004"
+    },
+    {
+      "recorded_at": 1776790356,
+      "by": 4081,
+      "tag": "import_8714",
+      "op": "set",
+      "kind": "attribute",
+      "source": "1035",
+      "field": "conservation",
+      "value": "room"
+    },
+    {
+      "recorded_at": 1776906412,
+      "by": 4573,
+      "tag": "product_update_auto_link",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 634766
+    },
+    {
+      "recorded_at": 1776906420,
+      "by": 4573,
+      "tag": "product_update_auto_link",
+      "op": "add",
+      "kind": "media",
+      "collection": "media",
+      "asset": 634767
+    },
+    {
+      "recorded_at": 1776993754,
+      "by": 4573,
+      "tag": "product_update",
+      "op": "remove",
+      "kind": "identity",
+      "source": "44",
+      "scheme": "gtin",
+      "code": "03282770146004"
+    },
+    {
+      "recorded_at": 1777162430,
+      "by": 2839,
+      "tag": "product_update_product_pricing_history_created",
+      "op": "set",
+      "kind": "attribute",
+      "source": "4996",
+      "field": "minimumSalesPrice",
+      "value": 948
+    },
+    {
+      "recorded_at": 1777162430,
+      "by": 2839,
+      "tag": "product_update_product_pricing_history_created",
+      "op": "set",
+      "kind": "attribute",
+      "source": "4996",
+      "field": "averageSalesPrice",
+      "value": 1348
+    },
+    {
+      "recorded_at": 1777162430,
+      "by": 2839,
+      "tag": "product_update_product_pricing_history_created",
+      "op": "set",
+      "kind": "attribute",
+      "source": "4996",
+      "field": "medianSalesPrice",
+      "value": 1402
+    },
+    {
+      "recorded_at": 1777274635,
+      "by": 2839,
+      "tag": "product_update",
+      "op": "set",
+      "kind": "attribute",
+      "source": "1035",
+      "field": "status",
+      "value": "active"
+    },
+    {
+      "recorded_at": 1777766755,
+      "by": 2839,
+      "tag": "product_update_product_pricing_history_created",
+      "op": "set",
+      "kind": "attribute",
+      "source": "4996",
+      "field": "minimumSalesPrice",
+      "value": 942
+    },
+    {
+      "recorded_at": 1777766755,
+      "by": 2839,
+      "tag": "product_update_product_pricing_history_created",
+      "op": "set",
+      "kind": "attribute",
+      "source": "4996",
+      "field": "averageSalesPrice",
+      "value": 1357
+    },
+    {
+      "recorded_at": 1778371551,
+      "by": 2839,
+      "tag": "product_update_product_pricing_history_created",
+      "op": "set",
+      "kind": "attribute",
+      "source": "4996",
+      "field": "minimumSalesPrice",
+      "value": 935
+    },
+    {
+      "recorded_at": 1778371551,
+      "by": 2839,
+      "tag": "product_update_product_pricing_history_created",
+      "op": "set",
+      "kind": "attribute",
+      "source": "4996",
+      "field": "averageSalesPrice",
+      "value": 1366
+    },
+    {
+      "recorded_at": 1778976623,
+      "by": 2839,
+      "tag": "product_update_product_pricing_history_created",
+      "op": "set",
+      "kind": "attribute",
+      "source": "4996",
+      "field": "minimumSalesPrice",
+      "value": 924
+    },
+    {
+      "recorded_at": 1778976623,
+      "by": 2839,
+      "tag": "product_update_product_pricing_history_created",
+      "op": "set",
+      "kind": "attribute",
+      "source": "4996",
+      "field": "averageSalesPrice",
+      "value": 1376
+    }
+  ]
+}
