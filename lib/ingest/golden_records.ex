@@ -1,0 +1,97 @@
+# lib/ingest/golden_records.ex — project the re-derived log into golden records (gr-8r6).
+#
+# Stage 5 of the legacy-medipim ingest, the PRIMARY deliverable, after envelope_loader (gr-n8i),
+# claim_mapping (gr-beo) and rederive (gr-chq). Per the design
+# (docs/plans/2026-06-05-legacy-history-ingest-design.md, "Ingest pipeline" step 5): fold the
+# re-derived log into customer-facing golden records — products ▸ variants ▸ {codes, resolved
+# attributes (survivorship), CNK canonical+alias, categories, media} — plus the pass-through
+# go-forward `log` so the change feed / lookups stay available downstream.
+#
+# WHY Catalog.project, NOT History.now (this is the load-bearing choice for this bead) ─────────
+# The ingest log carries INTEGER Unix-epoch timestamps (recorded_at / valid_from are ints like
+# 1535726805 — see envelope_loader.ex), because the legacy medipim dump is epoch-stamped and the
+# ingest does not (yet) convert them. The engine's `History.*` projections AND `Api.get`/`Api.lookup`
+# filter via `Date.compare/2`, which RAISES on integers. So we project DIRECTLY through
+# `Catalog.project(members, live_claims, priority, overrides)`, which is Date-free: it folds the
+# members + the CURRENT claim view, with recency decided by the integer `order` field (stamped by
+# ClaimMapping/Rederivation), never by a timestamp comparison. Full temporal projection /
+# time-travel over the ingest log is a KNOWN follow-up ("Temporal pass — follow-up, not v1"); it is
+# deliberately out of scope here and we do NOT convert timestamps in the merged engine modules.
+#
+# SAFE engine entrypoints used (all Date-free): `Catalog.project` for the snapshot, and
+# `PublicId.canonical(:cnk, key, log, priority)` to enrich each variant's CNK (canonical + aliases).
+#
+# PRIORITY — a PARAMETER, with a permissive default. The ingest has no canonical medipim
+# source-priority table yet (out of scope), so the default `Priority.new(%{}, [])` leaves all
+# sources unranked: they tie, and a genuine multi-source disagreement on a field surfaces honestly
+# as `status: :needs_review` rather than silently picking a winner. Callers that DO have a ranking
+# pass their own `%Priority{}`.
+#
+# MEDIA is EMPTY by design: claim_mapping (gr-beo) does not emit media claims yet (a documented
+# gap), so `resolve_media` yields `[]` for every variant. That is expected, not a bug.
+#
+# SCOPE BOUNDARY: this bead produces ONLY the projection. It does NOT build the LegacyXref /
+# legacy⟷SK map (gr-0c2), nor the demo script / synthetic fixtures (gr-bxf).
+
+defmodule GoldenRecords do
+  # No steward overrides in the PoC — the ingest mints fresh keys and has no human-resolved
+  # conflicts to replay, so both override maps are empty.
+  @no_overrides %{attr: %{}, product: %{}}
+
+  @doc """
+  Project a `%{log, ledger}` re-derivation result (the output of `Rederivation.run/2` or
+  `Rederivation.from_claims/2`) into golden records.
+
+  Returns `%{records: [...], log: log}`, where `records` is a list of products, each
+  `%{product: <legacy product label>, variants: [variant]}`, and each `variant` is
+
+      %{
+        key: "SK_n",                         # surrogate key
+        codes: [canonicalized {scheme, value}, ...],
+        cnk: %{canonical: {:cnk, "..."}, aliases: [...]} | nil,
+        attributes: [{field, %{value, winner, status, candidates}}, ...],  # survivorship-resolved
+        product: %{value, winner, status, candidates},
+        categories: [{collection, value}, ...],
+        media: []                            # always [] — see moduledoc
+      }
+
+  `log` is passed through unchanged so downstream callers keep the engine's read layer
+  (`Api.resolve_key/2`, `Api.changes_since/2`, `PublicId.collisions/2`).
+
+  `priority` is a `%Priority{}`; it defaults to the permissive `Priority.new(%{}, [])` (see
+  moduledoc) so unranked-source conflicts surface as `:needs_review`.
+  """
+  def project(rederivation, priority \\ default_priority())
+
+  def project(%{log: log, ledger: ledger}, %Priority{} = priority) do
+    records =
+      ledger.members
+      |> Catalog.project(live_claims(log), priority, @no_overrides)
+      |> Enum.map(fn %{product: product, variants: variants} ->
+        %{product: product, variants: Enum.map(variants, &enrich(&1, log, priority))}
+      end)
+
+    %{records: records, log: log}
+  end
+
+  @doc """
+  Convenience entrypoint: re-derive `envelopes` at instant `at`, then project. Equivalent to
+  `envelopes |> Rederivation.run(at) |> project(priority)`.
+  """
+  def from_envelopes(envelopes, at, priority \\ default_priority()) when is_list(envelopes) do
+    envelopes |> Rederivation.run(at) |> project(priority)
+  end
+
+  @doc "The permissive default priority — every source unranked, so conflicts tie (see moduledoc)."
+  def default_priority, do: Priority.new(%{}, [])
+
+  # Attach the variant's customer-facing CNK (canonical + aliases) from the same log/priority.
+  defp enrich(variant, log, priority) do
+    Map.put(variant, :cnk, PublicId.canonical(:cnk, variant.key, log, priority))
+  end
+
+  # The CURRENT ClaimAsserted view of the log — what Catalog.project folds over.
+  defp live_claims(log) do
+    log |> Enum.filter(&match?(%Events.ClaimAsserted{}, &1)) |> Substrate.current()
+  end
+end
