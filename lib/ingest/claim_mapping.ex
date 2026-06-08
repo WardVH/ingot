@@ -1,9 +1,4 @@
-# ingest/claim_mapping.ex — fold listings + build engine claims from HistoryEnvelopes (bead gr-beo).
-#
-# Load it from a script with (order matters — it calls into the engine + loader):
-#   Code.require_file("golden_record_core.ex", __DIR__)        # Codes, Substrate, Events
-#   Code.require_file("ingest/envelope_loader.ex", __DIR__)    # HistoryEnvelope
-#   Code.require_file("ingest/claim_mapping.ex", __DIR__)
+# lib/ingest/claim_mapping.ex — fold listings + build engine claims from HistoryEnvelopes (gr-beo).
 #
 # Stage 2 of the legacy-medipim ingest. Takes the decoded-but-unresolved envelopes (gr-n8i) and
 # produces the engine's claim log + the `shared` code set, ready for clustering/reconcile (gr-chq:
@@ -67,7 +62,13 @@ defmodule ClaimMapping do
 
     identity =
       for {{e, s} = k, set} <- listing_codes do
-        Substrate.claim(s, :identity, %{ref: "#{e}:#{s}", codes: MapSet.to_list(set)}, folded[k].last_at, folded[k].last_at)
+        Substrate.claim(
+          s,
+          :identity,
+          %{ref: "#{e}:#{s}", codes: MapSet.to_list(set)},
+          folded[k].last_at,
+          folded[k].last_at
+        )
       end
 
     grouping =
@@ -181,7 +182,7 @@ defmodule ClaimMapping do
     Enum.find(codes, &match?({:cnk, _}, &1)) ||
       Enum.find(codes, &(match?({:gtin, _}, &1) and not Codes.restricted?(&1))) ||
       Enum.find(codes, &match?({:gtin, _}, &1)) ||
-      (codes |> Enum.sort() |> List.first())
+      codes |> Enum.sort() |> List.first()
   end
 
   defp field_dim(ev) do

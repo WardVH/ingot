@@ -1,9 +1,7 @@
-# ingest/envelope_loader.ex — load + validate HistoryEnvelope JSON into internal structs.
-#
-# Load it from a script with:  Code.require_file("envelope_loader.ex", __DIR__)
+# lib/ingest/envelope_loader.ex — load + validate HistoryEnvelope JSON into internal structs.
 #
 # This is the first stage of the legacy-medipim ingest (bead gr-n8i). It parses the
-# decoded-but-unresolved HistoryEnvelope (contract C — see ingest/HISTORY_ENVELOPE.md) into
+# decoded-but-unresolved HistoryEnvelope (contract C — see docs/HISTORY_ENVELOPE.md) into
 # %HistoryEnvelope{} / %HistoryEnvelope.Event{} structs and validates the envelope is
 # well-formed: a supported schema_version, and every event a known op + kind with its required
 # payload keys.

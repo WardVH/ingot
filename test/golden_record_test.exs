@@ -1,11 +1,8 @@
 # golden_record_test.exs — ExUnit suite for the engine (golden_record_core.ex).
 #
-#   Run:  elixir golden_record_test.exs
+#   Run:  mix test
 #
-# No mix project needed: we require the core, start ExUnit, and let it autorun on exit.
-
-Code.require_file("golden_record_core.ex", __DIR__)
-ExUnit.start()
+# Engine modules are compiled from lib/; ExUnit is started in test/test_helper.exs.
 
 defmodule CodesTest do
   use ExUnit.Case, async: true
@@ -198,16 +195,25 @@ defmodule EngineTest do
 
   describe "the steward merge gate" do
     test "a bridge across two established keys is PROPOSED, not auto-merged" do
-      {c1, o} = stamp([
-        claim(:supplier, :identity, %{ref: "A", codes: [{:gtin, "0111"}]}, @d1, @d1),
-        claim(:supplier, :identity, %{ref: "B", codes: [{:gtin, "0222"}]}, @d1, @d1)
-      ], 1)
+      {c1, o} =
+        stamp(
+          [
+            claim(:supplier, :identity, %{ref: "A", codes: [{:gtin, "0111"}]}, @d1, @d1),
+            claim(:supplier, :identity, %{ref: "B", codes: [{:gtin, "0222"}]}, @d1, @d1)
+          ],
+          1
+        )
 
       res1 = IdentityLedger.decide(IdentityLedger.new(), {:reconcile, clusters(c1), @d1})
       {res1, o} = stamp(res1, o)
       ledger1 = fold(res1, IdentityLedger.new())
 
-      {c2, o} = stamp([claim(:scraper, :identity, %{ref: "X", codes: [{:gtin, "0111"}, {:gtin, "0222"}]}, @d2, @d2)], o)
+      {c2, o} =
+        stamp(
+          [claim(:scraper, :identity, %{ref: "X", codes: [{:gtin, "0111"}, {:gtin, "0222"}]}, @d2, @d2)],
+          o
+        )
+
       res2 = IdentityLedger.decide(ledger1, {:reconcile, clusters(c1 ++ c2), @d2})
       {res2, _} = stamp(res2, o)
       ledger2 = fold(res2, ledger1)
@@ -231,10 +237,17 @@ defmodule EngineTest do
       assert map_size(ledger1.members) == 1, "without the share, 7777 wrongly bridges them"
 
       shared = Stewardship.shared_codes(Stewardship.mark_shared({:gtin, "7777"}, :alice, @d2))
-      res2 = IdentityLedger.decide(ledger1, {:reconcile, Cluster.variants(Substrate.current(c), shared), shared, @d2})
+
+      res2 =
+        IdentityLedger.decide(
+          ledger1,
+          {:reconcile, Cluster.variants(Substrate.current(c), shared), shared, @d2}
+        )
+
       ledger2 = fold(res2, ledger1)
 
       assert map_size(ledger2.members) == 2
+
       assert Enum.all?(Map.values(ledger2.members), &MapSet.member?(&1, {:gtin, "7777"})),
              "both resulting variants legitimately carry the shared code"
     end
@@ -245,7 +258,13 @@ defmodule EngineTest do
       phase1 = [
         claim(:supplier, :identity, %{ref: "S", codes: [{:gtin, "0111"}, {:upc, "9111"}]}, @d1, @d1),
         claim(:supplier, :grouping, %{code: {:gtin, "0111"}, product: {:mpn, "P1"}}, @d1, @d1),
-        claim(:manufacturer, :media, %{asset: {:dam, "IMG"}, target: {:upc, "9111"}, role: :primary, uri: "cdn://x"}, @d1, @d1)
+        claim(
+          :manufacturer,
+          :media,
+          %{asset: {:dam, "IMG"}, target: {:upc, "9111"}, role: :primary, uri: "cdn://x"},
+          @d1,
+          @d1
+        )
       ]
 
       {c1, o} = stamp(phase1, 1)
@@ -277,12 +296,20 @@ defmodule EngineTest do
         claim(:supplier, :identity, %{ref: "A", codes: [{:gtin, "0111"}]}, @d1, @d1),
         claim(:manufacturer, :attribute, %{code: {:gtin, "0111"}, field: :weight_g, value: 255}, @d1, @d1),
         # back-dated correction: effective Jan 1, but only recorded on @d2
-        claim(:manufacturer, :attribute, %{code: {:gtin, "0111"}, field: :weight_g, value: 250}, ~D[2026-01-01], @d2)
+        claim(
+          :manufacturer,
+          :attribute,
+          %{code: {:gtin, "0111"}, field: :weight_g, value: 250},
+          ~D[2026-01-01],
+          @d2
+        )
       ]
 
       {log, _} = resolve(claims)
 
-      as_of_d1 = History.project_as_of(log, @d1, @priority) |> find_variant({:gtin, "0111"}) |> attr(:weight_g)
+      as_of_d1 =
+        History.project_as_of(log, @d1, @priority) |> find_variant({:gtin, "0111"}) |> attr(:weight_g)
+
       now = History.now(log, @priority) |> find_variant({:gtin, "0111"}) |> attr(:weight_g)
       assert as_of_d1.value == 255
       assert now.value == 250
@@ -404,7 +431,12 @@ defmodule EngineTest do
 
       # marking an identity-grade code shared is forbidden — do it to prove the guard fires
       shared = Stewardship.shared_codes(Stewardship.mark_shared({:cnk, "9"}, :rogue, @d2))
-      res2 = IdentityLedger.decide(ledger1, {:reconcile, Cluster.variants(Substrate.current(c), shared), shared, @d2})
+
+      res2 =
+        IdentityLedger.decide(
+          ledger1,
+          {:reconcile, Cluster.variants(Substrate.current(c), shared), shared, @d2}
+        )
 
       assert [%{code: {:cnk, "9"}, keys: keys}] = PublicId.collisions(:cnk, c ++ res1 ++ res2)
       assert length(keys) == 2

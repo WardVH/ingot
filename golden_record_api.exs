@@ -3,9 +3,7 @@
 #   2. CNK public identity — two sources, two CNKs, one product -> canonical + alias, resolve by either
 #   3. The read API       — resolve by code, identity status, a merge redirect, the change feed
 #
-#   Run:  elixir golden_record_api.exs
-
-Code.require_file("golden_record_core.ex", __DIR__)
+#   Run:  mix run golden_record_api.exs
 
 defmodule ApiDemo do
   import Substrate, only: [claim: 5]
@@ -69,7 +67,11 @@ defmodule ApiDemo do
     IO.puts("  surrogate key (internal) : #{key}")
     IO.puts("  canonical CNK (by priority): #{lc(canon)}")
     IO.puts("  alias CNKs                : #{Enum.map_join(aliases, ", ", &lc/1)}")
-    IO.puts("  lookup by the ALIAS cnk:0222 -> resolves to #{Api.resolve_key(log, {:cnk, "0222"})} (same product)")
+
+    IO.puts(
+      "  lookup by the ALIAS cnk:0222 -> resolves to #{Api.resolve_key(log, {:cnk, "0222"})} (same product)"
+    )
+
     IO.puts("  identity-grade uniqueness check: #{inspect(PublicId.collisions(:cnk, log))}")
   end
 
@@ -96,7 +98,10 @@ defmodule ApiDemo do
 
     IO.puts("\n  (steward approves merge SK_1 + SK_2 -> SK_1)\n")
     IO.puts("  GET /product/SK_2       -> #{inspect(Api.identity_status(log2, "SK_2"))}  (301 redirect)")
-    IO.puts("  GET /resolve?gtin=0222  -> key #{Api.resolve_key(log2, {:gtin, "0222"})}  (code still lands correctly)")
+
+    IO.puts(
+      "  GET /resolve?gtin=0222  -> key #{Api.resolve_key(log2, {:gtin, "0222"})}  (code still lands correctly)"
+    )
 
     feed = Api.changes_since(log2, length(log))
     IO.puts("\n  change feed since cursor #{length(log)}:")
@@ -124,7 +129,9 @@ defmodule ApiDemo do
     golden
     |> Enum.flat_map(& &1.variants)
     |> Enum.each(fn v ->
-      IO.puts("    variant #{v.key} [#{Enum.map_join(v.codes, ", ", &lc/1)}]  categories: #{Enum.map_join(v.categories, ", ", &lc/1)}")
+      IO.puts(
+        "    variant #{v.key} [#{Enum.map_join(v.codes, ", ", &lc/1)}]  categories: #{Enum.map_join(v.categories, ", ", &lc/1)}"
+      )
     end)
   end
 

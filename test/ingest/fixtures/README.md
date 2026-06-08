@@ -14,7 +14,7 @@ wash gel), used as the PoC fixture for the ingest pipeline. It is **real data**,
 Regenerate the envelope after editing decode rules:
 
 ```bash
-elixir ingest/fixtures/gen_422156.exs
+elixir test/ingest/fixtures/gen_422156.exs
 ```
 
 ### Provenance

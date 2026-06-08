@@ -1,6 +1,4 @@
-# golden_record_core.ex — the DDD + event-sourced engine, as a reusable library (no demo, no run).
-#
-# Load it from a script with:  Code.require_file("golden_record_core.ex", __DIR__)
+# lib/golden_record_core.ex — the DDD + event-sourced engine (compiled by Mix; no demo, no run).
 #
 # Contexts: Ingestion (Substrate) · Identity Resolution (Cluster + IdentityLedger) ·
 #           Stewardship · Catalog (read) · History (time-travel/lineage)
@@ -121,7 +119,13 @@ defmodule Substrate do
   # Every ingested code is canonicalized here so equivalent representations (EAN-13 vs GTIN-14,
   # UPC vs its EAN-13 form, a GTIN-8 vs its zero-padded width) collapse to one identity.
   def claim(source, kind, data, valid_from, recorded_at),
-    do: %ClaimAsserted{source: source, kind: kind, data: normalize(kind, data), valid_from: valid_from, recorded_at: recorded_at}
+    do: %ClaimAsserted{
+      source: source,
+      kind: kind,
+      data: normalize(kind, data),
+      valid_from: valid_from,
+      recorded_at: recorded_at
+    }
 
   defp normalize(:identity, %{codes: codes} = d), do: %{d | codes: Enum.map(codes, &Codes.canonicalize/1)}
   defp normalize(:grouping, %{code: c} = d), do: %{d | code: Codes.canonicalize(c)}
@@ -137,7 +141,9 @@ defmodule Substrate do
   defp slot(%ClaimAsserted{source: s, kind: :grouping, data: %{code: c}}), do: {s, :grouping, c}
   defp slot(%ClaimAsserted{source: s, kind: :attribute, data: %{code: c, field: f}}), do: {s, :attr, c, f}
   defp slot(%ClaimAsserted{source: s, kind: :media, data: %{asset: a, target: t}}), do: {s, :media, a, t}
-  defp slot(%ClaimAsserted{source: s, kind: :member_of, data: %{member_code: m, collection: c}}), do: {s, :member_of, m, c}
+
+  defp slot(%ClaimAsserted{source: s, kind: :member_of, data: %{member_code: m, collection: c}}),
+    do: {s, :member_of, m, c}
 
   def current(claims) do
     claims
@@ -164,7 +170,8 @@ defmodule Survivorship do
     |> Enum.filter(&MapSet.member?(codes, &1.data.code))
     |> Enum.group_by(& &1.data.field)
     |> Enum.map(fn {field, cs} ->
-      {field, decide(field, Enum.map(cs, &%{source: &1.source, value: &1.data.value, order: &1.order}), priority)}
+      {field,
+       decide(field, Enum.map(cs, &%{source: &1.source, value: &1.data.value, order: &1.order}), priority)}
     end)
   end
 
@@ -177,7 +184,10 @@ defmodule Survivorship do
     top = Priority.rank(priority, dimension, winner.source)
 
     distinct =
-      latest |> Enum.filter(&(Priority.rank(priority, dimension, &1.source) == top)) |> Enum.map(& &1.value) |> Enum.uniq()
+      latest
+      |> Enum.filter(&(Priority.rank(priority, dimension, &1.source) == top))
+      |> Enum.map(& &1.value)
+      |> Enum.uniq()
 
     %{
       value: winner.value,
@@ -251,7 +261,8 @@ defmodule IdentityLedger do
             {[{cluster, key} | assigns], Map.put(m, key, cluster), n + 1, [key | minted], proposals}
 
           [key] ->
-            {[{cluster, key} | assigns], Map.update(m, key, cluster, &MapSet.union(&1, cluster)), n, minted, proposals}
+            {[{cluster, key} | assigns], Map.update(m, key, cluster, &MapSet.union(&1, cluster)), n, minted,
+             proposals}
 
           many ->
             # GATED: never auto-merge established keys — propose for steward review.
@@ -283,11 +294,17 @@ defmodule IdentityLedger do
           {Map.put(m, key, keep_cluster), n, [{key, Enum.reverse(into)} | split]}
       end)
 
-    %{minted: Enum.reverse(minted), split: Enum.reverse(split), proposals: Enum.reverse(proposals), members: members}
+    %{
+      minted: Enum.reverse(minted),
+      split: Enum.reverse(split),
+      proposals: Enum.reverse(proposals),
+      members: members
+    }
   end
 
   defp build_events(old_members, outcome, at) do
-    mints = Enum.map(outcome.minted, &%Events.IdentityMinted{key: &1, codes: outcome.members[&1], recorded_at: at})
+    mints =
+      Enum.map(outcome.minted, &%Events.IdentityMinted{key: &1, codes: outcome.members[&1], recorded_at: at})
 
     splits =
       Enum.map(outcome.split, fn {key, into} ->
@@ -308,7 +325,8 @@ defmodule IdentityLedger do
   end
 
   defp keeps_changed(old_members, outcome, at) do
-    skip = MapSet.new(Enum.flat_map(outcome.split, fn {key, into} -> [key | Enum.map(into, &elem(&1, 0))] end))
+    skip =
+      MapSet.new(Enum.flat_map(outcome.split, fn {key, into} -> [key | Enum.map(into, &elem(&1, 0))] end))
 
     for {key, old} <- old_members,
         not MapSet.member?(skip, key),
@@ -360,17 +378,38 @@ defmodule Stewardship do
   end
 
   def resolve_attribute(key, field, value, by, at),
-    do: [%Events.ConflictResolved{subject: {:attr, key, field}, decision: {:pick, value}, by: by, recorded_at: at}]
+    do: [
+      %Events.ConflictResolved{
+        subject: {:attr, key, field},
+        decision: {:pick, value},
+        by: by,
+        recorded_at: at
+      }
+    ]
 
   def reject_merge(keys, by, at),
-    do: [%Events.ConflictResolved{subject: {:merge, Enum.sort(keys)}, decision: :rejected, by: by, recorded_at: at}]
+    do: [
+      %Events.ConflictResolved{
+        subject: {:merge, Enum.sort(keys)},
+        decision: :rejected,
+        by: by,
+        recorded_at: at
+      }
+    ]
 
   def mark_shared(scheme_code, by, at),
     do: [%Events.ConflictResolved{subject: {:code, scheme_code}, decision: :shared, by: by, recorded_at: at}]
 
   @doc "Steward verdict on a code collision: this variant truly belongs to ONE product."
   def resolve_collision(key, product, by, at),
-    do: [%Events.ConflictResolved{subject: {:collision, key}, decision: {:product, product}, by: by, recorded_at: at}]
+    do: [
+      %Events.ConflictResolved{
+        subject: {:collision, key},
+        decision: {:product, product},
+        by: by,
+        recorded_at: at
+      }
+    ]
 
   def approve_merge(members, keys, by, at) do
     [survivor | _] = Enum.sort(keys)
@@ -379,7 +418,12 @@ defmodule Stewardship do
     [
       %Events.IdentitiesMerged{from: Enum.sort(keys), into: survivor, recorded_at: at},
       %Events.IdentityMembersChanged{key: survivor, codes: union, recorded_at: at},
-      %Events.ConflictResolved{subject: {:merge, Enum.sort(keys)}, decision: :approved, by: by, recorded_at: at}
+      %Events.ConflictResolved{
+        subject: {:merge, Enum.sort(keys)},
+        decision: :approved,
+        by: by,
+        recorded_at: at
+      }
     ]
   end
 
@@ -489,7 +533,7 @@ defmodule History do
     overrides = overrides_from(upto)
 
     claims =
-      (for %Events.ClaimAsserted{} = e <- upto, do: e)
+      for(%Events.ClaimAsserted{} = e <- upto, do: e)
       |> Substrate.current()
       |> Enum.filter(&(Date.compare(&1.valid_from, effective_on) != :gt))
 
@@ -497,7 +541,10 @@ defmodule History do
   end
 
   def project_as_of(log, date, priority), do: project_bitemporal(log, date, @far_future, priority)
-  def project_valid_as_of(log, valid_date, priority), do: project_bitemporal(log, @far_future, valid_date, priority)
+
+  def project_valid_as_of(log, valid_date, priority),
+    do: project_bitemporal(log, @far_future, valid_date, priority)
+
   def now(log, priority), do: project_bitemporal(log, @far_future, @far_future, priority)
 
   def lineage(log, key) do
@@ -616,7 +663,10 @@ defmodule PublicId do
 
       _ ->
         idclaims = identity_claims(log)
-        entries = for code <- codes, src <- sources_of(code, idclaims), do: %{source: src, value: code, order: 0}
+
+        entries =
+          for code <- codes, src <- sources_of(code, idclaims), do: %{source: src, value: code, order: 0}
+
         winner = if entries == [], do: hd(codes), else: Survivorship.decide(scheme, entries, priority).value
         %{canonical: winner, aliases: List.delete(codes, winner)}
     end
@@ -632,6 +682,9 @@ defmodule PublicId do
   end
 
   defp sources_of(code, idclaims), do: for(c <- idclaims, code in c.data.codes, do: c.source)
-  defp identity_claims(log), do: (for %Events.ClaimAsserted{kind: :identity} = e <- log, do: e) |> Substrate.current()
+
+  defp identity_claims(log),
+    do: for(%Events.ClaimAsserted{kind: :identity} = e <- log, do: e) |> Substrate.current()
+
   defp ledger(log), do: Enum.reduce(log, IdentityLedger.new(), &IdentityLedger.evolve(&2, &1))
 end

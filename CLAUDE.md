@@ -52,18 +52,35 @@ bd close <id>         # Complete work
 
 ## Build & Test
 
-_Add your build and test commands here_
+A dependency-free **Mix project** (Elixir 1.18+, stdlib only — the built-in `JSON` module avoids a
+`Jason` dependency). Source in `lib/`, ExUnit suites in `test/`, runnable explainers at the root.
 
 ```bash
-# Example:
-# npm install
-# npm test
+mix test                          # run all suites (72 tests)
+mix test --cover                  # with built-in line coverage
+mix format                        # format (also enforced by a hook)
+mix run golden_record_ddd.exs     # a demo (compiles lib/ first); also _api/_stress
+elixir golden_record.exs          # the one standalone explainer (defines its own modules)
 ```
+
+CI runs `mix test` inside the official `elixir` Docker image, matrixed over 1.18 and 1.19
+(`.github/workflows/ci.yml`).
 
 ## Architecture Overview
 
-_Add a brief overview of your project architecture_
+- `lib/golden_record_core.ex` — the engine: flat modules (`Codes`, `Substrate`, `Cluster`,
+  `IdentityLedger`, `Stewardship`, `Catalog`, `History`, `Api`, `PublicId`, …), pure functions,
+  event-sourced. Loaded by Mix; cross-referenced by the ingest.
+- `lib/ingest/` — the legacy-medipim ingest pipeline: `envelope_loader.ex` (gr-n8i: parse/validate
+  the contract-C `HistoryEnvelope`, spec in `docs/HISTORY_ENVELOPE.md`) → `claim_mapping.ex`
+  (gr-beo: fold listings → canonicalize/partition → engine claims) → (next) cluster + reconcile.
+- `test/ingest/fixtures/` — real data, incl. the full delta history of medipim entity `422156`,
+  plus `gen_422156.exs` which regenerates the decoded envelope from the raw dump.
 
 ## Conventions & Patterns
 
-_Add your project-specific conventions here_
+- **No external dependencies.** Reach for the stdlib first (e.g. the built-in `JSON`); adding a Hex
+  dep is a deliberate decision, not a default.
+- **Flat module names** for now (no `GoldenRecord.*` namespace) — a known future follow-up.
+- **Pure functions, no GenServers** — there is no runtime state to manage; the event log is the
+  system of record and every projection is a fold over it.

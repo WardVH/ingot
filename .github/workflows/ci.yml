@@ -16,7 +16,7 @@ jobs:
     runs-on: ubuntu-latest
     # Run inside the official Elixir image — the tag pins Elixir+OTP and is the *same*
     # image you can run locally, e.g.:
-    #   docker run --rm -v "$PWD":/app -w /app elixir:1.18-otp-27 elixir golden_record_test.exs
+    #   docker run --rm -v "$PWD":/app -w /app elixir:1.18-otp-27 mix test
     container: elixir:${{ matrix.elixir }}
     strategy:
       fail-fast: false
@@ -29,10 +29,11 @@ jobs:
         with:
           persist-credentials: false
 
-      # Plain .exs ExUnit scripts: each requires its target, starts ExUnit, and autoruns.
-      # A failing suite exits non-zero, so these steps gate the build.
-      - name: Engine suite
-        run: elixir golden_record_test.exs
+      - name: Install hex + rebar
+        run: mix local.hex --force && mix local.rebar --force
 
-      - name: Ingest — envelope loader suite
-        run: elixir ingest/envelope_loader_test.exs
+      - name: Check formatting
+        run: mix format --check-formatted
+
+      - name: Test (with coverage)
+        run: mix test --cover

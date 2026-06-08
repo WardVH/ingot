@@ -1,12 +1,9 @@
-# ingest/envelope_loader_test.exs — ExUnit suite for the envelope loader (bead gr-n8i).
+# test/ingest/envelope_loader_test.exs — ExUnit suite for the envelope loader (bead gr-n8i).
 #
-#   Run:  elixir ingest/envelope_loader_test.exs
+#   Run:  mix test
 #
-# No mix project: require the loader, start ExUnit, let it autorun on exit. Coverage spans the
-# real 422156 fixture (happy path + every decode edge case) and the validation failure modes.
-
-Code.require_file("envelope_loader.ex", __DIR__)
-ExUnit.start()
+# Coverage spans the real 422156 fixture (happy path + every decode edge case) and the
+# validation failure modes. The loader is compiled from lib/; ExUnit starts in test_helper.
 
 defmodule EnvelopeLoaderTest do
   use ExUnit.Case, async: true
@@ -24,7 +21,7 @@ defmodule EnvelopeLoaderTest do
     test "envelope-level fields", %{env: env} do
       assert env.schema_version == "1"
       assert env.source_system == "medipim-be"
-      assert env.legacy_entity == 422156
+      assert env.legacy_entity == 422_156
       assert env.last_touched_at == 1_778_976_623
       assert env.dropped_meta_count == 819
       assert length(env.events) == 930
@@ -73,7 +70,9 @@ defmodule EnvelopeLoaderTest do
     end
 
     test "eanGtin prefix already stripped in the fixture", %{env: env} do
-      gtin13 = Enum.find(env.events, &(&1.kind == :identity and &1.data.scheme == "eanGtin13" and &1.data.code))
+      gtin13 =
+        Enum.find(env.events, &(&1.kind == :identity and &1.data.scheme == "eanGtin13" and &1.data.code))
+
       assert gtin13.data.code == "3282770146004"
       refute String.contains?(gtin13.data.code, "_")
     end

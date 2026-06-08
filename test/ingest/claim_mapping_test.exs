@@ -1,15 +1,11 @@
-# ingest/claim_mapping_test.exs — ExUnit for the claim mapper (bead gr-beo).
+# test/ingest/claim_mapping_test.exs — ExUnit for the claim mapper (bead gr-beo).
 #
-#   Run:  elixir ingest/claim_mapping_test.exs
+#   Run:  mix test
 #
 # Covers the fold semantics (set/add/remove/delete/clear), canonicalize+partition (shared set),
 # and the claim shapes — against synthetic envelopes AND the real 422156 fixture, driven all the
-# way through the engine (cluster + reconcile) to prove the loop end-to-end.
-
-Code.require_file("../golden_record_core.ex", __DIR__)
-Code.require_file("envelope_loader.ex", __DIR__)
-Code.require_file("claim_mapping.ex", __DIR__)
-ExUnit.start()
+# way through the engine (cluster + reconcile) to prove the loop end-to-end. Modules compiled
+# from lib/; ExUnit starts in test/test_helper.exs.
 
 defmodule ClaimMappingTest do
   use ExUnit.Case, async: true
@@ -29,7 +25,14 @@ defmodule ClaimMappingTest do
   end
 
   defp id(source, op, scheme, code, at),
-    do: %{"recorded_at" => at, "source" => source, "op" => op, "kind" => "identity", "scheme" => scheme, "code" => code}
+    do: %{
+      "recorded_at" => at,
+      "source" => source,
+      "op" => op,
+      "kind" => "identity",
+      "scheme" => scheme,
+      "code" => code
+    }
 
   defp clusters(%{claims: claims, shared: shared}),
     do: Cluster.variants(Substrate.current(claims), shared)
@@ -63,7 +66,9 @@ defmodule ClaimMappingTest do
     end
 
     test "set-null clears the code" do
-      env = envelope(1, [id("A", "set", "eanGtin14", "05012345678900", 10), id("A", "set", "eanGtin14", nil, 20)])
+      env =
+        envelope(1, [id("A", "set", "eanGtin14", "05012345678900", 10), id("A", "set", "eanGtin14", nil, 20)])
+
       assert ClaimMapping.listings([env]) == %{}
     end
 
@@ -107,7 +112,15 @@ defmodule ClaimMappingTest do
         envelope(1, [
           id("A", "set", "cnk", "111", 10),
           id("A", "add", "gtin", "5012345678900", 10),
-          %{"recorded_at" => 20, "source" => "A", "op" => "set", "kind" => "attribute", "field" => "name", "locale" => "fr", "value" => "Crème"}
+          %{
+            "recorded_at" => 20,
+            "source" => "A",
+            "op" => "set",
+            "kind" => "attribute",
+            "field" => "name",
+            "locale" => "fr",
+            "value" => "Crème"
+          }
         ])
 
       attr = Enum.find(ClaimMapping.build([env]).claims, &(&1.kind == :attribute))
@@ -154,15 +167,15 @@ defmodule ClaimMappingTest do
 
     test "org 44 converged: dropped its old EAN, holds CNK + canonical GTIN", %{env: env} do
       l = ClaimMapping.listings([env])
-      assert l[{422156, "44"}] == MapSet.new([{:cnk, "3612173"}, {:gtin, "03282770146004"}])
+      assert l[{422_156, "44"}] == MapSet.new([{:cnk, "3612173"}, {:gtin, "03282770146004"}])
       # the 2018 EAN it later removed must be gone
-      refute MapSet.member?(l[{422156, "44"}], {:gtin, "03282770049374"})
+      refute MapSet.member?(l[{422_156, "44"}], {:gtin, "03282770049374"})
     end
 
     test "org 1035 kept its extra (never-removed) GTIN", %{env: env} do
       l = ClaimMapping.listings([env])
-      assert MapSet.member?(l[{422156, "1035"}], {:gtin, "03282770114577"})
-      assert MapSet.member?(l[{422156, "1035"}], {:cnk, "3612173"})
+      assert MapSet.member?(l[{422_156, "1035"}], {:gtin, "03282770114577"})
+      assert MapSet.member?(l[{422_156, "1035"}], {:cnk, "3612173"})
     end
 
     test "all three listings collapse to ONE surrogate key (legacy was right)", %{env: env} do
