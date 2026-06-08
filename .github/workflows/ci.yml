@@ -1,0 +1,28 @@
+name: CI
+
+on: [push, pull_request]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: Elixir tests (no mix project)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Elixir/OTP
+        uses: erlef/setup-beam@v1
+        with:
+          otp-version: "27"
+          elixir-version: "1.18"
+
+      # Plain .exs scripts — each requires its target, starts ExUnit, and autoruns.
+      # A failing suite exits non-zero, so these steps gate the build.
+      - name: Engine suite
+        run: elixir golden_record_test.exs
+
+      - name: Ingest — envelope loader suite
+        run: elixir ingest/envelope_loader_test.exs
