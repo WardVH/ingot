@@ -1,0 +1,1116 @@
+{
+  "schema_version": "1",
+  "source_system": "medipim-fr",
+  "legacy_entity": 347025,
+  "last_touched_at": 1780502423,
+  "dropped_meta_count": 8,
+  "events": [
+    {
+      "recorded_at": 1617002466,
+      "by": 1,
+      "tag": "import_45",
+      "op": "set",
+      "kind": "attribute",
+      "source": "2",
+      "field": "ospId",
+      "value": "149806"
+    },
+    {
+      "recorded_at": 1617002466,
+      "by": 1,
+      "tag": "import_45",
+      "op": "set",
+      "kind": "identity",
+      "source": "2",
+      "scheme": "cipOrAcl7",
+      "code": "4440813"
+    },
+    {
+      "recorded_at": 1617002466,
+      "by": 1,
+      "tag": "import_45",
+      "op": "set",
+      "kind": "attribute",
+      "source": "2",
+      "field": "name",
+      "locale": "fr",
+      "value": "Biotherm Biofirm Lift Visage Soin Recomb Ps 30ml"
+    },
+    {
+      "recorded_at": 1617002466,
+      "by": 1,
+      "tag": "import_45",
+      "op": "set",
+      "kind": "attribute",
+      "source": "2",
+      "field": "officialDeletionAt",
+      "value": 1330556400
+    },
+    {
+      "recorded_at": 1617002466,
+      "by": 1,
+      "tag": "import_45",
+      "op": "set",
+      "kind": "attribute",
+      "source": "2",
+      "field": "status",
+      "value": "inactive"
+    },
+    {
+      "recorded_at": 1617013585,
+      "by": 1,
+      "tag": "import_46",
+      "op": "add",
+      "kind": "identity",
+      "source": "2",
+      "scheme": "ean",
+      "code": "3367729203738"
+    },
+    {
+      "recorded_at": 1619781036,
+      "by": 1,
+      "tag": "import_65",
+      "op": "set",
+      "kind": "attribute",
+      "source": "2",
+      "field": "name",
+      "locale": "fr",
+      "value": "Biotherm Biofirm Lift Visage Soin Recomb Peaux Seches 30ml"
+    },
+    {
+      "recorded_at": 1619781036,
+      "by": 1,
+      "tag": "import_65",
+      "op": "add",
+      "kind": "edge",
+      "collection": "organizations",
+      "value": 9
+    },
+    {
+      "recorded_at": 1620231221,
+      "by": 1,
+      "tag": "import_69",
+      "op": "add",
+      "kind": "edge",
+      "collection": "labos",
+      "value": 722
+    },
+    {
+      "recorded_at": 1620654199,
+      "by": 1,
+      "tag": "import_70",
+      "op": "set",
+      "kind": "identity",
+      "source": "2",
+      "scheme": "acl13",
+      "code": "3401344408137"
+    },
+    {
+      "recorded_at": 1634556721,
+      "by": 1,
+      "tag": "import_145",
+      "op": "set",
+      "kind": "attribute",
+      "source": "1",
+      "field": "status",
+      "value": "active"
+    },
+    {
+      "recorded_at": 1643731547,
+      "by": 4,
+      "tag": "import_253",
+      "op": "add",
+      "kind": "edge",
+      "collection": "brands",
+      "value": 16
+    },
+    {
+      "recorded_at": 1645449826,
+      "by": 54,
+      "tag": "import_464",
+      "op": "set",
+      "kind": "attribute",
+      "source": "2",
+      "field": "ospCategory",
+      "value": "4B02C09"
+    },
+    {
+      "recorded_at": 1645633828,
+      "by": 54,
+      "tag": "import_495",
+      "op": "delete",
+      "kind": "attribute",
+      "source": "1",
+      "field": "status"
+    },
+    {
+      "recorded_at": 1646751595,
+      "by": 54,
+      "tag": "import_583",
+      "op": "set",
+      "kind": "attribute",
+      "source": "2",
+      "field": "tax",
+      "value": 2000
+    },
+    {
+      "recorded_at": 1660098772,
+      "by": 54,
+      "tag": "import_1076",
+      "op": "set",
+      "kind": "attribute",
+      "source": "2",
+      "field": "conservation",
+      "value": "room"
+    },
+    {
+      "recorded_at": 1692361531,
+      "by": 262,
+      "tag": "product_update",
+      "op": "set",
+      "kind": "attribute",
+      "field": "offisanteId",
+      "value": "90902"
+    },
+    {
+      "recorded_at": 1692361531,
+      "by": 262,
+      "tag": "product_update",
+      "op": "set",
+      "kind": "attribute",
+      "source": "888",
+      "field": "publicPrice",
+      "value": 4290
+    },
+    {
+      "recorded_at": 1692361531,
+      "by": 262,
+      "tag": "product_update",
+      "op": "set",
+      "kind": "attribute",
+      "source": "888",
+      "field": "yearlyAverageSales",
+      "value": 0
+    },
+    {
+      "recorded_at": 1692361531,
+      "by": 262,
+      "tag": "product_update",
+      "op": "set",
+      "kind": "attribute",
+      "source": "888",
+      "field": "numericDistribution",
+      "value": 0
+    },
+    {
+      "recorded_at": 1696345776,
+      "by": 262,
+      "tag": "product_update",
+      "op": "add",
+      "kind": "identity",
+      "source": "888",
+      "scheme": "ean",
+      "code": "3367729203738"
+    },
+    {
+      "recorded_at": 1696345776,
+      "by": 262,
+      "tag": "product_update",
+      "op": "set",
+      "kind": "attribute",
+      "source": "888",
+      "field": "popularity",
+      "value": 0
+    },
+    {
+      "recorded_at": 1696345776,
+      "by": 262,
+      "tag": "product_update",
+      "op": "set",
+      "kind": "attribute",
+      "source": "888",
+      "field": "ttcPrice",
+      "value": 4290
+    },
+    {
+      "recorded_at": 1698170491,
+      "by": 54,
+      "tag": "import_3650",
+      "op": "delete",
+      "kind": "attribute",
+      "source": "888",
+      "field": "publicPrice"
+    },
+    {
+      "recorded_at": 1698237459,
+      "by": 54,
+      "tag": "import_3651",
+      "op": "set",
+      "kind": "attribute",
+      "source": "2",
+      "field": "pharmacistPrice",
+      "value": 2400
+    },
+    {
+      "recorded_at": 1699282228,
+      "by": 54,
+      "tag": "import_3751",
+      "op": "set",
+      "kind": "attribute",
+      "source": "2",
+      "field": "pharmacistPrice",
+      "value": 2455
+    },
+    {
+      "recorded_at": 1701140209,
+      "by": 87,
+      "tag": "import_3940",
+      "op": "set",
+      "kind": "attribute",
+      "source": "2",
+      "field": "pharmacistPrice",
+      "value": null
+    },
+    {
+      "recorded_at": 1701169529,
+      "by": 54,
+      "tag": "import_3943",
+      "op": "set",
+      "kind": "attribute",
+      "source": "2",
+      "field": "pharmacistPrice",
+      "value": 2455
+    },
+    {
+      "recorded_at": 1702040240,
+      "by": 87,
+      "tag": "import_3973",
+      "op": "set",
+      "kind": "attribute",
+      "source": "1",
+      "field": "pharmacistPrice",
+      "value": 2455
+    },
+    {
+      "recorded_at": 1705351222,
+      "by": 87,
+      "tag": "import_4160",
+      "op": "set",
+      "kind": "attribute",
+      "source": "2",
+      "field": "pharmacistPrice",
+      "value": null
+    },
+    {
+      "recorded_at": 1705485850,
+      "by": 3,
+      "tag": "product_update_ean_gtin_migration_2024_01_17",
+      "op": "set",
+      "kind": "identity",
+      "source": "2",
+      "scheme": "eanGtin13",
+      "code": "3367729203738"
+    },
+    {
+      "recorded_at": 1705485850,
+      "by": 3,
+      "tag": "product_update_ean_gtin_migration_2024_01_17",
+      "op": "set",
+      "kind": "identity",
+      "source": "888",
+      "scheme": "eanGtin13",
+      "code": "3367729203738"
+    },
+    {
+      "recorded_at": 1705924517,
+      "by": 87,
+      "tag": "import_4175",
+      "op": "set",
+      "kind": "identity",
+      "source": "1",
+      "scheme": "cipOrAcl7",
+      "code": "4440813"
+    },
+    {
+      "recorded_at": 1705924517,
+      "by": 87,
+      "tag": "import_4175",
+      "op": "set",
+      "kind": "attribute",
+      "source": "1",
+      "field": "name",
+      "locale": "fr",
+      "value": "Biotherm Biofirm Lift Visage Soin Recomb Peaux Seches 30ml"
+    },
+    {
+      "recorded_at": 1705924517,
+      "by": 87,
+      "tag": "import_4175",
+      "op": "set",
+      "kind": "attribute",
+      "source": "1",
+      "field": "ospCategory",
+      "value": "4B02C09"
+    },
+    {
+      "recorded_at": 1705924517,
+      "by": 87,
+      "tag": "import_4175",
+      "op": "set",
+      "kind": "attribute",
+      "source": "1",
+      "field": "tax",
+      "value": 2000
+    },
+    {
+      "recorded_at": 1705924517,
+      "by": 87,
+      "tag": "import_4175",
+      "op": "set",
+      "kind": "attribute",
+      "source": "1",
+      "field": "status",
+      "value": "inactive"
+    },
+    {
+      "recorded_at": 1705924517,
+      "by": 87,
+      "tag": "import_4175",
+      "op": "set",
+      "kind": "attribute",
+      "source": "1",
+      "field": "conservation",
+      "value": "room"
+    },
+    {
+      "recorded_at": 1706054281,
+      "by": 87,
+      "tag": "import_4194",
+      "op": "set",
+      "kind": "attribute",
+      "source": "2",
+      "field": "pharmacistPrice",
+      "value": 2455
+    },
+    {
+      "recorded_at": 1745407760,
+      "by": 87,
+      "tag": "import_6212",
+      "op": "add",
+      "kind": "edge",
+      "collection": "publicCategories",
+      "value": 573
+    },
+    {
+      "recorded_at": 1752079338,
+      "by": 3,
+      "tag": "product_update_computed_field",
+      "op": "add",
+      "kind": "edge",
+      "collection": "internationalBrands",
+      "value": "ib_defb19f7-59f3-43d7-86fa-3ce1ed49b0ae"
+    },
+    {
+      "recorded_at": 1753271466,
+      "by": 3,
+      "tag": "product_update_international_brands",
+      "op": "remove",
+      "kind": "edge",
+      "collection": "internationalBrands",
+      "value": "ib_defb19f7-59f3-43d7-86fa-3ce1ed49b0ae"
+    },
+    {
+      "recorded_at": 1753271466,
+      "by": 3,
+      "tag": "product_update_international_brands",
+      "op": "add",
+      "kind": "edge",
+      "collection": "internationalBrands",
+      "value": "ib_dbd7fde4-dc6f-4d99-9e10-7053ea058ab4"
+    },
+    {
+      "recorded_at": 1759388243,
+      "by": 87,
+      "tag": "import_6786",
+      "op": "set",
+      "kind": "attribute",
+      "source": "1386",
+      "field": "cbId",
+      "value": "cbId_52549"
+    },
+    {
+      "recorded_at": 1760365621,
+      "by": 3,
+      "tag": "product_update_transfer_data_to_claude_bernard_organisation",
+      "op": "set",
+      "kind": "attribute",
+      "source": "1675",
+      "field": "status",
+      "value": "inactive"
+    },
+    {
+      "recorded_at": 1760365621,
+      "by": 3,
+      "tag": "product_update_transfer_data_to_claude_bernard_organisation",
+      "op": "set",
+      "kind": "identity",
+      "source": "1675",
+      "scheme": "eanGtin13",
+      "code": "3367729203738"
+    },
+    {
+      "recorded_at": 1760365621,
+      "by": 3,
+      "tag": "product_update_transfer_data_to_claude_bernard_organisation",
+      "op": "set",
+      "kind": "attribute",
+      "source": "1675",
+      "field": "pharmacistPrice",
+      "value": 2455
+    },
+    {
+      "recorded_at": 1760365621,
+      "by": 3,
+      "tag": "product_update_transfer_data_to_claude_bernard_organisation",
+      "op": "set",
+      "kind": "attribute",
+      "source": "1675",
+      "field": "tax",
+      "value": 2000
+    },
+    {
+      "recorded_at": 1760365621,
+      "by": 3,
+      "tag": "product_update_transfer_data_to_claude_bernard_organisation",
+      "op": "set",
+      "kind": "identity",
+      "source": "1675",
+      "scheme": "cipOrAcl7",
+      "code": "4440813"
+    },
+    {
+      "recorded_at": 1760365621,
+      "by": 3,
+      "tag": "product_update_transfer_data_to_claude_bernard_organisation",
+      "op": "set",
+      "kind": "identity",
+      "source": "1675",
+      "scheme": "acl13",
+      "code": "3401344408137"
+    },
+    {
+      "recorded_at": 1760451716,
+      "by": 3,
+      "tag": "product_update_claude_bernard_import",
+      "op": "set",
+      "kind": "identity",
+      "source": "1386",
+      "scheme": "acl13",
+      "code": "3401344408137"
+    },
+    {
+      "recorded_at": 1760478612,
+      "by": 3,
+      "tag": "product_update_claude_bernard_import",
+      "op": "set",
+      "kind": "attribute",
+      "source": "1386",
+      "field": "name",
+      "locale": "fr",
+      "value": "BIOFIRM LIFT SOIN RECOMBL PS 30ML"
+    },
+    {
+      "recorded_at": 1760478612,
+      "by": 3,
+      "tag": "product_update_claude_bernard_import",
+      "op": "set",
+      "kind": "attribute",
+      "source": "1386",
+      "field": "seoName",
+      "locale": "fr",
+      "value": "BIOFIRM LIFT SOIN RECOMBL PS 30ML"
+    },
+    {
+      "recorded_at": 1761157810,
+      "by": 3,
+      "tag": "product_update_cleanup_values_for_source_1386",
+      "op": "delete",
+      "kind": "attribute",
+      "source": "1386",
+      "field": "cbId"
+    },
+    {
+      "recorded_at": 1761213504,
+      "by": 3,
+      "tag": "product_update_claude_bernard_import_2025_10_23",
+      "op": "set",
+      "kind": "attribute",
+      "field": "prescription",
+      "value": false
+    },
+    {
+      "recorded_at": 1761248355,
+      "by": 3,
+      "tag": "product_update_claude_bernard_import_2025_10_23",
+      "op": "set",
+      "kind": "attribute",
+      "source": "1386",
+      "field": "cbId",
+      "value": "cbId_52549"
+    },
+    {
+      "recorded_at": 1761665317,
+      "by": 3,
+      "tag": "product_update_cleanup_values_for_source_888",
+      "op": "delete",
+      "kind": "identity",
+      "source": "888",
+      "scheme": "eanGtin13"
+    },
+    {
+      "recorded_at": 1761665317,
+      "by": 3,
+      "tag": "product_update_cleanup_values_for_source_888",
+      "op": "delete",
+      "kind": "identity",
+      "source": "888",
+      "scheme": "ean"
+    },
+    {
+      "recorded_at": 1761833227,
+      "by": 3,
+      "tag": "product_update_offisante_cleanup",
+      "op": "set",
+      "kind": "attribute",
+      "field": "offisanteId",
+      "value": null
+    },
+    {
+      "recorded_at": 1761847737,
+      "by": 3,
+      "tag": "product_update_cb_identifiers",
+      "op": "set",
+      "kind": "identity",
+      "source": "1386",
+      "scheme": "eanGtin13",
+      "code": "3605540174999"
+    },
+    {
+      "recorded_at": 1761847737,
+      "by": 3,
+      "tag": "product_update_cb_identifiers",
+      "op": "set",
+      "kind": "identity",
+      "source": "1386",
+      "scheme": "cipOrAcl7",
+      "code": "4440813"
+    },
+    {
+      "recorded_at": 1761847962,
+      "by": 3,
+      "tag": "product_update_cleanup_values_for_source_888",
+      "op": "delete",
+      "kind": "attribute",
+      "source": "888",
+      "field": "ttcPrice"
+    },
+    {
+      "recorded_at": 1761847962,
+      "by": 3,
+      "tag": "product_update_cleanup_values_for_source_888",
+      "op": "delete",
+      "kind": "attribute",
+      "source": "888",
+      "field": "numericDistribution"
+    },
+    {
+      "recorded_at": 1761847962,
+      "by": 3,
+      "tag": "product_update_cleanup_values_for_source_888",
+      "op": "delete",
+      "kind": "attribute",
+      "source": "888",
+      "field": "yearlyAverageSales"
+    },
+    {
+      "recorded_at": 1761847962,
+      "by": 3,
+      "tag": "product_update_cleanup_values_for_source_888",
+      "op": "delete",
+      "kind": "attribute",
+      "source": "888",
+      "field": "popularity"
+    },
+    {
+      "recorded_at": 1761847962,
+      "by": 3,
+      "tag": "product_update_cleanup_values_for_source_888",
+      "op": "delete",
+      "kind": "identity",
+      "source": "888",
+      "scheme": "ean"
+    },
+    {
+      "recorded_at": 1761847962,
+      "by": 3,
+      "tag": "product_update_cleanup_values_for_source_888",
+      "op": "delete",
+      "kind": "identity",
+      "source": "888",
+      "scheme": "gtin"
+    },
+    {
+      "recorded_at": 1761922755,
+      "by": 262,
+      "tag": "import_offisante_2025_10_31",
+      "op": "set",
+      "kind": "attribute",
+      "source": "888",
+      "field": "status",
+      "value": "inactive"
+    },
+    {
+      "recorded_at": 1761922755,
+      "by": 262,
+      "tag": "import_offisante_2025_10_31",
+      "op": "set",
+      "kind": "identity",
+      "source": "888",
+      "scheme": "cipOrAcl7",
+      "code": "4440813"
+    },
+    {
+      "recorded_at": 1761922755,
+      "by": 262,
+      "tag": "import_offisante_2025_10_31",
+      "op": "set",
+      "kind": "identity",
+      "source": "888",
+      "scheme": "acl13",
+      "code": "3401344408137"
+    },
+    {
+      "recorded_at": 1761922755,
+      "by": 262,
+      "tag": "import_offisante_2025_10_31",
+      "op": "set",
+      "kind": "attribute",
+      "field": "offisanteId",
+      "value": "90902"
+    },
+    {
+      "recorded_at": 1761922755,
+      "by": 262,
+      "tag": "import_offisante_2025_10_31",
+      "op": "set",
+      "kind": "attribute",
+      "source": "888",
+      "field": "ttcPrice",
+      "value": 3360
+    },
+    {
+      "recorded_at": 1762141656,
+      "by": 262,
+      "tag": "import_offisante_2025_11_03",
+      "op": "set",
+      "kind": "attribute",
+      "source": "888",
+      "field": "popularity",
+      "value": 0
+    },
+    {
+      "recorded_at": 1762141656,
+      "by": 262,
+      "tag": "import_offisante_2025_11_03",
+      "op": "set",
+      "kind": "attribute",
+      "source": "888",
+      "field": "numericDistribution",
+      "value": 0
+    },
+    {
+      "recorded_at": 1762357986,
+      "by": 3,
+      "tag": "product_update_claude_bernard_import_2025_11_05",
+      "op": "set",
+      "kind": "attribute",
+      "source": "1386",
+      "field": "rateOfReimbursement",
+      "value": 0
+    },
+    {
+      "recorded_at": 1763645413,
+      "by": 3,
+      "tag": "product_update_claude_bernard",
+      "op": "set",
+      "kind": "attribute",
+      "source": "1386",
+      "field": "status",
+      "value": "inactive"
+    },
+    {
+      "recorded_at": 1763645413,
+      "by": 3,
+      "tag": "product_update_claude_bernard",
+      "op": "set",
+      "kind": "attribute",
+      "source": "1386",
+      "field": "pharmacistPrice",
+      "value": 2455
+    },
+    {
+      "recorded_at": 1763645413,
+      "by": 3,
+      "tag": "product_update_claude_bernard",
+      "op": "set",
+      "kind": "attribute",
+      "source": "1386",
+      "field": "rateOfReimbursement",
+      "value": null
+    },
+    {
+      "recorded_at": 1763645413,
+      "by": 3,
+      "tag": "product_update_claude_bernard",
+      "op": "set",
+      "kind": "attribute",
+      "field": "claudeBernardCategoryId",
+      "value": "AA"
+    },
+    {
+      "recorded_at": 1763645413,
+      "by": 3,
+      "tag": "product_update_claude_bernard",
+      "op": "add",
+      "kind": "edge",
+      "collection": "labos",
+      "value": 7649
+    },
+    {
+      "recorded_at": 1764027515,
+      "by": 863,
+      "tag": "product_update_claude_bernard",
+      "op": "set",
+      "kind": "attribute",
+      "source": "1386",
+      "field": "tax",
+      "value": 2000
+    },
+    {
+      "recorded_at": 1764099389,
+      "by": 3,
+      "tag": "product_update_cleanup_values_for_source_888",
+      "op": "delete",
+      "kind": "identity",
+      "source": "888",
+      "scheme": "cipOrAcl7"
+    },
+    {
+      "recorded_at": 1764099389,
+      "by": 3,
+      "tag": "product_update_cleanup_values_for_source_888",
+      "op": "delete",
+      "kind": "identity",
+      "source": "888",
+      "scheme": "acl13"
+    },
+    {
+      "recorded_at": 1764155237,
+      "by": 3,
+      "tag": "product_update_cleanup_values_for_source_1675",
+      "op": "delete",
+      "kind": "identity",
+      "source": "1675",
+      "scheme": "cipOrAcl7"
+    },
+    {
+      "recorded_at": 1766566885,
+      "by": 87,
+      "tag": "import_6909",
+      "op": "delete",
+      "kind": "attribute",
+      "source": "1",
+      "field": "status"
+    },
+    {
+      "recorded_at": 1767725928,
+      "by": 3,
+      "tag": "product_update_cleanup_organizations",
+      "op": "remove",
+      "kind": "edge",
+      "collection": "organizations",
+      "value": 9
+    },
+    {
+      "recorded_at": 1770021676,
+      "by": 3,
+      "tag": "product_update_public_page_identifier",
+      "op": "set",
+      "kind": "attribute",
+      "field": "publicPageIdentifier",
+      "value": "8ac57de6-3d9c-4ce7-b377-c3a86b9b1e8a-1770021676"
+    },
+    {
+      "recorded_at": 1770836590,
+      "by": 3,
+      "tag": "product_update_cleanup_values_for_source_2",
+      "op": "delete",
+      "kind": "attribute",
+      "source": "2",
+      "field": "name",
+      "locale": "fr"
+    },
+    {
+      "recorded_at": 1770836590,
+      "by": 3,
+      "tag": "product_update_cleanup_values_for_source_2",
+      "op": "delete",
+      "kind": "attribute",
+      "source": "2",
+      "field": "officialDeletionAt"
+    },
+    {
+      "recorded_at": 1770836590,
+      "by": 3,
+      "tag": "product_update_cleanup_values_for_source_2",
+      "op": "delete",
+      "kind": "identity",
+      "source": "2",
+      "scheme": "ean"
+    },
+    {
+      "recorded_at": 1770836590,
+      "by": 3,
+      "tag": "product_update_cleanup_values_for_source_2",
+      "op": "delete",
+      "kind": "attribute",
+      "source": "2",
+      "field": "conservation"
+    },
+    {
+      "recorded_at": 1770836590,
+      "by": 3,
+      "tag": "product_update_cleanup_values_for_source_2",
+      "op": "delete",
+      "kind": "attribute",
+      "source": "2",
+      "field": "ospId"
+    },
+    {
+      "recorded_at": 1770836590,
+      "by": 3,
+      "tag": "product_update_cleanup_values_for_source_2",
+      "op": "delete",
+      "kind": "attribute",
+      "source": "2",
+      "field": "ospCategory"
+    },
+    {
+      "recorded_at": 1770836590,
+      "by": 3,
+      "tag": "product_update_ospharea_cleanup_move_to_cbv1",
+      "op": "set",
+      "kind": "attribute",
+      "source": "1675",
+      "field": "officialDeletionAt",
+      "value": 1330556400
+    },
+    {
+      "recorded_at": 1770836590,
+      "by": 3,
+      "tag": "product_update_ospharea_cleanup_move_to_cbv1",
+      "op": "set",
+      "kind": "identity",
+      "source": "1675",
+      "scheme": "eanGtin14",
+      "code": "03367729203738"
+    },
+    {
+      "recorded_at": 1770836590,
+      "by": 3,
+      "tag": "product_update_ospharea_cleanup_move_to_cbv1",
+      "op": "set",
+      "kind": "attribute",
+      "source": "1675",
+      "field": "conservation",
+      "value": "room"
+    },
+    {
+      "recorded_at": 1770836590,
+      "by": 3,
+      "tag": "product_update_ospharea_cleanup_move_to_cbv1",
+      "op": "set",
+      "kind": "attribute",
+      "source": "1675",
+      "field": "ospId",
+      "value": "149806"
+    },
+    {
+      "recorded_at": 1770836590,
+      "by": 3,
+      "tag": "product_update_ospharea_cleanup_move_to_cbv1",
+      "op": "set",
+      "kind": "attribute",
+      "source": "1675",
+      "field": "ospCategory",
+      "value": "4B02C09"
+    },
+    {
+      "recorded_at": 1770836590,
+      "by": 3,
+      "tag": "product_update_ospharea_cleanup_move_to_cbv1",
+      "op": "add",
+      "kind": "identity",
+      "source": "1675",
+      "scheme": "ean",
+      "code": "3367729203738"
+    },
+    {
+      "recorded_at": 1771262668,
+      "by": 3,
+      "tag": "product_update_cleanup_values_for_source_2",
+      "op": "delete",
+      "kind": "attribute",
+      "source": "2",
+      "field": "status"
+    },
+    {
+      "recorded_at": 1771262668,
+      "by": 3,
+      "tag": "product_update_cleanup_values_for_source_2",
+      "op": "delete",
+      "kind": "attribute",
+      "source": "2",
+      "field": "pharmacistPrice"
+    },
+    {
+      "recorded_at": 1771262668,
+      "by": 3,
+      "tag": "product_update_cleanup_values_for_source_2",
+      "op": "delete",
+      "kind": "attribute",
+      "source": "2",
+      "field": "tax"
+    },
+    {
+      "recorded_at": 1771262668,
+      "by": 3,
+      "tag": "product_update_cleanup_values_for_source_2",
+      "op": "delete",
+      "kind": "identity",
+      "source": "2",
+      "scheme": "cipOrAcl7"
+    },
+    {
+      "recorded_at": 1771262668,
+      "by": 3,
+      "tag": "product_update_cleanup_values_for_source_2",
+      "op": "delete",
+      "kind": "identity",
+      "source": "2",
+      "scheme": "eanGtin13"
+    },
+    {
+      "recorded_at": 1771262668,
+      "by": 3,
+      "tag": "product_update_cleanup_values_for_source_2",
+      "op": "delete",
+      "kind": "identity",
+      "source": "2",
+      "scheme": "acl13"
+    },
+    {
+      "recorded_at": 1773761919,
+      "by": 863,
+      "tag": "product_update_claude_bernard",
+      "op": "set",
+      "kind": "attribute",
+      "source": "1386",
+      "field": "weight",
+      "value": "30_g"
+    },
+    {
+      "recorded_at": 1773761919,
+      "by": 863,
+      "tag": "product_update_cleanup_claude_bernard",
+      "op": "delete",
+      "kind": "attribute",
+      "source": "1386",
+      "field": "rateOfReimbursement"
+    },
+    {
+      "recorded_at": 1776297628,
+      "by": 3,
+      "tag": "product_update_cleanup_indicator_0_stored",
+      "op": "set",
+      "kind": "identity",
+      "source": "1675",
+      "scheme": "eanGtin14",
+      "code": null
+    },
+    {
+      "recorded_at": 1776297629,
+      "by": 3,
+      "tag": "product_update_cleanup_indicator_0_stored",
+      "op": "remove",
+      "kind": "identity",
+      "source": "1675",
+      "scheme": "ean",
+      "code": "3367729203738"
+    },
+    {
+      "recorded_at": 1776876544,
+      "by": 87,
+      "tag": "import_7127",
+      "op": "set",
+      "kind": "attribute",
+      "source": "1",
+      "field": "allowedSpecies",
+      "value": [
+        "human"
+      ]
+    },
+    {
+      "recorded_at": 1778595758,
+      "by": 3,
+      "tag": "product_update_cleanup_ghost_eangtin13_indicator_0",
+      "op": "set",
+      "kind": "identity",
+      "source": "1675",
+      "scheme": "eanGtin13",
+      "code": null
+    },
+    {
+      "recorded_at": 1778689514,
+      "by": 863,
+      "tag": "product_update_claude_bernard",
+      "op": "set",
+      "kind": "attribute",
+      "source": "1386",
+      "field": "allowedSpecies",
+      "value": [
+        "human"
+      ]
+    },
+    {
+      "recorded_at": 1779811268,
+      "by": 863,
+      "tag": "product_update_claude_bernard",
+      "op": "set",
+      "kind": "attribute",
+      "source": "1386",
+      "field": "maximumDispenseQuantity",
+      "value": 0
+    },
+    {
+      "recorded_at": 1780502423,
+      "by": 863,
+      "tag": "product_update_claude_bernard",
+      "op": "set",
+      "kind": "identity",
+      "source": "1386",
+      "scheme": "eanGtin13",
+      "code": "3367729203738"
+    }
+  ]
+}

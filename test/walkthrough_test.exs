@@ -10,8 +10,8 @@
 #   Part 1 builds the model from first principles — no medipim, no legacy.
 #   Part 2 shows the legacy medipim history is just one more source of claims.
 #
-# (This is the executable spec for bead gr-ccf. The Part-2 French scenario is the
-#  RED TARGET: it is @tag :skip until gr-6k4 teaches the engine the French codes.)
+# (This is the executable spec for bead gr-ccf. The Part-2 French scenario was the
+#  RED TARGET — it is green since gr-6k4 taught the engine the French codes.)
 
 defmodule WalkthroughTest do
   use ExUnit.Case, async: true
