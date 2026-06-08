@@ -53,26 +53,34 @@ defmodule ClaimMapping do
     listing_codes = listing_codes(folded)
     entity_codes = union_by_entity(listing_codes)
 
-    listing_primary = Map.new(listing_codes, fn {k, set} -> {k, primary(MapSet.to_list(set))} end)
-    entity_primary = Map.new(entity_codes, fn {e, set} -> {e, primary(MapSet.to_list(set))} end)
+    listing_primary = Map.new(listing_codes, fn {k, set} -> {k, primary(Enum.sort(set))} end)
+    entity_primary = Map.new(entity_codes, fn {e, set} -> {e, primary(Enum.sort(set))} end)
 
-    anchor = fn entity, source ->
-      (source && Map.get(listing_primary, {entity, source})) || Map.get(entity_primary, entity)
+    # A sourced event anchors ONLY to its own listing's primary code; if that listing folded to
+    # empty (delisted), the event is skipped rather than re-homed onto another source's code.
+    # Only genuinely unsourced events fall back to the entity-level primary.
+    anchor = fn
+      entity, nil -> Map.get(entity_primary, entity)
+      entity, source -> Map.get(listing_primary, {entity, source})
     end
 
+    # Deterministic emission order — Map/MapSet iteration order is otherwise unspecified, which
+    # would let stamp/1's tie-break (and primary/1's pick among equals) drift between runs/versions.
+    ordered = Enum.sort_by(listing_codes, fn {k, _set} -> k end)
+
     identity =
-      for {{e, s} = k, set} <- listing_codes do
+      for {{e, s} = k, set} <- ordered do
         Substrate.claim(
           s,
           :identity,
-          %{ref: "#{e}:#{s}", codes: MapSet.to_list(set)},
+          %{ref: "#{e}:#{s}", codes: Enum.sort(set)},
           folded[k].last_at,
           folded[k].last_at
         )
       end
 
     grouping =
-      for {{e, s} = k, set} <- listing_codes, code <- set do
+      for {{e, s} = k, set} <- ordered, code <- Enum.sort(set) do
         Substrate.claim(s, :grouping, %{code: code, product: e}, folded[k].last_at, folded[k].last_at)
       end
 
@@ -165,7 +173,10 @@ defmodule ClaimMapping do
     end
   end
 
-  defp scheme_atom(scheme), do: Map.get(@identity_scheme, scheme) || String.to_atom(scheme)
+  # Known identity schemes map to engine atoms (the GTIN family → :gtin); an unrecognised scheme
+  # stays the raw string (Codes.canonicalize passes it through). Never String.to_atom/1 on
+  # unvalidated input — the loader does not whitelist schemes, so that would be an atom-table leak.
+  defp scheme_atom(scheme), do: Map.get(@identity_scheme, scheme, scheme)
 
   # ── helpers ───────────────────────────────────────────────────────────────
 

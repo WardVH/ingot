@@ -81,6 +81,12 @@ defmodule ClaimMappingTest do
 
       assert ClaimMapping.listings([env]) == %{{1, "A"} => MapSet.new([{:gtin, "05012345678900"}])}
     end
+
+    # PR #3 review (CodeRabbit): an unrecognised scheme must not String.to_atom/1 (atom-leak).
+    test "an unrecognised identity scheme stays a string — no atom created, no crash" do
+      env = envelope(1, [id("A", "set", "mysteryScheme", "XYZ", 10)])
+      assert ClaimMapping.listings([env]) == %{{1, "A"} => MapSet.new([{"mysteryScheme", "XYZ"}])}
+    end
   end
 
   # ── partition / shared ──────────────────────────────────────────────────────
@@ -133,6 +139,34 @@ defmodule ClaimMappingTest do
       env = envelope(99, [id("A", "set", "cnk", "111", 10)])
       grp = Enum.find(ClaimMapping.build([env]).claims, &(&1.kind == :grouping))
       assert grp.data == %{code: {:cnk, "111"}, product: 99}
+    end
+
+    # PR #3 review (CodeRabbit): a sourced event must not re-home onto another listing.
+    test "a sourced event whose listing was delisted is skipped, not re-anchored" do
+      env =
+        envelope(1, [
+          id("A", "set", "cnk", "100", 10),
+          id("A", "delete", "cnk", "A", 20),
+          id("B", "set", "cnk", "200", 10),
+          %{
+            "recorded_at" => 30,
+            "source" => "A",
+            "op" => "set",
+            "kind" => "attribute",
+            "field" => "name",
+            "value" => "X"
+          }
+        ])
+
+      # listing A folded to empty -> its attribute has no anchor -> dropped (never anchored to B)
+      assert Enum.filter(ClaimMapping.build([env]).claims, &(&1.kind == :attribute)) == []
+    end
+
+    # PR #3 review (CodeRabbit): identity codes are emitted in a deterministic (sorted) order.
+    test "identity claim codes are sorted" do
+      env = envelope(1, [id("A", "set", "cnk", "999", 10), id("A", "add", "gtin", "5012345678900", 10)])
+      idc = Enum.find(ClaimMapping.build([env]).claims, &(&1.kind == :identity))
+      assert idc.data.codes == Enum.sort(idc.data.codes)
     end
   end
 
