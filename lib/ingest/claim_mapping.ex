@@ -29,17 +29,13 @@
 # and edge removals (a snapshot-v1 simplification — member_of unions and does not retract).
 
 defmodule ClaimMapping do
-  # medipim identity scheme → engine scheme atom. The GTIN family all canonicalize to :gtin;
-  # cnk is its own (shorter, non-GTIN) national scheme and must stay distinct.
-  @identity_scheme %{
-    "cnk" => :cnk,
-    "ean" => :ean,
-    "gtin" => :gtin,
-    "eanGtin8" => :gtin,
-    "eanGtin12" => :gtin,
-    "eanGtin13" => :gtin,
-    "eanGtin14" => :gtin
-  }
+  # medipim field → engine scheme atom is owned by CodeRegistry (the single source of medipim code
+  # knowledge): the GTIN family all canonicalize to :gtin; each national code keeps its own atom.
+
+  # National SHORT codes, in anchor preference order: a short national code is the most stable
+  # primary (cnk for BE, cip_acl7 for FR/LU, …). Preferred over GTINs so Belgian behaviour
+  # (CNK-first) is unchanged and French listings anchor on cip_acl7, not a recycled barcode.
+  @national_primary [:cnk, :cip_acl7, :cefip, :pzn, :sukl, :pzn_austria, :national_code, :cn]
 
   # schemes that identify a *supplier's* reference, not a globally-unique product — never bridge.
   @non_bridging_schemes MapSet.new([:mpn, :supplier_ref])
@@ -173,10 +169,11 @@ defmodule ClaimMapping do
     end
   end
 
-  # Known identity schemes map to engine atoms (the GTIN family → :gtin); an unrecognised scheme
-  # stays the raw string (Codes.canonicalize passes it through). Never String.to_atom/1 on
-  # unvalidated input — the loader does not whitelist schemes, so that would be an atom-table leak.
-  defp scheme_atom(scheme), do: Map.get(@identity_scheme, scheme, scheme)
+  # Known medipim fields map to engine atoms via the registry (the GTIN family → :gtin); an
+  # unrecognised field stays the raw string (Codes.canonicalize passes it through). The registry
+  # never String.to_atom/1's an unknown field — the loader does not whitelist schemes, so that
+  # would be an atom-table leak.
+  defp scheme_atom(scheme), do: CodeRegistry.scheme(scheme)
 
   # ── helpers ───────────────────────────────────────────────────────────────
 
@@ -186,14 +183,26 @@ defmodule ClaimMapping do
     end)
   end
 
-  # primary code for anchoring: CNK ▸ non-restricted canonical GTIN ▸ any GTIN ▸ lowest code.
+  # primary code for anchoring: a national SHORT code (in @national_primary order) ▸ non-restricted
+  # canonical GTIN ▸ any GTIN ▸ a 13-digit national code (acl13/cip13) ▸ lowest code. National
+  # short codes win so Belgian listings still anchor on CNK and French ones on cip_acl7 (a stable
+  # id) rather than a recycled barcode.
   defp primary([]), do: nil
 
   defp primary(codes) do
-    Enum.find(codes, &match?({:cnk, _}, &1)) ||
+    national_short(codes) ||
       Enum.find(codes, &(match?({:gtin, _}, &1) and not Codes.restricted?(&1))) ||
       Enum.find(codes, &match?({:gtin, _}, &1)) ||
+      Enum.find(codes, &match?({:acl13, _}, &1)) ||
+      Enum.find(codes, &match?({:cip13, _}, &1)) ||
       codes |> Enum.sort() |> List.first()
+  end
+
+  # First code whose scheme appears earliest in @national_primary (cnk ▸ cip_acl7 ▸ …).
+  defp national_short(codes) do
+    Enum.find_value(@national_primary, fn scheme ->
+      Enum.find(codes, &match?({^scheme, _}, &1))
+    end)
   end
 
   defp field_dim(ev) do

@@ -172,8 +172,7 @@ defmodule WalkthroughTest do
       assert {:cnk, "3612173"} in variant.codes
     end
 
-    @tag :skip
-    # RED TARGET — goes green when gr-6k4 (code registry) teaches the engine the
+    # Was the RED TARGET — green since gr-6k4 (code registry) taught the engine the
     # French schemes (cipOrAcl7 -> :cip_acl7 padded to 7; acl13 -> :acl13).
     test "a French listing's cipOrAcl7 + acl13 canonicalise and cluster into one variant" do
       {:ok, env} =

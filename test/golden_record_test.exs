@@ -37,6 +37,30 @@ defmodule CodesTest do
     end
   end
 
+  describe "national short-code padding (medipim zero-pads to a fixed width)" do
+    test "cip_acl7 left-pads an all-digit value to 7" do
+      assert Codes.canonicalize({:cip_acl7, "44813"}) == {:cip_acl7, "0044813"}
+    end
+
+    test "a full-width cip_acl7 is untouched (real medipim data is already 7 wide)" do
+      assert Codes.canonicalize({:cip_acl7, "4440813"}) == {:cip_acl7, "4440813"}
+    end
+
+    test "pzn left-pads to 8; cn to 6" do
+      assert Codes.canonicalize({:pzn, "12345"}) == {:pzn, "00012345"}
+      assert Codes.canonicalize({:cn, "1234"}) == {:cn, "001234"}
+    end
+
+    test "a non-digit national value is NOT padded (only all-digit codes pad)" do
+      assert Codes.canonicalize({:cip_acl7, "AB"}) == {:cip_acl7, "AB"}
+    end
+
+    test "cnk is deliberately pass-through — short fake cnks must stay as-is" do
+      assert Codes.canonicalize({:cnk, "111"}) == {:cnk, "111"}
+      assert Codes.canonicalize({:cnk, "0111"}) == {:cnk, "0111"}
+    end
+  end
+
   describe "check-digit validation" do
     test "valid GTIN-13 and GTIN-8 pass" do
       assert Codes.valid_gtin?({:ean, "4006381333931"})
