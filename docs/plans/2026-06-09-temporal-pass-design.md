@@ -91,17 +91,38 @@ it only became one.*
 
 ## Testing (`test/ingest/temporal_test.exs`)
 
-1. **Real 422156 — datable convergence.** Derive the pivot date in `setup` (don't hard-code prose):
-   - timeline contains a merge/members event folding org 44's key into the main key, dated in the 2023–2024 window;
-   - `golden_as_of(before pivot)` → **2 variants** for product 422156; `golden_as_of(after pivot)` → **1 variant**,
-     carrying canonical CNK `3612173` + GTIN `03282770146004`;
-   - **Monotonicity guard:** `project_as_of` at "today" equals the v1 snapshot (`GoldenRecords.from_envelopes`) —
-     the temporal fold must converge to the already-trusted end state. The key correctness anchor.
-2. **Synthetic two-date merge.** A controlled fixture: entity A lists `cnk:100` at d1; entity B lists a disjoint
-   `gtin` at d1 and *adds* `cnk:100` at d2. Assert: at d1 → 2 keys; at d2 → 1 key, with a dated `IdentitiesMerged`
-   at d2.
-3. **Boundary conversion.** `DateTime.from_unix!` round-trips a known epoch to the expected `Date`; same-day
-   deltas collapse to one date but stay `order`-sequenced.
+> **T2 finding — the honest behaviour is narrower than this design first imagined.** Two structural
+> facts, established empirically while writing the tests, reshape what the suite can assert:
+>
+> 1. **`ClaimMapping` folds each source-listing's identity to a *single* final-code-set claim** (stamped
+>    at that listing's latest identity date). The temporal pass folds over already-folded claims, so it
+>    recovers *when each listing's identity was first recorded*, **not** the intra-listing EAN evolution.
+>    For 422156 every listing already carries the convergent CNK + GTIN, so the timeline is a **single
+>    dated mint** — the "org 44 diverges for years then merges in" arc is folded away *before* the
+>    temporal pass ever runs. The datable transition is **0 → 1 variant** (a mint), not 2 → 1 (a merge).
+> 2. **The reconcile never auto-emits `IdentitiesMerged`.** When a later code bridges two *established*
+>    keys, the gr-ose over-merge guard **gates** it into a `ConflictFlagged` proposal; auto-merge happens
+>    only via `Stewardship.approve_merge`. So a "two-keys-then-merge" case yields a *flagged proposal*,
+>    not an auto-merge — the guard holds temporally too.
+>
+> The suite below asserts that honest behaviour. (The "watch org 44 merge in" narrative would require
+> folding over finer-grained-than-listing identity — out of scope here; filed as a follow-up if wanted.)
+
+1. **Real 422156 — datable identity.** Derive the mint date in the test (don't hard-code prose):
+   - timeline is a **single dated `IdentityMinted`** for `SK_1`, in the 2023–2024 window, carrying canonical
+     CNK `3612173` + GTIN `03282770146004`;
+   - `golden_as_of(before the mint)` → **0 variants** for product 422156; `golden_as_of(on/after)` → **1 variant**
+     carrying those canonical codes;
+   - **Monotonicity guard:** `golden_as_of` at the latest known date **equals the v1 snapshot**
+     (`GoldenRecords.from_envelopes`, `:cnk` enrichment stripped) — the temporal fold must converge to the
+     already-trusted end state. The core correctness anchor.
+2. **Synthetic over-merge guard, temporally.** Three listings on one entity: `C={gtin}` and `D={cnk}` (disjoint)
+   at d1; `E={gtin,cnk}` bridges them at d2. Assert: at d1 → **2 keys** (`SK_1`,`SK_2`); at d2 → a dated
+   **`ConflictFlagged{:merge,[SK_1,SK_2]}`** and **still 2 keys** — no `IdentitiesMerged` anywhere.
+3. **Synthetic `MembersChanged`.** A later listing's *new* code extends the existing key: assert a dated
+   `IdentityMembersChanged` and that the variant lacks the code before / carries it after (same key throughout).
+4. **Boundary conversion.** A known epoch converts to the expected `Date` (`valid_from == recorded_at`); same-day
+   deltas collapse to one date but stay `order`-sequenced, and survivorship picks the later-order (end-of-day) value.
 
 Gate: `mix test` (all suites stay green — additive), `mix format --check-formatted`, `mix run temporal_ingest.exs` clean.
 
