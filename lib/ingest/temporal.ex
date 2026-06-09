@@ -55,6 +55,16 @@
 # dispatch after this one lands — creating them here would collide on those files.
 
 defmodule Temporal do
+  @moduledoc """
+  The temporal pass: a second fold over the ingest's claims that recovers *when* identity changed.
+
+  Where v1 (`Rederivation` → `GoldenRecords`) folds each legacy listing to a final snapshot, this
+  folds forward across the distinct dates — converting epoch timestamps to `Date`s at the boundary
+  and threading the prior ledger so surrogate keys stay stable — producing a fully `Date`-typed
+  temporal log that the engine's `History.project_as_of/3` reads unchanged. See the file header
+  above for the full design rationale.
+  """
+
   @doc """
   Run the temporal pass over a list of `%HistoryEnvelope{}`s.
 
@@ -84,7 +94,7 @@ defmodule Temporal do
 
     dates = claims |> Enum.map(& &1.recorded_at) |> Enum.uniq() |> Enum.sort(Date)
 
-    {raw_identity_events, ledger} =
+    {raw_identity_events_rev, ledger} =
       Enum.reduce(dates, {[], IdentityLedger.new()}, fn d, {events_acc, ledger_prev} ->
         live_d =
           claims
@@ -95,8 +105,11 @@ defmodule Temporal do
         events_d = IdentityLedger.decide(ledger_prev, {:reconcile, clusters_d, shared, d})
         ledger_d = Enum.reduce(events_d, ledger_prev, &IdentityLedger.evolve(&2, &1))
 
-        {events_acc ++ events_d, ledger_d}
+        # Prepend (reverse onto the acc), then reverse once after the fold — avoids O(n²) `++` growth.
+        {Enum.reverse(events_d, events_acc), ledger_d}
       end)
+
+    raw_identity_events = Enum.reverse(raw_identity_events_rev)
 
     # `decide` leaves identity events with `order: nil`; stamp them monotonic, continuing after the
     # max claim order (mirrors Rederivation.stamp/2). Stamp ONCE here so the timeline and the log
@@ -122,7 +135,7 @@ defmodule Temporal do
     History.project_as_of(log, date, priority)
   end
 
-  @doc "The permissive default priority — every source unranked, so conflicts tie (see moduledoc)."
+  @doc "The permissive default priority — every source unranked, so conflicts tie (see `golden_as_of/3`)."
   def default_priority, do: Priority.new(%{}, [])
 
   # epoch (integer Unix seconds) -> Date, at the ingest boundary.
