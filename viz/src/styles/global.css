@@ -1,0 +1,422 @@
+:root {
+  --bg: #0e1116;
+  --panel: #161b22;
+  --panel-2: #1b2230;
+  --border: #232a33;
+  --text: #e6edf3;
+  --muted: #8b949e;
+  --faint: #5b6573;
+
+  --gold: #e8b94a; /* golden record / canonical CNK */
+  --cyan: #4ec9d6; /* GTIN */
+  --green: #57c878; /* resolved */
+  --amber: #f0a857; /* needs review */
+  --flag: #f0616d; /* over-merge FLAG */
+  --accent: #6ea8fe; /* scrubber cursor */
+
+  --radius: 12px;
+  --mono: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace;
+  --sans: "Inter", system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  background: radial-gradient(1200px 600px at 50% -10%, #182030 0%, var(--bg) 55%);
+  color: var(--text);
+  font-family: var(--sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+.shell {
+  max-width: 920px;
+  margin: 0 auto;
+  padding: 40px 24px 80px;
+}
+
+.masthead h1 {
+  margin: 0 0 6px;
+  font-size: 26px;
+  letter-spacing: -0.02em;
+}
+
+.masthead p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+.masthead .accent {
+  color: var(--gold);
+}
+
+/* ── tabs ─────────────────────────────────────────────── */
+.tabs {
+  display: flex;
+  gap: 6px;
+  margin: 28px 0 20px;
+  border-bottom: 1px solid var(--border);
+}
+
+.tab {
+  appearance: none;
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: var(--muted);
+  font: inherit;
+  font-size: 14px;
+  padding: 10px 14px;
+  cursor: pointer;
+  transition: color 0.15s;
+}
+
+.tab:hover {
+  color: var(--text);
+}
+
+.tab[aria-selected="true"] {
+  color: var(--text);
+  border-bottom-color: var(--gold);
+}
+
+/* ── panel ─────────────────────────────────────────────── */
+.panel {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 22px;
+}
+
+.readout {
+  font-family: var(--mono);
+  font-size: 14px;
+  color: var(--muted);
+  margin-bottom: 18px;
+}
+
+.readout b {
+  color: var(--text);
+}
+
+.readout .count-1 {
+  color: var(--gold);
+}
+
+.readout .count-0 {
+  color: var(--faint);
+}
+
+/* ── scrubber axis ─────────────────────────────────────── */
+.axis-wrap {
+  padding: 34px 6px 10px;
+}
+
+.axis {
+  position: relative;
+  height: 4px;
+  border-radius: 4px;
+  background: var(--border);
+}
+
+.axis-fill {
+  position: absolute;
+  left: 0;
+  top: 0;
+  height: 100%;
+  border-radius: 4px;
+  background: linear-gradient(90deg, #2b3a55, var(--accent));
+}
+
+.tick {
+  position: absolute;
+  top: 50%;
+  width: 6px;
+  height: 6px;
+  margin: -3px 0 0 -3px;
+  border-radius: 50%;
+  background: var(--faint);
+  transition:
+    background 0.2s,
+    transform 0.2s;
+}
+
+.tick.identity {
+  background: var(--muted);
+}
+
+.tick.passed {
+  background: var(--accent);
+}
+
+.tick.mint {
+  width: 12px;
+  height: 12px;
+  margin: -6px 0 0 -6px;
+  background: var(--gold);
+  box-shadow: 0 0 0 4px rgba(232, 185, 74, 0.15);
+}
+
+.mint-flag {
+  position: absolute;
+  top: -30px;
+  transform: translateX(-50%);
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--gold);
+  white-space: nowrap;
+}
+
+.handle {
+  position: absolute;
+  top: 50%;
+  width: 18px;
+  height: 18px;
+  margin: -9px 0 0 -9px;
+  border-radius: 50%;
+  background: var(--text);
+  border: 3px solid var(--accent);
+  cursor: grab;
+  z-index: 3;
+}
+
+/* native range overlay drives interaction (drag/keyboard/a11y); visuals are the styled track */
+.range {
+  position: absolute;
+  inset: -16px 0;
+  width: 100%;
+  margin: 0;
+  opacity: 0;
+  cursor: grab;
+}
+.range:active {
+  cursor: grabbing;
+}
+
+.axis-ends {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 14px;
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--faint);
+}
+
+/* ── golden card ───────────────────────────────────────── */
+.stage {
+  margin-top: 26px;
+  min-height: 220px;
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.card {
+  flex: 1 1 260px;
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 18px;
+}
+
+.card.golden {
+  border-color: rgba(232, 185, 74, 0.4);
+  box-shadow: 0 0 40px rgba(232, 185, 74, 0.06);
+}
+
+.card-key {
+  font-family: var(--mono);
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.card-key b {
+  color: var(--text);
+  font-size: 15px;
+}
+
+.card-product {
+  float: right;
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--faint);
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin: 14px 0 6px;
+}
+
+.chip {
+  font-family: var(--mono);
+  font-size: 12px;
+  padding: 4px 9px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.chip.cnk {
+  color: var(--gold);
+  border-color: rgba(232, 185, 74, 0.45);
+  background: rgba(232, 185, 74, 0.06);
+}
+
+.chip.gtin {
+  color: var(--cyan);
+  border-color: rgba(78, 201, 214, 0.35);
+}
+
+.attrs {
+  margin-top: 12px;
+  border-top: 1px solid var(--border);
+  padding-top: 12px;
+  display: grid;
+  gap: 7px;
+}
+
+.attr {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 13px;
+}
+
+.attr .f {
+  color: var(--faint);
+  font-family: var(--mono);
+  font-size: 12px;
+}
+
+.attr .v {
+  color: var(--text);
+  text-align: right;
+}
+
+.attr .v.needs_review {
+  color: var(--amber);
+}
+
+.attr .v.needs_review::after {
+  content: " ⚠";
+  font-size: 11px;
+}
+
+.ghost {
+  flex: 1 1 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 200px;
+  border: 1px dashed var(--border);
+  border-radius: var(--radius);
+  color: var(--faint);
+  font-size: 14px;
+  text-align: center;
+  padding: 20px;
+}
+
+/* ── scene 2: over-merge guard ─────────────────────────── */
+.stepper {
+  display: inline-flex;
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 4px;
+  gap: 4px;
+  margin-bottom: 8px;
+}
+
+.step-btn {
+  appearance: none;
+  background: none;
+  border: none;
+  color: var(--muted);
+  font: inherit;
+  font-family: var(--mono);
+  font-size: 13px;
+  padding: 6px 16px;
+  border-radius: 999px;
+  cursor: pointer;
+}
+
+.step-btn[aria-selected="true"] {
+  background: var(--accent);
+  color: #08101f;
+}
+
+.guard-stage {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 90px;
+  margin-top: 36px;
+  align-items: start;
+}
+
+.guard-edge {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: visible;
+}
+
+.bridge-node {
+  position: absolute;
+  left: 50%;
+  top: 14px;
+  transform: translateX(-50%);
+  text-align: center;
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.flag-badge {
+  position: absolute;
+  left: 50%;
+  top: 70px;
+  transform: translateX(-50%);
+  background: rgba(240, 97, 109, 0.12);
+  border: 1px solid var(--flag);
+  color: var(--flag);
+  font-family: var(--mono);
+  font-size: 12px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  white-space: nowrap;
+  z-index: 4;
+}
+
+.caption {
+  margin-top: 30px;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.6;
+  border-left: 2px solid var(--gold);
+  padding-left: 14px;
+}
+
+.caption b {
+  color: var(--text);
+}
+
+.footnote {
+  margin-top: 28px;
+  color: var(--faint);
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.footnote code {
+  font-family: var(--mono);
+  color: var(--muted);
+}
