@@ -620,3 +620,40 @@ body {
 .retired-src {
   color: var(--muted);
 }
+
+/* the visible overlap (bridge codes) — shown as dashed "shared / pending" chips */
+.chip.shared {
+  border-style: dashed;
+}
+.shared-codes {
+  margin-top: 11px;
+  padding-top: 10px;
+  border-top: 1px dashed var(--border);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 7px;
+}
+.shared-label {
+  font-size: 11px;
+  color: var(--flag);
+  font-family: var(--mono);
+}
+.shared-with {
+  font-size: 11px;
+  color: var(--faint);
+}
+.overlap {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 7px;
+  margin-bottom: 9px;
+}
+.overlap-label {
+  font-size: 11px;
+  color: var(--flag);
+  font-family: var(--mono);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}

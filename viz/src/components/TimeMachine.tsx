@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { motion } from "motion/react";
-import type { ProductGroup, RealScene, TimelineEvent, VariantView } from "../lib/types";
+import type { MergeProposal, ProductGroup, RealScene, TimelineEvent, VariantView } from "../lib/types";
 
 const chipClass = (code: string) =>
   code.startsWith("cnk:") ? "chip cnk" : code.startsWith("gtin:") ? "chip gtin" : "chip";
@@ -35,17 +35,20 @@ function explain(variant: VariantView, timeline: TimelineEvent[]) {
 function VariantRow({
   variant,
   timeline,
-  flagged,
+  proposal,
 }: {
   variant: VariantView;
   timeline: TimelineEvent[];
-  flagged: boolean;
+  proposal?: MergeProposal;
 }) {
   const { when, anchor } = explain(variant, timeline);
   const codes = orderedCodes(variant.codes);
+  // codes this variant's source has SINCE picked up that overlap the other key — the visible bridge.
+  const shared = proposal ? orderedCodes(proposal.bridge.filter((c) => !variant.codes.includes(c))) : [];
+  const others = proposal ? proposal.keys.filter((k) => k !== variant.key) : [];
   return (
     <div className="variant-row">
-      <div className={`card variant${flagged ? " flagged" : ""}`}>
+      <div className={`card variant${proposal ? " flagged" : ""}`}>
         <div className="card-key">
           variant <b>{variant.key}</b>
         </div>
@@ -56,6 +59,17 @@ function VariantRow({
             </span>
           ))}
         </div>
+        {shared.length > 0 && (
+          <div className="shared-codes">
+            <span className="shared-label">now also claims</span>
+            {shared.map((c) => (
+              <span key={c} className={`${chipClass(c)} shared`}>
+                {c}
+              </span>
+            ))}
+            <span className="shared-with">shared with {others.join(", ")}</span>
+          </div>
+        )}
       </div>
       <div className="variant-explain">
         {when && <span className="when">first seen {when}</span>}
@@ -74,8 +88,9 @@ function VariantRow({
   );
 }
 
-// The vertical ⚠ link that sits between two stacked variant cards, with the gate explained beside it.
-function MergeLinkV() {
+// The vertical ⚠ link between two stacked variant cards. Shows the overlapping codes (the bridge) and
+// explains why the guard proposes rather than merges.
+function MergeLinkV({ bridge }: { bridge: string[] }) {
   return (
     <motion.div
       className="merge-link-v"
@@ -87,9 +102,19 @@ function MergeLinkV() {
         <span className="merge-flag">⚠ merge proposed · gated</span>
       </div>
       <div className="merge-explain">
-        Their codes now overlap — but each key was <b>established on its own first</b>. A shared code can
-        mean "same product" <i>or</i> a reused barcode, so the over-merge guard <b>proposes</b> a merge and
-        waits for a steward instead of fusing them automatically.
+        {bridge.length > 0 && (
+          <div className="overlap">
+            <span className="overlap-label">overlap</span>
+            {orderedCodes(bridge).map((c) => (
+              <span key={c} className={`${chipClass(c)} shared`}>
+                {c}
+              </span>
+            ))}
+          </div>
+        )}
+        Both sources now claim these codes — but each key was <b>established on its own first</b>. A shared
+        code can mean "same product" <i>or</i> a reused barcode, so the over-merge guard <b>proposes</b> a
+        merge and waits for a steward instead of fusing them automatically.
       </div>
     </motion.div>
   );
@@ -120,11 +145,11 @@ function ProductBox({
   timeline,
 }: {
   group: ProductGroup;
-  proposals: string[][];
+  proposals: MergeProposal[];
   retired: VariantView[];
   timeline: TimelineEvent[];
 }) {
-  const flaggedKeys = new Set(proposals.flat());
+  const proposalFor = (key: string) => proposals.find((p) => p.keys.includes(key));
   const linked = proposals.length > 0 && group.variants.length >= 2;
   const n = group.variants.length;
 
@@ -141,8 +166,8 @@ function ProductBox({
       <div className="variants-vertical">
         {group.variants.map((v, i) => (
           <div key={v.key}>
-            <VariantRow variant={v} timeline={timeline} flagged={flaggedKeys.has(v.key)} />
-            {linked && i === 0 && n >= 2 && <MergeLinkV />}
+            <VariantRow variant={v} timeline={timeline} proposal={proposalFor(v.key)} />
+            {linked && i === 0 && n >= 2 && <MergeLinkV bridge={proposals[0].bridge} />}
           </div>
         ))}
       </div>

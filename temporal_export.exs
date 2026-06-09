@@ -54,14 +54,26 @@ defmodule TemporalExport do
   # Project as known on `d`, grouped by product, with dead-barcode orphan keys retired, the over-merge
   # guard's standing merge proposals surfaced, and each variant attributed to its source orgs.
   defp as_of(log, claims, attributions, d) do
-    live = live_codes(claims, d)
+    listings = current_identity(claims, d)
+    live = listings |> Enum.flat_map(& &1.data.codes) |> MapSet.new()
     grouped = History.project_as_of(log, d, @priority)
+
+    # what each source currently claims, by its current identity snapshot.
+    source_codes = Map.new(listings, fn l -> {to_string(l.source), MapSet.new(l.data.codes)} end)
 
     # sources attributed to a key on/before d (a source belongs to the key its codes last fit within).
     sources_for = fn key ->
       for(%{date: ad, key: ^key, source: s} <- attributions, Date.compare(ad, d) != :gt, do: s)
       |> Enum.uniq()
       |> Enum.sort()
+    end
+
+    # a key's CURRENT codes = the union its attributed sources actually claim now (which can exceed the
+    # frozen ledger membership while a merge is gated). The proposal's `bridge` is where two keys overlap.
+    current_codes = fn key ->
+      key
+      |> sources_for.()
+      |> Enum.reduce(MapSet.new(), &MapSet.union(Map.get(source_codes, &1, MapSet.new()), &2))
     end
 
     products =
@@ -86,6 +98,17 @@ defmodule TemporalExport do
       )
       |> Enum.uniq()
       |> Enum.filter(fn keys -> Enum.all?(keys, &MapSet.member?(kept_keys, &1)) end)
+      |> Enum.map(fn keys ->
+        bridge =
+          keys
+          |> Enum.map(current_codes)
+          |> Enum.reduce(&MapSet.intersection/2)
+          |> MapSet.to_list()
+          |> Enum.sort()
+          |> Enum.map(&code_str/1)
+
+        %{keys: keys, bridge: bridge}
+      end)
 
     %{products: products, proposals: proposals, retired: retired}
   end
@@ -101,13 +124,11 @@ defmodule TemporalExport do
     }
   end
 
-  # currently-claimed codes: the union over each listing's most-recent identity snapshot <= d.
-  defp live_codes(claims, d) do
+  # each source's current identity snapshot (one claim per source) as known on `d`.
+  defp current_identity(claims, d) do
     claims
     |> Enum.filter(&(&1.kind == :identity and Date.compare(&1.recorded_at, d) != :gt))
     |> Substrate.current()
-    |> Enum.flat_map(& &1.data.codes)
-    |> MapSet.new()
   end
 
   # ── finer fold: one identity snapshot per (listing, identity-event), plus product grouping ───────

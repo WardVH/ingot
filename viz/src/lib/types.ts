@@ -14,9 +14,14 @@ export interface ProductGroup {
   variants: VariantView[];
 }
 
+export interface MergeProposal {
+  keys: string[]; // the established keys a shared code now bridges, e.g. ["SK_1","SK_3"]
+  bridge: string[]; // the overlapping codes their sources now both claim (why it's flagged)
+}
+
 export interface RealAsOf {
   products: ProductGroup[];
-  proposals: string[][]; // standing over-merge proposals among the shown variants, e.g. [["SK_1","SK_3"]]
+  proposals: MergeProposal[];
   retired: VariantView[]; // keys whose codes no source still claims (dead-barcode orphans)
 }
 
