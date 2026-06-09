@@ -420,3 +420,203 @@ body {
   font-family: var(--mono);
   color: var(--muted);
 }
+
+/* ── readout / count accents ───────────────────────────── */
+.readout .count-2 {
+  color: var(--amber);
+}
+.readout-flag {
+  color: var(--flag);
+}
+
+/* ── axis legend + special ticks ───────────────────────── */
+.legend {
+  display: flex;
+  gap: 18px;
+  margin-top: 12px;
+  font-size: 11px;
+  color: var(--faint);
+}
+.legend .dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  margin-right: 5px;
+  vertical-align: middle;
+}
+.legend .dot.mint {
+  background: var(--gold);
+}
+.legend .dot.flag {
+  background: var(--flag);
+}
+.tick.flag {
+  width: 10px;
+  height: 10px;
+  margin: -5px 0 0 -5px;
+  background: var(--flag);
+  box-shadow: 0 0 0 4px rgba(240, 97, 109, 0.15);
+}
+
+/* ── product box: legacy product → golden variants ─────── */
+.product-box {
+  flex: 1 1 100%;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: rgba(255, 255, 255, 0.012);
+  padding: 16px 18px 26px;
+}
+.product-head {
+  font-family: var(--mono);
+  font-size: 13px;
+  color: var(--muted);
+  margin-bottom: 18px;
+}
+.product-head b {
+  color: var(--text);
+}
+.product-head .count-1 {
+  color: var(--gold);
+}
+.product-head .count-2 {
+  color: var(--amber);
+}
+
+/* ── vertical layout: a column of [card + explanation] rows ─ */
+.variants-vertical {
+  display: flex;
+  flex-direction: column;
+}
+
+.variant-row {
+  display: flex;
+  gap: 20px;
+  align-items: center;
+}
+
+.card.variant {
+  flex: 0 0 290px;
+  background: var(--panel-2);
+}
+.card.variant.flagged {
+  border-color: rgba(240, 97, 109, 0.45);
+}
+
+.variant-explain {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.5;
+}
+.variant-explain .when {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--faint);
+}
+
+/* the vertical ⚠ link between two stacked cards (dashed rail + badge), with the gate explained */
+.merge-link-v {
+  display: flex;
+  gap: 20px;
+  align-items: center;
+  padding: 4px 0;
+}
+.rail {
+  flex: 0 0 290px;
+  position: relative;
+  display: flex;
+  justify-content: center;
+  padding: 12px 0;
+}
+.rail::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  border-left: 2px dashed var(--flag);
+  opacity: 0.45;
+}
+.merge-flag {
+  position: relative;
+  z-index: 1;
+  background: var(--panel);
+  border: 1px solid var(--flag);
+  color: var(--flag);
+  font-family: var(--mono);
+  font-size: 12px;
+  padding: 7px 13px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+.merge-explain {
+  flex: 1;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.55;
+}
+.merge-explain b {
+  color: var(--text);
+}
+
+/* retired keys */
+.retired-count {
+  color: var(--faint);
+}
+.retired {
+  margin-top: 18px;
+  padding-top: 14px;
+  border-top: 1px dashed var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.retired-row {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--faint);
+  font-family: var(--mono);
+  flex-wrap: wrap;
+}
+.retired-row b {
+  color: var(--muted);
+}
+.retired-why {
+  font-family: var(--sans);
+}
+
+/* primary identifier (priority order) */
+.chip.primary {
+  position: relative;
+}
+.chip.primary::after {
+  content: " ★";
+  color: var(--gold);
+  font-size: 10px;
+}
+.primary-note {
+  font-size: 12px;
+  color: var(--faint);
+}
+.primary-note b {
+  color: var(--gold);
+  font-family: var(--mono);
+}
+
+/* source attribution */
+.sources {
+  font-size: 12px;
+  color: var(--muted);
+}
+.sources b {
+  color: var(--text);
+}
+.retired-src {
+  color: var(--muted);
+}
