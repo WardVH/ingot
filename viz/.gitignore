@@ -1,0 +1,4 @@
+# build output + deps — everything else under viz/ (incl. src/data/temporal.json) is committed
+node_modules/
+dist/
+.astro/
