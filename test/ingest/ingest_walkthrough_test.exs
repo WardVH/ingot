@@ -79,10 +79,12 @@ defmodule IngestWalkthroughTest do
     end
 
     test "each entity is a trusted, high-confidence merge that needs no review", %{report: report} do
-      f = finding_for(report, 1)
-      assert f.category == "merged"
-      assert f.confidence == "high"
-      assert f.needs_review == false
+      for entity <- [1, 2] do
+        f = finding_for(report, entity)
+        assert f.category == "merged"
+        assert f.confidence == "high"
+        assert f.needs_review == false
+      end
     end
   end
 
