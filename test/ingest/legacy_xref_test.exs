@@ -87,6 +87,72 @@ defmodule LegacyXrefTest do
     end
   end
 
+  # ── synthetic OVER-MERGE GUARD: barcode-only bridge is SUSPECT (gr-ose) ────────
+  describe "over-merge guard — suspect (bridged solely by a reused barcode)" do
+    # Two distinct legacy entities sharing ONLY a reused/reassigned GTIN fuse onto one surrogate
+    # key. The merge IS applied (codes win, one SK) but the relation is TAGGED :suspect so the
+    # migration diff surfaces it as needs-review (medipim's ProductCodeIdentityMatch / MED-11207).
+    setup do
+      envs = [
+        envelope(10, [id("A", "set", "gtin", "05012345678900", 10)]),
+        envelope(20, [id("B", "set", "gtin", "05012345678900", 10)])
+      ]
+
+      %{xref: LegacyXref.from_envelopes(envs, 1)}
+    end
+
+    test "the single key holds BOTH legacy entities", %{xref: xref} do
+      assert xref.key_to_legacy == %{"SK_1" => [10, 20]}
+    end
+
+    test "each entity's relation is the suspect 3-tuple {:merged, [other], :suspect}", %{xref: xref} do
+      assert xref.legacy_to_key[10] == %{
+               primary: "SK_1",
+               all: ["SK_1"],
+               relation: {:merged, [20], :suspect}
+             }
+
+      assert xref.legacy_to_key[20] == %{
+               primary: "SK_1",
+               all: ["SK_1"],
+               relation: {:merged, [10], :suspect}
+             }
+    end
+
+    test "resolve_legacy discloses the suspect over-merge", %{xref: xref} do
+      assert LegacyXref.resolve_legacy(xref, 10) == {:ok, "SK_1", {:merged, [20], :suspect}}
+      assert LegacyXref.resolve_legacy(xref, 20) == {:ok, "SK_1", {:merged, [10], :suspect}}
+    end
+  end
+
+  # ── synthetic OVER-MERGE GUARD: a national-code bridge is TRUSTED (gr-ose) ─────
+  describe "over-merge guard — trusted (bridged by a national code)" do
+    # A cip_acl7 (national) bridge is the re-derivation working as intended — it stays the plain
+    # 2-tuple, NOT suspect. (The CNK-merge describe above is the cnk equivalent and must stay green.)
+    setup do
+      envs = [
+        envelope(30, [id("A", "set", "cipOrAcl7", "1234567", 10)]),
+        envelope(40, [id("B", "set", "cipOrAcl7", "1234567", 10)])
+      ]
+
+      %{xref: LegacyXref.from_envelopes(envs, 1)}
+    end
+
+    test "the single key holds BOTH legacy entities", %{xref: xref} do
+      assert xref.key_to_legacy == %{"SK_1" => [30, 40]}
+    end
+
+    test "each entity's relation is the plain 2-tuple (NOT suspect)", %{xref: xref} do
+      assert xref.legacy_to_key[30] == %{primary: "SK_1", all: ["SK_1"], relation: {:merged, [40]}}
+      assert xref.legacy_to_key[40] == %{primary: "SK_1", all: ["SK_1"], relation: {:merged, [30]}}
+    end
+
+    test "resolve_legacy discloses a plain merge, no :suspect tag", %{xref: xref} do
+      assert LegacyXref.resolve_legacy(xref, 30) == {:ok, "SK_1", {:merged, [40]}}
+      assert LegacyXref.resolve_legacy(xref, 40) == {:ok, "SK_1", {:merged, [30]}}
+    end
+  end
+
   # ── synthetic SPLIT: one entity fragments across two keys ─────────────────────
   describe "split (one legacy entity, two surrogate keys)" do
     # Entity 700 has two listings with DISJOINT bridging codes -> two clusters -> two keys.

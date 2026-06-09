@@ -41,6 +41,13 @@ defmodule LegacyXref do
   def build(%{log: log, ledger: ledger}) do
     groupings = groupings(log)
 
+    # legacy_entity -> MapSet of its canonical {scheme, code} (drawn from its grouping claims). Used
+    # by the over-merge guard to find the bridge — the codes shared across the merged entities.
+    entity_codes =
+      Enum.reduce(groupings, %{}, fn g, acc ->
+        Map.update(acc, g.data.product, MapSet.new([g.data.code]), &MapSet.put(&1, g.data.code))
+      end)
+
     # SK -> %{codes: MapSet, sources: MapSet} drawn from the grouping claims landing on its members.
     per_key =
       for {key, member_codes} <- ledger.members, into: %{} do
@@ -56,7 +63,7 @@ defmodule LegacyXref do
       end
 
     key_to_legacy = Map.new(per_key, fn {key, info} -> {key, info.entities} end)
-    legacy_to_key = invert(key_to_legacy, per_key)
+    legacy_to_key = invert(key_to_legacy, per_key, entity_codes)
 
     %{key_to_legacy: key_to_legacy, legacy_to_key: legacy_to_key}
   end
@@ -75,6 +82,9 @@ defmodule LegacyXref do
     * stable  -> `{:ok, SK, :stable}`
     * split   -> `{:ok, primary_SK, {:split, [all_SKs...]}}`  (answer with the primary, list all)
     * merged  -> `{:ok, SK, {:merged, [other_legacy_ids...]}}` (the co-tenants on that key)
+    * merged (suspect) -> `{:ok, SK, {:merged, [other_legacy_ids...], :suspect}}` (gr-ose: the
+                  co-tenants were bridged SOLELY by a reusable barcode/GS1 code — an over-merge the
+                  migration diff must surface as needs-review; the 3-tuple passes through unchanged)
 
   Unknown id -> `{:error, :unknown_legacy}`. Mirrors how a stale CNK redirects today: callers get a
   single authoritative key plus enough context to see what else it now relates to.
@@ -95,7 +105,7 @@ defmodule LegacyXref do
 
   # legacy_entity -> %{primary, all, relation}. `all` = every SK the entity's grouping claims point
   # at (sorted). `relation` is decided from that placement plus each key's co-tenancy.
-  defp invert(key_to_legacy, per_key) do
+  defp invert(key_to_legacy, per_key, entity_codes) do
     entity_to_keys =
       Enum.reduce(key_to_legacy, %{}, fn {key, entities}, acc ->
         Enum.reduce(entities, acc, fn e, acc -> Map.update(acc, e, [key], &[key | &1]) end)
@@ -108,7 +118,7 @@ defmodule LegacyXref do
        %{
          primary: primary(all, entity, key_to_legacy, per_key),
          all: all,
-         relation: relation(all, entity, key_to_legacy)
+         relation: relation(all, entity, key_to_legacy, entity_codes)
        }}
     end)
   end
@@ -117,14 +127,36 @@ defmodule LegacyXref do
   # the dominant fact a migrator must act on, regardless of whether any one of those keys also holds
   # OTHER legacy entities. (A degenerate case — split AND a co-tenant on one of the keys — is
   # therefore reported as :split; the co-tenancy still surfaces via key_to_legacy for that key.)
-  defp relation([_single = key], entity, key_to_legacy) do
-    case Enum.reject(key_to_legacy[key], &(&1 == entity)) do
+  defp relation([_single = key], entity, key_to_legacy, entity_codes) do
+    case Enum.sort(Enum.reject(key_to_legacy[key], &(&1 == entity))) do
       [] -> :stable
-      others -> {:merged, Enum.sort(others)}
+      others -> merged(entity, others, entity_codes)
     end
   end
 
-  defp relation(_many, _entity, _key_to_legacy), do: :split
+  defp relation(_many, _entity, _key_to_legacy, _entity_codes), do: :split
+
+  # OVER-MERGE GUARD (gr-ose): the merge IS applied (codes won, one SK) — we only TAG it. The bridge
+  # is the set of codes shared between `entity` and ANY co-tenant on this key. If any shared bridge
+  # code is national-grade, the merge is trusted: `{:merged, others}`. If the entities are bridged
+  # SOLELY by barcode/GS1 codes, tag it suspect: `{:merged, others, :suspect}`. A national share
+  # always wins (it is the re-derivation working as intended), so a national bridge alone keeps the
+  # plain 2-tuple even if a barcode is also shared.
+  defp merged(entity, others, entity_codes) do
+    mine = Map.get(entity_codes, entity, MapSet.new())
+
+    bridge =
+      Enum.reduce(others, MapSet.new(), fn other, acc ->
+        shared = MapSet.intersection(mine, Map.get(entity_codes, other, MapSet.new()))
+        MapSet.union(acc, shared)
+      end)
+
+    if Enum.any?(bridge, fn {scheme, _code} -> CodeRegistry.national_grade?(scheme) end) do
+      {:merged, others}
+    else
+      {:merged, others, :suspect}
+    end
+  end
 
   # Non-split: the sole key. Split: the engine "keep" heuristic per the design — spine (CNK ▸ GTIN),
   # then most listings (distinct grouping-claim sources backing the key), then lowest key id.
