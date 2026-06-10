@@ -38,8 +38,10 @@ const NARRATION: Record<string, string> = {
     "The real product 422156: drag the date and watch identity become resolvable. A snapshot would have hidden all of this.",
 
   // 5 — the guard
+  "guard/disjoint":
+    "Two identities, each established on its own evidence. Nothing connects them — yet.",
   "guard/bridge":
-    "A late barcode bridges two established identities. The engine proposes a merge — it never silently applies one.",
+    "A late barcode bridges them. Same product, or a reused barcode? The engine proposes a merge — it never silently applies one.",
 
   // 6 — the mistake is cheap
   "mistake/two-products": "Two sunscreens from two manufacturers. Similar names. Two golden records, two keys.",

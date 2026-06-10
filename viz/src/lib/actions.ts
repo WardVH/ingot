@@ -28,6 +28,9 @@ const ACTIONS: Record<string, StepAction> = {
   "priority/color-tie": { label: "Import: white vs ivory arrive", kind: "import" },
   "priority/steward-pick": { label: "Steward: resolve the colour tie", kind: "steward" },
 
+  // 5 — the guard
+  "guard/bridge": { label: "Import: the same barcode arrives on both", kind: "import" },
+
   // 6 — the mistake is cheap
   "mistake/wrong-merge": { label: "Steward: approve the merge", kind: "steward" },
   "mistake/contradiction": { label: "Look closer at the fused weights", kind: "watch" },

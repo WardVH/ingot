@@ -54,8 +54,8 @@ const CHAPTERS: Chapter[] = [
   {
     id: "guard",
     title: "The guard",
-    stepIds: ["bridge"],
-    render: () => <OverMergeGuard scene={temporal.synthetic} embedded />,
+    stepIds: ["disjoint", "bridge"],
+    render: (step) => <OverMergeGuard scene={temporal.synthetic} embedded step={step} />,
   },
   {
     id: "mistake",
@@ -68,8 +68,7 @@ const CHAPTERS: Chapter[] = [
 const COUNTS = CHAPTERS.map((c) => c.stepIds.length);
 
 // Deep-link a position with ?c=<chapter>&s=<step> (1-based) — refresh-safe mid-talk.
-function initialPos(): Position {
-  if (typeof window === "undefined") return { chapter: 0, step: 0 };
+function urlPos(): Position {
   const q = new URLSearchParams(window.location.search);
   const pos = jumpTo(Number(q.get("c") ?? "1") - 1, COUNTS);
   const step = Number(q.get("s") ?? "1") - 1;
@@ -78,7 +77,14 @@ function initialPos(): Position {
 
 // The guided story: → / ← (or the edge buttons) advance step by step; 1-6 jump to a chapter.
 export default function Story() {
-  const [pos, setPos] = useState<Position>(initialPos);
+  // Start where the server rendered (chapter 1) and apply the ?c=&s= deep-link AFTER mount —
+  // initializing state from the URL makes the first client render disagree with the SSR HTML
+  // (React #418), which can blank the whole stage.
+  const [pos, setPos] = useState<Position>({ chapter: 0, step: 0 });
+
+  useEffect(() => {
+    setPos(urlPos());
+  }, []);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
