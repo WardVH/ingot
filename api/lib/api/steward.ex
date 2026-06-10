@@ -15,13 +15,46 @@ defmodule Api.Steward do
     claims = Api.State.current_claims(state)
 
     merges =
-      for %Events.ConflictFlagged{subject: {:merge, keys}, candidates: cluster} <-
-            Api.State.open_flags(state) do
+      for %Events.ConflictFlagged{subject: {:merge, keys}} <- Api.State.open_flags(state) do
+        members = Map.new(keys, fn k -> {k, Map.get(state.ledger.members, k, MapSet.new())} end)
+
+        # Codes DIRECTLY shared by two keys' memberships are rare — most bridges are a single
+        # LISTING whose codes span the keys. Show those claims, each code tagged with the key it
+        # belongs to, so the steward sees exactly WHO connected WHAT (and can judge the claim).
+        shared =
+          members
+          |> Map.values()
+          |> Enum.flat_map(&MapSet.to_list/1)
+          |> Enum.frequencies()
+          |> Enum.filter(fn {_c, n} -> n > 1 end)
+          |> Enum.map(fn {c, _} -> Api.Views.code(c) end)
+          |> Enum.sort()
+
+        bridges =
+          for c <- claims,
+              c.kind == :identity,
+              codes = MapSet.new(c.data.codes),
+              Enum.count(members, fn {_k, m} -> not MapSet.disjoint?(codes, m) end) >= 2 do
+            %{
+              source: to_string(c.source),
+              ref: c.data.ref,
+              codes:
+                for code <- Enum.sort(c.data.codes) do
+                  owner =
+                    Enum.find_value(members, fn {k, m} -> if MapSet.member?(m, code), do: k end)
+
+                  %{code: Api.Views.code(code), owner: owner}
+                end
+            }
+          end
+
         %{
           type: "merge",
           keys: keys,
-          bridge: cluster |> Enum.sort() |> Enum.map(&Api.Views.code/1),
-          members: Map.new(keys, fn k -> {k, member_codes(state, k)} end)
+          members:
+            Map.new(members, fn {k, m} -> {k, m |> Enum.sort() |> Enum.map(&Api.Views.code/1)} end),
+          bridges: bridges,
+          shared: shared
         }
       end
 
@@ -37,7 +70,60 @@ defmodule Api.Steward do
         }
       end
 
-    %{merges: merges, attributes: attributes, open: length(merges) + length(attributes)}
+    repairs =
+      state.redirects
+      |> Map.keys()
+      |> Enum.group_by(&Api.State.follow(state, &1))
+      |> Enum.filter(fn {survivor, _} -> Map.has_key?(state.ledger.members, survivor) end)
+      |> Enum.sort_by(&elem(&1, 0))
+      |> Enum.map(fn {survivor, absorbed} ->
+        %{
+          key: survivor,
+          merged_from: Enum.sort(absorbed),
+          codes: selectable_codes(state, claims, survivor)
+        }
+      end)
+
+    %{
+      merges: merges,
+      attributes: attributes,
+      repairs: repairs,
+      open: length(merges) + length(attributes)
+    }
+  end
+
+  @doc """
+  `queue/0` plus the `manual` per-key code selectors the HTML page renders (every live key) —
+  kept off the JSON queue so the API payload stays proportional to open conflicts, not catalog size.
+  """
+  def page_data do
+    state = Api.Store.state()
+    claims = Api.State.current_claims(state)
+
+    manual =
+      state.ledger.members
+      |> Map.keys()
+      |> Enum.sort()
+      |> Enum.map(fn key -> %{key: key, codes: selectable_codes(state, claims, key)} end)
+
+    Map.put(queue(), :manual, manual)
+  end
+
+  # A key's member codes as SELECTABLE entries — each with the sources currently claiming it,
+  # so the steward can spot the stranger ("which claim is wrong") instead of typing codes.
+  defp selectable_codes(state, claims, key) do
+    sources =
+      for c <- claims, c.kind == :identity, code <- c.data.codes, reduce: %{} do
+        acc ->
+          Map.update(acc, code, [to_string(c.source)], &Enum.uniq([to_string(c.source) | &1]))
+      end
+
+    state.ledger.members
+    |> Map.get(key, MapSet.new())
+    |> Enum.sort()
+    |> Enum.map(fn code ->
+      %{code: Api.Views.code(code), sources: sources |> Map.get(code, []) |> Enum.sort()}
+    end)
   end
 
   # ── decisions ───────────────────────────────────────────────────────────────
@@ -91,22 +177,19 @@ defmodule Api.Steward do
       when is_binary(key) and is_list(codes) and codes != [] and is_binary(by) and by != "" do
     with {:ok, parsed} <- parse_codes(codes) do
       Api.Store.append(fn state, _conn ->
-        if Map.has_key?(state.ledger.members, key) do
-          events = Stewardship.split(state.ledger, key, [parsed], by, Date.utc_today())
-          ledger = Enum.reduce(events, state.ledger, &IdentityLedger.evolve(&2, &1))
+        member = Map.get(state.ledger.members, key)
 
-          # the carved-out key needs a legacy id of its own — continuity, immediately
-          assignments =
-            LegacyIds.decide(
-              ledger.members,
-              Api.State.current_claims(state),
-              state.assigned,
-              Date.utc_today()
-            )
+        cond do
+          member == nil ->
+            stale(state, "key #{key} is not live")
 
-          {:ok, events ++ assignments, applied("split")}
-        else
-          stale(state, "key #{key} is not live")
+          MapSet.subset?(member, MapSet.new(parsed)) ->
+            {:error,
+             {422,
+              %{error: "selecting every code would leave #{key} empty — reject the merge instead"}}}
+
+          true ->
+            split_events(state, key, parsed, by)
         end
       end)
       |> respond()
@@ -125,6 +208,22 @@ defmodule Api.Steward do
        }}
 
   # ── plumbing ────────────────────────────────────────────────────────────────
+  defp split_events(state, key, parsed, by) do
+    events = Stewardship.split(state.ledger, key, [parsed], by, Date.utc_today())
+    ledger = Enum.reduce(events, state.ledger, &IdentityLedger.evolve(&2, &1))
+
+    # the carved-out key needs a legacy id of its own — continuity, immediately
+    assignments =
+      LegacyIds.decide(
+        ledger.members,
+        Api.State.current_claims(state),
+        state.assigned,
+        Date.utc_today()
+      )
+
+    {:ok, events ++ assignments, applied("split")}
+  end
+
   defp applied(kind), do: %{applied: kind}
 
   defp stale(state, message),
@@ -147,12 +246,5 @@ defmodule Api.Steward do
       {:ok, acc} -> {:ok, Enum.reverse(acc)}
       error -> error
     end
-  end
-
-  defp member_codes(state, key) do
-    state.ledger.members
-    |> Map.get(key, MapSet.new())
-    |> Enum.sort()
-    |> Enum.map(&Api.Views.code/1)
   end
 end
