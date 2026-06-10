@@ -6,8 +6,19 @@ const chipClass = (code: string) => (code.startsWith("cnk:") ? "chip cnk" : "chi
 
 // Scene 2 — the over-merge guard, temporally. Step d1 → d2: a late barcode bridges two established
 // keys; the engine FLAGS a merge proposal instead of silently merging. Both keys survive.
-export default function OverMergeGuard({ scene }: { scene: SyntheticScene }) {
-  const [step, setStep] = useState(0);
+// `embedded` renders it as a story chapter: the shell's narration bar replaces the caption, and the
+// shell drives d1 → d2 through `step` (its action button is the import), so the tabs hide too.
+export default function OverMergeGuard({
+  scene,
+  embedded = false,
+  step: controlledStep,
+}: {
+  scene: SyntheticScene;
+  embedded?: boolean;
+  step?: number;
+}) {
+  const [internalStep, setInternalStep] = useState(0);
+  const step = controlledStep ?? internalStep;
   const date = scene.steps[step];
   const variants = scene.asOf[date]?.variants ?? [];
   const flagged = step === 1;
@@ -19,19 +30,21 @@ export default function OverMergeGuard({ scene }: { scene: SyntheticScene }) {
         {flagged ? "— a late barcode bridges them" : "— two disjoint identities"}
       </div>
 
-      <div className="stepper" role="tablist" aria-label="step">
-        {scene.steps.map((s, i) => (
-          <button
-            key={s}
-            className="step-btn"
-            role="tab"
-            aria-selected={step === i}
-            onClick={() => setStep(i)}
-          >
-            {i === 0 ? "d1" : "d2"} · {s}
-          </button>
-        ))}
-      </div>
+      {!embedded && (
+        <div className="stepper" role="tablist" aria-label="step">
+          {scene.steps.map((s, i) => (
+            <button
+              key={s}
+              className="step-btn"
+              role="tab"
+              aria-selected={step === i}
+              onClick={() => setInternalStep(i)}
+            >
+              {i === 0 ? "d1" : "d2"} · {s}
+            </button>
+          ))}
+        </div>
+      )}
 
       <div className="guard-stage">
         {variants.map((v, i) => (
@@ -65,10 +78,10 @@ export default function OverMergeGuard({ scene }: { scene: SyntheticScene }) {
               exit={{ opacity: 0 }}
             >
               <motion.line
-                x1="25%"
-                y1="36"
-                x2="75%"
-                y2="36"
+                x1="20%"
+                y1="50%"
+                x2="80%"
+                y2="50%"
                 stroke="var(--flag)"
                 strokeWidth="2"
                 strokeDasharray="6 4"
@@ -113,12 +126,14 @@ export default function OverMergeGuard({ scene }: { scene: SyntheticScene }) {
         </AnimatePresence>
       </div>
 
-      <p className="caption">
-        A late barcode bridges two <b>established</b> identities → the engine <b>flags a proposal</b>;
-        it does not silently merge. Both keys <b>survive</b> (still {variants.length} at d2). It's the
-        over-merge guard (gr-ose), now visible <i>temporally</i> — the same restraint the time machine
-        shows when 422156 simply <i>becomes</i> one identity rather than being assumed so.
-      </p>
+      {!embedded && (
+        <p className="caption">
+          A late barcode bridges two <b>established</b> identities → the engine <b>flags a proposal</b>;
+          it does not silently merge. Both keys <b>survive</b> (still {variants.length} at d2). It's the
+          over-merge guard (gr-ose), now visible <i>temporally</i> — the same restraint the time machine
+          shows when 422156 simply <i>becomes</i> one identity rather than being assumed so.
+        </p>
+      )}
     </div>
   );
 }

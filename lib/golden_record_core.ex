@@ -35,6 +35,7 @@ defmodule Events do
   end
 
   # subject: {:attr, key, field} | {:merge, [keys]} | {:collision, key} | {:code, {scheme, code}}
+  #        | {:split, key}
   defmodule ConflictFlagged do
     @enforce_keys [:subject, :candidates, :recorded_at]
     defstruct [:subject, :candidates, :recorded_at, :order]
@@ -457,6 +458,30 @@ defmodule Stewardship do
     ]
   end
 
+  @doc """
+  Steward-initiated split: carve groups of codes out of `key` into freshly minted keys; whatever
+  remains stays with the original key. Mirrors `approve_merge/4`, but takes the ledger — minting
+  the carved-out keys needs its `next` counter. Carve-out codes are canonicalized and clipped to
+  the codes the key actually owns. The decision event records WHO split (`IdentitySplit` has no
+  `by` field), so the steward survives in the lineage.
+  """
+  def split(%IdentityLedger{members: members, next: next}, key, carve_outs, by, at) do
+    owned = Map.get(members, key, MapSet.new())
+
+    {into, _} =
+      Enum.map_reduce(carve_outs, next, fn codes, n ->
+        carved = codes |> MapSet.new(&Codes.canonicalize/1) |> MapSet.intersection(owned)
+        {{"SK_#{n}", carved}, n + 1}
+      end)
+
+    kept = Enum.reduce(into, owned, fn {_k, codes}, acc -> MapSet.difference(acc, codes) end)
+
+    [
+      %Events.IdentitySplit{key: key, kept_codes: kept, into: into, recorded_at: at},
+      %Events.ConflictResolved{subject: {:split, key}, decision: :approved, by: by, recorded_at: at}
+    ]
+  end
+
   @doc "Codes a steward has declared legitimately shared (read from the log)."
   def shared_codes(log) do
     for %Events.ConflictResolved{subject: {:code, c}, decision: :shared} <- log, into: MapSet.new(), do: c
@@ -589,6 +614,7 @@ defmodule History do
       %Events.ConflictResolved{subject: {:merge, keys}} -> key in keys
       %Events.ConflictResolved{subject: {:attr, k, _}} -> k == key
       %Events.ConflictResolved{subject: {:collision, k}} -> k == key
+      %Events.ConflictResolved{subject: {:split, k}} -> k == key
       _ -> false
     end)
   end

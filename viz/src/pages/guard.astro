@@ -1,0 +1,28 @@
+---
+import "../styles/global.css";
+import GuardApp from "../components/GuardApp";
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="The over-merge guard: a late barcode bridges two established keys." />
+    <title>Over-merge guard — flagged, not fused</title>
+  </head>
+  <body>
+    <main class="shell">
+      <header class="masthead">
+        <h1>The <span class="accent">over-merge guard</span></h1>
+        <p>
+          Two identities, each <b>established on its own</b>. A late barcode bridges them — and the engine
+          <b>flags a merge proposal</b> for a steward instead of silently fusing. A shared code can mean
+          "same product" <i>or</i> a reused barcode; the engine refuses to guess.
+        </p>
+      </header>
+
+      <GuardApp client:load />
+    </main>
+  </body>
+</html>
