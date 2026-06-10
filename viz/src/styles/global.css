@@ -760,3 +760,336 @@ body {
 .story-placeholder .caption {
   margin-top: 10px;
 }
+
+/* ── story chapters: the engine stage (log ⟶ fold ⟶ golden) ─────────────────── */
+.engine-stage {
+  display: grid;
+  grid-template-columns: minmax(0, 5fr) auto minmax(0, 6fr);
+  gap: 16px;
+  align-items: start;
+  margin-top: 14px;
+}
+.panel-label {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--faint);
+  margin-bottom: 9px;
+}
+.gold-label {
+  color: var(--gold);
+}
+.flag-label {
+  color: var(--flag);
+}
+.claim-log {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 460px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+.claim-card {
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  padding: 8px 11px;
+  font-size: 12.5px;
+  line-height: 1.5;
+}
+.claim-card.fresh {
+  border-color: var(--accent);
+}
+.claim-source {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--accent);
+  margin-right: 8px;
+}
+.claim-date {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  color: var(--faint);
+  float: right;
+}
+.claim-body {
+  color: var(--muted);
+}
+.claim-body b {
+  color: var(--text);
+  font-weight: 600;
+}
+.claim-body .chip {
+  margin: 0 3px;
+  vertical-align: 1px;
+}
+.fold-arrow {
+  align-self: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  color: var(--gold);
+  font-size: 19px;
+  padding-top: 26px;
+}
+.fold-arrow span {
+  font-family: var(--mono);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+.golden-side {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.golden-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.golden-card {
+  border-color: color-mix(in srgb, var(--gold) 45%, var(--border));
+}
+.derived-tag {
+  font-family: var(--mono);
+  font-size: 9.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--gold);
+  border: 1px solid color-mix(in srgb, var(--gold) 40%, transparent);
+  border-radius: 999px;
+  padding: 1px 7px;
+  margin-left: 7px;
+}
+.attrs {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 10px;
+}
+.attr-row {
+  border-radius: 7px;
+  padding: 5px 8px;
+  background: var(--panel);
+}
+.attr-row.focus {
+  outline: 1px solid color-mix(in srgb, var(--accent) 55%, transparent);
+}
+.attr-main {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  font-size: 12.5px;
+}
+.attr-field {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--muted);
+}
+.attr-value {
+  color: var(--text);
+}
+.attr-winner {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  color: var(--green);
+}
+.attr-status {
+  margin-left: auto;
+  font-family: var(--mono);
+  font-size: 10px;
+  border-radius: 999px;
+  padding: 1px 7px;
+}
+.attr-status.review {
+  color: var(--amber);
+  border: 1px solid color-mix(in srgb, var(--amber) 45%, transparent);
+}
+.attr-status.steward {
+  color: var(--gold);
+  border: 1px solid color-mix(in srgb, var(--gold) 45%, transparent);
+}
+.attr-candidates {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 5px;
+}
+.candidate {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  color: var(--faint);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 1px 8px;
+}
+.candidate.winner {
+  color: var(--green);
+  border-color: color-mix(in srgb, var(--green) 45%, transparent);
+}
+.media-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+}
+.media-tag {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--cyan);
+}
+.media-tag i {
+  color: var(--faint);
+  font-style: normal;
+}
+.queue-panel {
+  border: 1px solid color-mix(in srgb, var(--flag) 40%, var(--border));
+  border-radius: 9px;
+  padding: 9px 12px;
+  background: color-mix(in srgb, var(--flag) 6%, var(--panel));
+}
+.queue-item {
+  font-size: 12.5px;
+  color: var(--muted);
+  line-height: 1.55;
+}
+.queue-item b {
+  color: var(--text);
+}
+.event-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+.event-badge {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  border-radius: 999px;
+  padding: 2px 9px;
+  border: 1px solid var(--border);
+  color: var(--muted);
+}
+.event-badge.mint {
+  color: var(--green);
+  border-color: color-mix(in srgb, var(--green) 45%, transparent);
+}
+.event-badge.merge,
+.event-badge.split {
+  color: var(--accent);
+  border-color: color-mix(in srgb, var(--accent) 45%, transparent);
+}
+.event-badge.flag {
+  color: var(--flag);
+  border-color: color-mix(in srgb, var(--flag) 45%, transparent);
+}
+.event-badge.decision {
+  color: var(--gold);
+  border-color: color-mix(in srgb, var(--gold) 45%, transparent);
+}
+.tier-note,
+.phase-note {
+  display: block;
+  margin-top: 4px;
+  font-size: 11.5px;
+  color: var(--faint);
+  font-family: var(--mono);
+}
+.phase-note.hot {
+  color: var(--amber);
+}
+
+/* ── chapter 1: the old way — deliberately dull, provenance-free ────────────── */
+.oldway-stage {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 16px;
+  max-width: 520px;
+}
+.oldway-card {
+  background: #20242b;
+  border: 1px solid #2c313a;
+  border-radius: 6px;
+  padding: 12px 14px;
+}
+.oldway-card.dead {
+  border-style: dashed;
+}
+.oldway-source {
+  font-size: 11px;
+  color: #6b7280;
+  margin-bottom: 4px;
+}
+.oldway-name {
+  font-size: 14px;
+  color: #c3c9d1;
+  margin-bottom: 8px;
+}
+.oldway-fields {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+.oldway-field {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: #8a9098;
+  background: #262b33;
+  border-radius: 4px;
+  padding: 2px 8px;
+}
+.oldway-link {
+  align-self: center;
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--amber);
+  border: 1px dashed color-mix(in srgb, var(--amber) 50%, transparent);
+  border-radius: 999px;
+  padding: 3px 12px;
+}
+.illustration-badge {
+  margin-left: 10px;
+  font-family: var(--mono);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--amber);
+  border: 1px solid color-mix(in srgb, var(--amber) 40%, transparent);
+  border-radius: 999px;
+  padding: 2px 8px;
+}
+.lost-list {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin-top: 14px;
+  font-size: 12.5px;
+}
+.lost-list s {
+  color: var(--flag);
+  opacity: 0.85;
+}
+.lost-label {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--flag);
+}
+
+@media (max-width: 860px) {
+  .engine-stage {
+    grid-template-columns: 1fr;
+  }
+  .fold-arrow {
+    flex-direction: row;
+    gap: 8px;
+    padding-top: 0;
+    transform: rotate(90deg);
+    justify-content: center;
+  }
+}
