@@ -1120,3 +1120,121 @@ body {
   text-transform: uppercase;
   color: var(--amber);
 }
+
+/* ── action-driven nav: the advance button IS the operation ─────────────────── */
+.action-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 18px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--panel);
+  color: var(--text);
+  font-family: var(--sans);
+  font-size: 13.5px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: border-color 0.15s, background 0.15s, transform 0.1s;
+}
+.action-btn:hover {
+  transform: translateY(-1px);
+}
+.action-btn .action-icon {
+  font-size: 12px;
+}
+.action-btn.import {
+  border-color: color-mix(in srgb, var(--accent) 60%, transparent);
+  background: color-mix(in srgb, var(--accent) 14%, var(--panel));
+}
+.action-btn.import:hover {
+  background: color-mix(in srgb, var(--accent) 24%, var(--panel));
+}
+.action-btn.steward {
+  border-color: color-mix(in srgb, var(--amber) 65%, transparent);
+  background: color-mix(in srgb, var(--amber) 14%, var(--panel));
+  color: var(--amber);
+  animation: steward-pulse 1.6s ease-in-out infinite;
+}
+.action-btn.steward:hover {
+  background: color-mix(in srgb, var(--amber) 24%, var(--panel));
+}
+@keyframes steward-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--amber) 35%, transparent);
+  }
+  50% {
+    box-shadow: 0 0 0 7px transparent;
+  }
+}
+.steward-alert {
+  align-self: center;
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--amber);
+  border: 1px dashed color-mix(in srgb, var(--amber) 55%, transparent);
+  border-radius: 999px;
+  padding: 6px 16px;
+  background: color-mix(in srgb, var(--amber) 7%, var(--panel));
+}
+.steward-alert b {
+  color: var(--amber);
+}
+
+/* ── trust tiers: the ranking the engine resolves with ──────────────────────── */
+.tier-panel {
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  padding: 9px 12px;
+  background: var(--panel);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.tier-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  border-radius: 6px;
+  padding: 3px 6px;
+}
+.tier-row.focus {
+  background: color-mix(in srgb, var(--accent) 9%, transparent);
+  outline: 1px solid color-mix(in srgb, var(--accent) 35%, transparent);
+}
+.tier-dim {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--muted);
+  min-width: 96px;
+}
+.tier-chain {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.tier-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.tier-sep {
+  color: var(--faint);
+  font-size: 12px;
+}
+.tier-box {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 1px 9px;
+  color: var(--text);
+}
+.tier-box.tied {
+  border-color: color-mix(in srgb, var(--amber) 45%, transparent);
+  color: var(--amber);
+}

@@ -8,6 +8,7 @@ import TimeMachine from "./TimeMachine";
 import OverMergeGuard from "./OverMergeGuard";
 import { advance, flatIndex, jumpTo, totalSteps, type Position } from "../lib/steps";
 import { caption } from "../lib/narration";
+import { actionInto } from "../lib/actions";
 import OldWay from "./chapters/OldWay";
 import ClaimsIntro from "./chapters/ClaimsIntro";
 import PriorityDuel from "./chapters/PriorityDuel";
@@ -102,6 +103,15 @@ export default function Story() {
   const atStart = pos.chapter === 0 && pos.step === 0;
   const atEnd = pos.chapter === CHAPTERS.length - 1 && pos.step === COUNTS[pos.chapter] - 1;
 
+  // The advance button IS the next operation: run the import, or act as the steward.
+  const next = advance(pos, 1, COUNTS);
+  const action = next.chapter === pos.chapter ? actionInto(chapter.id, chapter.stepIds[next.step]) : undefined;
+  const actionLabel = atEnd
+    ? "↺ restart the story"
+    : (action?.label ?? `next chapter: ${CHAPTERS[next.chapter]?.title}`);
+  const actionKind = atEnd ? "watch" : (action?.kind ?? "watch");
+  const stewardNeeded = !atEnd && action?.kind === "steward";
+
   return (
     <div className="story">
       <nav className="story-rail" aria-label="chapters">
@@ -139,6 +149,19 @@ export default function Story() {
         </AnimatePresence>
       </div>
 
+      <AnimatePresence>
+        {stewardNeeded && (
+          <motion.div
+            className="steward-alert"
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 8 }}
+          >
+            ⚠ the engine has stopped — a <b>steward decision</b> is required to continue
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       <div className="story-nav">
         <button
           className="nav-btn"
@@ -160,14 +183,17 @@ export default function Story() {
             {caption(chapter.id, stepId)}
           </motion.p>
         </AnimatePresence>
-        <button
-          className="nav-btn"
-          onClick={() => setPos((p) => advance(p, 1, COUNTS))}
-          disabled={atEnd}
-          aria-label="next step"
+        <motion.button
+          key={actionLabel}
+          className={`action-btn ${actionKind}`}
+          onClick={() => setPos((p) => (atEnd ? { chapter: 0, step: 0 } : advance(p, 1, COUNTS)))}
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
         >
-          →
-        </button>
+          {actionKind === "import" && <span className="action-icon">▶</span>}
+          {actionKind === "steward" && <span className="action-icon">⚠</span>}
+          {actionLabel}
+        </motion.button>
       </div>
     </div>
   );

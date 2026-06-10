@@ -65,8 +65,16 @@ export interface StoryStep {
   queue: QueueItem[]; // the open steward queue
 }
 
+// One row of the scene's trust ranking, straight from the engine's Priority struct.
+// "default" applies to every field without its own row. Sources inside one tier are EQUAL.
+export interface TierView {
+  dimension: string;
+  tiers: string[][];
+}
+
 export interface EngineScene {
   label: string;
+  tiers: TierView[];
   steps: StoryStep[];
 }
 

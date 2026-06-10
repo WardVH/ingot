@@ -104,7 +104,7 @@ defmodule DemoExport do
         ]}}
     ]
 
-    %{label: "claims, not records", steps: run_beats(beats, priority)}
+    %{label: "claims, not records", tiers: tiers_view(priority), steps: run_beats(beats, priority)}
   end
 
   # ── chapter 3: who wins? ──────────────────────────────────────────────────────────────────────────
@@ -144,7 +144,7 @@ defmodule DemoExport do
         fn _ledger -> Stewardship.resolve_attribute("SK_1", :color, "ivory", :sam, ~D[2026-03-27]) end}}
     ]
 
-    %{label: "who wins?", steps: run_beats(beats, priority)}
+    %{label: "who wins?", tiers: tiers_view(priority), steps: run_beats(beats, priority)}
   end
 
   # ── chapter 6: the mistake is cheap ───────────────────────────────────────────────────────────────
@@ -192,7 +192,14 @@ defmodule DemoExport do
       {"healed", ~D[2026-05-02], :pause}
     ]
 
-    %{label: "the mistake is cheap", steps: run_beats(beats, priority)}
+    %{label: "the mistake is cheap", tiers: tiers_view(priority), steps: run_beats(beats, priority)}
+  end
+
+  # The trust tiers, straight from the scene's ACTUAL Priority struct — the viz shows the same
+  # ranking the engine resolves with, so the reasoning on screen can't drift from the engine.
+  defp tiers_view(%Priority{table: table, default: default}) do
+    rows = for {dim, tiers} <- Enum.sort_by(table, &elem(&1, 0)), do: %{dimension: dim, tiers: tiers}
+    rows ++ [%{dimension: "default", tiers: default}]
   end
 
   # ── the beat engine: fold claims + steward decisions forward, snapshot after each beat ───────────

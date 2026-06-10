@@ -71,6 +71,20 @@ describe("story.json schema", () => {
     ]);
   });
 
+  it("every engine scene exposes its trust tiers (the engine's actual Priority)", () => {
+    for (const scene of [story.claims, story.priority, story.mistake]) {
+      expect(scene.tiers.length).toBeGreaterThan(0);
+      for (const row of scene.tiers) {
+        expect(typeof row.dimension).toBe("string");
+        expect(row.tiers.length).toBeGreaterThan(0);
+      }
+    }
+    expect(story.priority.tiers).toContainEqual({
+      dimension: "color",
+      tiers: [["manufacturer", "supplier"], ["marketplace"]],
+    });
+  });
+
   it("every engine step carries log, events, golden, and queue", () => {
     for (const scene of [story.claims, story.priority, story.mistake]) {
       for (const step of scene.steps) {

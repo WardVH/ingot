@@ -1,5 +1,13 @@
 import { AnimatePresence, motion } from "motion/react";
-import type { AttributeView, ClaimView, GoldenView, QueueItem, StoryEvent, StoryStep } from "../../lib/story";
+import type {
+  AttributeView,
+  ClaimView,
+  GoldenView,
+  QueueItem,
+  StoryEvent,
+  StoryStep,
+  TierView,
+} from "../../lib/story";
 
 export const chipClass = (code: string) =>
   code.startsWith("cnk:") ? "chip cnk" : code.startsWith("gtin:") ? "chip gtin" : "chip";
@@ -182,6 +190,32 @@ export function QueuePanel({ queue }: { queue: QueueItem[] }) {
   );
 }
 
+// ── the trust tiers: the ranking the engine resolves with, visible so the reasoning is on screen ──
+export function TierPanel({ tiers, focusField }: { tiers: TierView[]; focusField?: string }) {
+  // the focused field uses its own row if it has one, otherwise the default row decides it
+  const hasOwnRow = tiers.some((t) => t.dimension === focusField);
+  const rowFocused = (t: TierView) =>
+    focusField != null && (t.dimension === focusField || (!hasOwnRow && t.dimension === "default"));
+  return (
+    <div className="tier-panel">
+      <div className="panel-label">trust tiers — higher tier wins; sources in ONE tier are equal</div>
+      {tiers.map((t) => (
+        <div key={t.dimension} className={`tier-row${rowFocused(t) ? " focus" : ""}`}>
+          <span className="tier-dim">{t.dimension === "default" ? "all other fields" : t.dimension}</span>
+          <span className="tier-chain">
+            {t.tiers.map((tier, i) => (
+              <span key={i} className="tier-group">
+                {i > 0 && <span className="tier-sep">≻</span>}
+                <span className={`tier-box${tier.length > 1 ? " tied" : ""}`}>{tier.join(" = ")}</span>
+              </span>
+            ))}
+          </span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 // ── this beat's engine events, as a strip of badges ───────────────────────────────────────────────
 function eventText(e: StoryEvent) {
   switch (e.type) {
@@ -224,10 +258,12 @@ export function EngineStage({
   step,
   prevStep,
   focusField,
+  tiers,
 }: {
   step: StoryStep;
   prevStep?: StoryStep;
   focusField?: string;
+  tiers?: TierView[];
 }) {
   return (
     <div className="engine-stage">
@@ -245,6 +281,7 @@ export function EngineStage({
           </AnimatePresence>
         </div>
         <QueuePanel queue={step.queue} />
+        {tiers && <TierPanel tiers={tiers} focusField={focusField} />}
         <EventStrip events={step.events} />
       </div>
     </div>

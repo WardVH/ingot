@@ -9,7 +9,7 @@ export default function ClaimsIntro({ scene, step }: { scene: EngineScene; step:
       <div className="readout">
         <b>{scene.label}</b> · as-of <b>{scene.steps[step].date}</b>
       </div>
-      <EngineStage step={scene.steps[step]} prevStep={scene.steps[step - 1]} />
+      <EngineStage step={scene.steps[step]} prevStep={scene.steps[step - 1]} tiers={scene.tiers} />
     </div>
   );
 }

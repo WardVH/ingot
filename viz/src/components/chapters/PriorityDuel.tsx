@@ -17,11 +17,8 @@ export default function PriorityDuel({ scene, step }: { scene: EngineScene; step
     <div className="panel">
       <div className="readout">
         <b>{scene.label}</b> · as-of <b>{s.date}</b>
-        <span className="tier-note">
-          weight tiers: manufacturer ≻ supplier ≻ marketplace · colour: manufacturer = supplier (one tier)
-        </span>
       </div>
-      <EngineStage step={s} prevStep={scene.steps[step - 1]} focusField={FOCUS[s.id]} />
+      <EngineStage step={s} prevStep={scene.steps[step - 1]} focusField={FOCUS[s.id]} tiers={scene.tiers} />
     </div>
   );
 }

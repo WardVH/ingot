@@ -25,7 +25,7 @@ export default function MistakeArc({ scene, step }: { scene: EngineScene; step: 
         <b>{scene.label}</b> · as-of <b>{s.date}</b>
         <span className={`phase-note${s.id === "contradiction" ? " hot" : ""}`}>{PHASE[s.id]}</span>
       </div>
-      <EngineStage step={s} prevStep={scene.steps[step - 1]} focusField={FOCUS[s.id]} />
+      <EngineStage step={s} prevStep={scene.steps[step - 1]} focusField={FOCUS[s.id]} tiers={scene.tiers} />
     </div>
   );
 }
