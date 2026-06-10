@@ -27,7 +27,7 @@ defmodule Api.StewardRouter do
 
     conn
     |> put_resp_content_type("text/html")
-    |> send_resp(200, page(Api.Steward.page_data(), conn.query_params["notice"]))
+    |> send_resp(200, page(Api.Steward.page_data(), conn.query_params["notice"], form_base(conn)))
   end
 
   post "/decide" do
@@ -70,6 +70,15 @@ defmodule Api.StewardRouter do
   # mounted under /steward by the front router — Location must include the mount
   defp steward_path(%Plug.Conn{script_name: []}), do: "/"
   defp steward_path(%Plug.Conn{script_name: parts}), do: "/" <> Enum.join(parts, "/")
+
+  # form actions must be ABSOLUTE: the page lives at /steward (no trailing slash), so a relative
+  # action="<%= base %>/decide" resolves to /decide — outside the mount. "" when standalone -> "/decide".
+  defp form_base(conn) do
+    case steward_path(conn) do
+      "/" -> ""
+      base -> base
+    end
+  end
 
   defp json(conn, status, body) do
     conn
@@ -160,13 +169,13 @@ defmodule Api.StewardRouter do
               <% end %>
             </div>
           <% end %>
-          <form method="post" action="decide" class="inline">
+          <form method="post" action="<%= base %>/decide" class="inline">
             <input type="hidden" name="kind" value="approve_merge"/>
             <input type="hidden" name="keys" value="<%= Enum.join(m.keys, "+") %>"/>
             <input type="text" name="by" placeholder="your name" required/>
             <button class="go">approve — same product</button>
           </form>
-          <form method="post" action="decide" class="inline">
+          <form method="post" action="<%= base %>/decide" class="inline">
             <input type="hidden" name="kind" value="reject_merge"/>
             <input type="hidden" name="keys" value="<%= Enum.join(m.keys, "+") %>"/>
             <input type="text" name="by" placeholder="your name" required/>
@@ -181,7 +190,7 @@ defmodule Api.StewardRouter do
           <div><b><%= a.field %></b> on <b><%= a.key %></b>:
             <%= for c <- a.candidates do %><code><%= c.source %> says <%= c.value %></code><% end %>
           </div>
-          <form method="post" action="decide">
+          <form method="post" action="<%= base %>/decide">
             <input type="hidden" name="kind" value="resolve_attribute"/>
             <input type="hidden" name="key" value="<%= a.key %>"/>
             <input type="hidden" name="field" value="<%= a.field %>"/>
@@ -200,7 +209,7 @@ defmodule Api.StewardRouter do
       <%= for r <- queue.repairs do %>
         <div class="item">
           <div><b><%= r.key %></b> <span class="muted">absorbed <%= Enum.join(r.merged_from, ", ") %></span></div>
-          <form method="post" action="decide">
+          <form method="post" action="<%= base %>/decide">
             <input type="hidden" name="kind" value="split"/>
             <input type="hidden" name="key" value="<%= r.key %>"/>
             <%= for c <- r.codes do %>
@@ -219,7 +228,7 @@ defmodule Api.StewardRouter do
           <details>
             <summary><b><%= k.key %></b> <span class="muted">(<%= length(k.codes) %> codes)</span></summary>
             <div class="item">
-              <form method="post" action="decide">
+              <form method="post" action="<%= base %>/decide">
                 <input type="hidden" name="kind" value="split"/>
                 <input type="hidden" name="key" value="<%= k.key %>"/>
                 <%= for c <- k.codes do %>
@@ -236,6 +245,6 @@ defmodule Api.StewardRouter do
     </body>
     </html>
     """,
-    [:queue, :notice]
+    [:queue, :notice, :base]
   )
 end

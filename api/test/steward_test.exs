@@ -332,6 +332,9 @@ defmodule Api.StewardTest do
       assert conn.resp_body =~ "Merge proposals"
       assert conn.resp_body =~ "the new evidence"
       assert conn.resp_body =~ "separate products"
+      # forms must post INSIDE the mount — a relative "decide" resolved to /decide (404)
+      assert conn.resp_body =~ ~s(action="/steward/decide")
+      refute conn.resp_body =~ ~s(action="decide")
       assert conn.resp_body =~ "Manual repairs"
     end
 
