@@ -8,8 +8,17 @@ defmodule Api.Application do
 
   @impl true
   def start(_type, _args) do
-    children = [{Postgrex, db_opts()} | listeners()]
+    children = [{Postgrex, db_opts()} | migrator() ++ listeners()]
     Supervisor.start_link(children, strategy: :one_for_one, name: Api.Supervisor)
+  end
+
+  # In server mode the schema must exist before traffic; the task retries while the DB container
+  # comes up and crashes the boot if it never does (compose/Dokploy healthchecks gate on this).
+  # Tests run migrate explicitly in test_helper.exs (the test DB is created there too).
+  defp migrator do
+    if Application.fetch_env!(:golden_record_api, :server),
+      do: [Supervisor.child_spec({Task, &Api.Store.migrate_when_ready!/0}, restart: :transient)],
+      else: []
   end
 
   defp db_opts do

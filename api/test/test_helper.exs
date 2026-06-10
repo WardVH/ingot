@@ -21,4 +21,7 @@ unless Enum.any?(1..50, fn _ ->
   raise "test database never became reachable through the app pool"
 end
 
+Api.Store.migrate!()
+Postgrex.query!(Api.DB, "TRUNCATE events, snapshots, backfill_seen", [])
+
 ExUnit.start()
