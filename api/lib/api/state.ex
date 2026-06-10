@@ -13,6 +13,7 @@ defmodule Api.State do
             resolved: MapSet.new(),
             overrides: %{attr: %{}, product: %{}},
             assigned: %{},
+            shared: MapSet.new(),
             offset: 0
 
   def new, do: %__MODULE__{ledger: IdentityLedger.new()}
@@ -39,6 +40,9 @@ defmodule Api.State do
 
         {{:collision, k}, {:product, p}} ->
           %{s | overrides: %{s.overrides | product: Map.put(s.overrides.product, k, p)}}
+
+        {{:code, code}, :shared} ->
+          %{s | shared: MapSet.put(s.shared, code)}
 
         _ ->
           s

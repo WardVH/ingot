@@ -73,9 +73,10 @@ defmodule Api.Store do
 
   # ── the single writer ───────────────────────────────────────────────────────
   @doc """
-  Run `fun.(state)` under the writer lock. `fun` returns `{:ok, events, result}` — the events are
-  appended (each stamped with its durable offset as `order`), folded into the state, and the new
-  snapshot stored in the SAME transaction — or `{:error, reason}` to roll back. Returns
+  Run `fun.(state, conn)` under the writer lock — `conn` lets the writer touch side tables
+  (e.g. `backfill_seen`) in the SAME transaction. `fun` returns `{:ok, events, result}` — the
+  events are appended (each stamped with its durable offset as `order`), folded into the state,
+  and the new snapshot stored transactionally — or `{:error, reason}` to roll back. Returns
   `{:ok, result}` / `{:error, reason}`.
   """
   def append(fun) do
@@ -85,7 +86,7 @@ defmodule Api.Store do
         Postgrex.query!(conn, "SELECT pg_advisory_xact_lock($1)", [@lock_key])
         state = load(conn)
 
-        case fun.(state) do
+        case fun.(state, conn) do
           {:ok, events, result} ->
             state = insert_and_fold(conn, state, events)
             save_snapshot(conn, state)

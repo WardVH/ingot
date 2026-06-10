@@ -15,7 +15,7 @@ defmodule Api.StoreTest do
     do: Substrate.claim(source, :identity, %{ref: ref, codes: codes}, @d, @d)
 
   defp append!(events) do
-    {:ok, :ok} = Api.Store.append(fn _state -> {:ok, events, :ok} end)
+    {:ok, :ok} = Api.Store.append(fn _state, _conn -> {:ok, events, :ok} end)
   end
 
   test "append stamps durable offsets as order and snapshots in the same transaction" do
@@ -52,7 +52,7 @@ defmodule Api.StoreTest do
     append!([identity(:a, "A", [{:cnk, "111"}])])
 
     assert {:error, :nope} =
-             Api.Store.append(fn state ->
+             Api.Store.append(fn state, _conn ->
                assert state.offset == 1
                {:error, :nope}
              end)
@@ -65,7 +65,7 @@ defmodule Api.StoreTest do
     1..8
     |> Enum.map(fn i ->
       Task.async(fn ->
-        Api.Store.append(fn _ ->
+        Api.Store.append(fn _state, _conn ->
           {:ok, [identity(:"s#{i}", "R#{i}", [{:cnk, "#{1_000_000 + i}"}])], :ok}
         end)
       end)
