@@ -1,0 +1,32 @@
+# Local dev / smoke stack:  docker compose -f api/docker-compose.yml up --build  (from the repo root)
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: golden_record_api
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  api:
+    build:
+      context: ..
+      dockerfile: api/Dockerfile
+    environment:
+      DATABASE_URL: postgres://postgres:postgres@db:5432/golden_record_api
+      PRODUCT_API_TOKEN: local-product-token
+      STEWARD_API_TOKEN: local-steward-token
+      PORT: "4000"
+    ports:
+      - "4000:4000"
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  pgdata:
