@@ -6,7 +6,14 @@ const chipClass = (code: string) => (code.startsWith("cnk:") ? "chip cnk" : "chi
 
 // Scene 2 — the over-merge guard, temporally. Step d1 → d2: a late barcode bridges two established
 // keys; the engine FLAGS a merge proposal instead of silently merging. Both keys survive.
-export default function OverMergeGuard({ scene }: { scene: SyntheticScene }) {
+// `embedded` renders it as a story chapter: the shell's narration bar replaces the caption.
+export default function OverMergeGuard({
+  scene,
+  embedded = false,
+}: {
+  scene: SyntheticScene;
+  embedded?: boolean;
+}) {
   const [step, setStep] = useState(0);
   const date = scene.steps[step];
   const variants = scene.asOf[date]?.variants ?? [];
@@ -113,12 +120,14 @@ export default function OverMergeGuard({ scene }: { scene: SyntheticScene }) {
         </AnimatePresence>
       </div>
 
-      <p className="caption">
-        A late barcode bridges two <b>established</b> identities → the engine <b>flags a proposal</b>;
-        it does not silently merge. Both keys <b>survive</b> (still {variants.length} at d2). It's the
-        over-merge guard (gr-ose), now visible <i>temporally</i> — the same restraint the time machine
-        shows when 422156 simply <i>becomes</i> one identity rather than being assumed so.
-      </p>
+      {!embedded && (
+        <p className="caption">
+          A late barcode bridges two <b>established</b> identities → the engine <b>flags a proposal</b>;
+          it does not silently merge. Both keys <b>survive</b> (still {variants.length} at d2). It's the
+          over-merge guard (gr-ose), now visible <i>temporally</i> — the same restraint the time machine
+          shows when 422156 simply <i>becomes</i> one identity rather than being assumed so.
+        </p>
+      )}
     </div>
   );
 }
