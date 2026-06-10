@@ -466,4 +466,90 @@ defmodule EngineTest do
       assert length(keys) == 2
     end
   end
+
+  describe "steward-initiated split (Stewardship.split)" do
+    @d3 ~D[2026-03-01]
+
+    test "undoes a wrong merge: carved codes get a fresh key; attributes and media re-home" do
+      {log, ledger} =
+        resolve([
+          claim(:manufacturer, :identity, %{ref: "A", codes: [{:gtin, "0111"}]}, @d1, @d1),
+          claim(:manufacturer, :identity, %{ref: "B", codes: [{:gtin, "0222"}]}, @d1, @d1),
+          claim(:manufacturer, :attribute, %{code: {:gtin, "0111"}, field: :weight_g, value: 250}, @d1, @d1),
+          claim(:manufacturer, :attribute, %{code: {:gtin, "0222"}, field: :weight_g, value: 480}, @d1, @d1),
+          claim(
+            :manufacturer,
+            :media,
+            %{asset: {:dam, "IMG-B"}, target: {:gtin, "0222"}, role: :primary, uri: "cdn://b"},
+            @d1,
+            @d1
+          )
+        ])
+
+      # the steward (wrongly) approves merging the two established keys
+      {merge, o} =
+        ledger.members
+        |> Stewardship.approve_merge(["SK_1", "SK_2"], :alice, @d2)
+        |> stamp(length(log) + 1)
+
+      ledger2 = fold(merge, ledger)
+      log2 = log ++ merge
+      assert [%{variants: [fused]}] = History.now(log2, @priority)
+      assert {:gtin, "0111"} in fused.codes and {:gtin, "0222"} in fused.codes
+
+      # the steward splits B's code back out
+      {split, _} = ledger2 |> Stewardship.split("SK_1", [[{:gtin, "0222"}]], :alice, @d3) |> stamp(o)
+      ledger3 = fold(split, ledger2)
+      log3 = log2 ++ split
+
+      assert ledger3.members == %{
+               "SK_1" => MapSet.new([{:gtin, "0111"}]),
+               "SK_3" => MapSet.new([{:gtin, "0222"}])
+             }
+
+      # nothing re-imported: the same claims project to the right keys again
+      golden = History.now(log3, @priority)
+      a = find_variant(golden, {:gtin, "0111"})
+      b = find_variant(golden, {:gtin, "0222"})
+      assert {a.key, b.key} == {"SK_1", "SK_3"}
+      assert attr(a, :weight_g).value == 250
+      assert attr(b, :weight_g).value == 480
+      assert [%{asset: {:dam, "IMG-B"}}] = b.media
+      assert a.media == []
+
+      # the split and the steward who made it survive in both keys' lineage
+      assert Enum.any?(History.lineage(log3, "SK_3"), &match?(%Events.IdentitySplit{}, &1))
+
+      assert Enum.any?(
+               History.lineage(log3, "SK_1"),
+               &match?(%Events.ConflictResolved{subject: {:split, "SK_1"}, by: :alice}, &1)
+             )
+    end
+
+    test "carve-outs are canonicalized and clipped to codes the key owns" do
+      {log, ledger} =
+        resolve([
+          claim(
+            :manufacturer,
+            :identity,
+            %{ref: "A", codes: [{:ean, "5012345678900"}, {:gtin, "0111"}]},
+            @d1,
+            @d1
+          )
+        ])
+
+      # the steward references the EAN form; a stray code the key never owned is ignored
+      {split, _} =
+        ledger
+        |> Stewardship.split("SK_1", [[{:ean, "5012345678900"}, {:gtin, "9999"}]], :alice, @d2)
+        |> stamp(length(log) + 1)
+
+      ledger2 = fold(split, ledger)
+
+      assert ledger2.members == %{
+               "SK_1" => MapSet.new([{:gtin, "0111"}]),
+               "SK_2" => MapSet.new([{:gtin, "05012345678900"}])
+             }
+    end
+  end
 end
