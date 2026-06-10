@@ -89,7 +89,8 @@ defmodule Api.ClaimJson do
     end
   end
 
-  defp parse_code(raw) when is_binary(raw) do
+  @doc ~s(Parse one "scheme:value" code string — also used by the steward split decision.)
+  def parse_code(raw) when is_binary(raw) do
     case String.split(raw, ":", parts: 2) do
       [scheme, value] when scheme != "" and value != "" ->
         {:ok, {CodeRegistry.engine_scheme(scheme), value}}
@@ -99,7 +100,7 @@ defmodule Api.ClaimJson do
     end
   end
 
-  defp parse_code(raw),
+  def parse_code(raw),
     do: {:error, ~s(code must be a "scheme:value" string, got #{inspect(raw)})}
 
   defp valid_from(%{"valid_from" => raw}, _today) when is_binary(raw) do

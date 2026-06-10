@@ -37,7 +37,7 @@ defmodule Api.RouterTest do
       assert call(Api.Router, conn(:get, "/steward/v1/queue")).status == 401
 
       conn = conn(:get, "/steward/v1/queue") |> bearer(@steward)
-      assert call(Api.Router, conn).status == 404
+      assert call(Api.Router, conn).status == 200
     end
 
     test "a product token does NOT open the Steward surface" do
@@ -59,7 +59,7 @@ defmodule Api.RouterTest do
 
     test "the steward site serves /steward and health, but not /v1" do
       conn = conn(:get, "/steward/v1/queue") |> bearer(@steward)
-      assert call(Api.StewardSite, conn).status == 404
+      assert call(Api.StewardSite, conn).status == 200
 
       assert call(Api.StewardSite, conn(:get, "/health")).status == 200
 
