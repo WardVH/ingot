@@ -34,6 +34,14 @@ defmodule Events do
     defstruct [:key, :kept_codes, :into, :recorded_at, :order]
   end
 
+  # External-id continuity: `key` answers to `legacy_id` (a consumer-facing id from a system the
+  # engine replaces). Assignment is an EVENT so the mapping is auditable and replayable; resolution
+  # across merges/splits is a fold (see the ingest's LegacyIds).
+  defmodule LegacyIdAssigned do
+    @enforce_keys [:key, :legacy_id, :recorded_at]
+    defstruct [:key, :legacy_id, :recorded_at, :order]
+  end
+
   # subject: {:attr, key, field} | {:merge, [keys]} | {:collision, key} | {:code, {scheme, code}}
   #        | {:split, key}
   defmodule ConflictFlagged do
@@ -280,6 +288,7 @@ defmodule IdentityLedger do
   def evolve(%__MODULE__{} = s, %Events.ConflictFlagged{}), do: s
   def evolve(%__MODULE__{} = s, %Events.ConflictResolved{}), do: s
   def evolve(%__MODULE__{} = s, %Events.ClaimAsserted{}), do: s
+  def evolve(%__MODULE__{} = s, %Events.LegacyIdAssigned{}), do: s
 
   defp reconcile(old_members, next, clusters, shared) do
     original = old_members
@@ -615,6 +624,7 @@ defmodule History do
       %Events.ConflictResolved{subject: {:attr, k, _}} -> k == key
       %Events.ConflictResolved{subject: {:collision, k}} -> k == key
       %Events.ConflictResolved{subject: {:split, k}} -> k == key
+      %Events.LegacyIdAssigned{key: k} -> k == key
       _ -> false
     end)
   end
