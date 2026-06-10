@@ -21,6 +21,8 @@ at the repo root.
 | `lib/ingest/envelope_loader.ex` | Legacy-medipim ingest stage 1 — load + validate `HistoryEnvelope` JSON (contract C). |
 | `lib/ingest/claim_mapping.ex` | Ingest stage 2 — fold listings, canonicalize/partition, build engine claims. |
 | `docs/HISTORY_ENVELOPE.md` | The contract-C spec the ingest consumes. |
+| `api/` | The Product API for medipim — Plug+Bandit + Postgres service over the engine (`docs/API.md`). |
+| `viz/` | The guided story demo + time machine (Astro + React; see `viz/README.md`). |
 | `test/` | ExUnit suites (72 tests). Fixtures — incl. the real entity 422156 — under `test/ingest/fixtures/`. |
 | `golden_record_ddd.exs` | DDD + event-sourced walkthrough — event log, golden as a fold, time travel, conflicts, verdicts. |
 | `golden_record_stress.exs` | Stress tests — multiple products + JSON, code collision → shared, 3-way contradictions, media re-homing. |

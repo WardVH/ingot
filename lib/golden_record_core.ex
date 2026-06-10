@@ -34,6 +34,14 @@ defmodule Events do
     defstruct [:key, :kept_codes, :into, :recorded_at, :order]
   end
 
+  # External-id continuity: `key` answers to `legacy_id` (a consumer-facing id from a system the
+  # engine replaces). Assignment is an EVENT so the mapping is auditable and replayable; resolution
+  # across merges/splits is a fold (see the ingest's LegacyIds).
+  defmodule LegacyIdAssigned do
+    @enforce_keys [:key, :legacy_id, :recorded_at]
+    defstruct [:key, :legacy_id, :recorded_at, :order]
+  end
+
   # subject: {:attr, key, field} | {:merge, [keys]} | {:collision, key} | {:code, {scheme, code}}
   #        | {:split, key}
   defmodule ConflictFlagged do
@@ -168,12 +176,15 @@ defmodule Substrate do
 
   defp normalize(_kind, d), do: d
 
-  defp slot(%ClaimAsserted{source: s, kind: :identity, data: %{ref: r}}), do: {s, :identity, r}
-  defp slot(%ClaimAsserted{source: s, kind: :grouping, data: %{code: c}}), do: {s, :grouping, c}
-  defp slot(%ClaimAsserted{source: s, kind: :attribute, data: %{code: c, field: f}}), do: {s, :attr, c, f}
-  defp slot(%ClaimAsserted{source: s, kind: :media, data: %{asset: a, target: t}}), do: {s, :media, a, t}
+  # Public (@doc false) so the API's fold-state can maintain the current view INCREMENTALLY —
+  # one Map.put per claim instead of re-grouping the whole log per projection.
+  @doc false
+  def slot(%ClaimAsserted{source: s, kind: :identity, data: %{ref: r}}), do: {s, :identity, r}
+  def slot(%ClaimAsserted{source: s, kind: :grouping, data: %{code: c}}), do: {s, :grouping, c}
+  def slot(%ClaimAsserted{source: s, kind: :attribute, data: %{code: c, field: f}}), do: {s, :attr, c, f}
+  def slot(%ClaimAsserted{source: s, kind: :media, data: %{asset: a, target: t}}), do: {s, :media, a, t}
 
-  defp slot(%ClaimAsserted{source: s, kind: :member_of, data: %{member_code: m, collection: c}}),
+  def slot(%ClaimAsserted{source: s, kind: :member_of, data: %{member_code: m, collection: c}}),
     do: {s, :member_of, m, c}
 
   def current(claims) do
@@ -280,6 +291,7 @@ defmodule IdentityLedger do
   def evolve(%__MODULE__{} = s, %Events.ConflictFlagged{}), do: s
   def evolve(%__MODULE__{} = s, %Events.ConflictResolved{}), do: s
   def evolve(%__MODULE__{} = s, %Events.ClaimAsserted{}), do: s
+  def evolve(%__MODULE__{} = s, %Events.LegacyIdAssigned{}), do: s
 
   defp reconcile(old_members, next, clusters, shared) do
     original = old_members
@@ -615,6 +627,7 @@ defmodule History do
       %Events.ConflictResolved{subject: {:attr, k, _}} -> k == key
       %Events.ConflictResolved{subject: {:collision, k}} -> k == key
       %Events.ConflictResolved{subject: {:split, k}} -> k == key
+      %Events.LegacyIdAssigned{key: k} -> k == key
       _ -> false
     end)
   end

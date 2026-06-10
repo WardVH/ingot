@@ -88,6 +88,22 @@ defmodule CodeRegistry do
     end
   end
 
+  # Engine-native scheme names ("cnk", "gtin", "cip_acl7", …) => their atoms — the vocabulary the
+  # Product API's live-claims contract speaks. Derived from the registry's VALUE side (plus the
+  # non-bridging schemes ClaimMapping knows), so it cannot drift. Unknown names stay strings —
+  # conservative pass-through, never String.to_atom/1 on input.
+  # :ean / :upc are accepted spellings of the GTIN family (Codes.canonicalize folds them to
+  # :gtin); :mpn / :supplier_ref are the non-bridging schemes ClaimMapping knows.
+  @engine_schemes %{"mpn" => :mpn, "supplier_ref" => :supplier_ref, "ean" => :ean, "upc" => :upc}
+                  |> Map.merge(
+                    for {_field, {scheme, _class}} <- @registry, into: %{} do
+                      {Atom.to_string(scheme), scheme}
+                    end
+                  )
+
+  @doc "Engine scheme atom for an engine-native scheme NAME (\"cnk\" => :cnk); unknown names pass through."
+  def engine_scheme(name), do: Map.get(@engine_schemes, name, name)
+
   @doc "Classification for a medipim field (:identity | :external_ref | :attribute | :entity_id)."
   def classification(field) do
     case Map.get(@registry, field) do
