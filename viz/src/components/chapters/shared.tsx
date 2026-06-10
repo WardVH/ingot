@@ -64,26 +64,47 @@ function statusBadge(status: AttributeView["status"]) {
 
 export function AttributeRow({ attr, focus }: { attr: AttributeView; focus?: boolean }) {
   const contested = attr.candidates.length > 1;
+  // A top-tier tie has NO winner — the engine refuses to decide. Don't show its provisional
+  // value as if it won; show the tie itself and let the steward queue carry the resolution.
+  const undecided = attr.status === "needs_review";
   return (
-    <motion.div className={`attr-row${focus ? " focus" : ""}`} layout>
+    <motion.div className={`attr-row${focus ? " focus" : ""}${undecided ? " undecided" : ""}`} layout>
       <div className="attr-main">
         <span className="attr-field">{attr.field}</span>
-        <motion.b
-          className="attr-value"
-          key={String(attr.value)}
-          initial={{ opacity: 0, y: -6 }}
-          animate={{ opacity: 1, y: 0 }}
-        >
-          {String(attr.value)}
-        </motion.b>
-        {attr.winner && <span className="attr-winner">← {attr.winner}</span>}
+        {undecided ? (
+          <motion.span
+            className="attr-undecided"
+            key="undecided"
+            initial={{ opacity: 0, y: -6 }}
+            animate={{ opacity: 1, y: 0 }}
+          >
+            undecided
+          </motion.span>
+        ) : (
+          <motion.b
+            className="attr-value"
+            key={String(attr.value)}
+            initial={{ opacity: 0, y: -6 }}
+            animate={{ opacity: 1, y: 0 }}
+          >
+            {String(attr.value)}
+          </motion.b>
+        )}
+        {!undecided && attr.winner && <span className="attr-winner">← {attr.winner}</span>}
         {statusBadge(attr.status)}
       </div>
       {contested && (
         <div className="attr-candidates">
-          {attr.candidates.map((c) => (
-            <span key={c.source} className={`candidate${c.source === attr.winner ? " winner" : ""}`}>
-              {c.source}: {String(c.value)}
+          {attr.candidates.map((c, i) => (
+            <span key={c.source} className="candidate-wrap">
+              {undecided && i > 0 && <span className="vs">vs</span>}
+              <span
+                className={`candidate${!undecided && c.source === attr.winner ? " winner" : ""}${
+                  undecided ? " tied" : ""
+                }`}
+              >
+                {c.source}: {String(c.value)}
+              </span>
             </span>
           ))}
         </div>

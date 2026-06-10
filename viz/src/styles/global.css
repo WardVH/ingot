@@ -1093,3 +1093,30 @@ body {
     justify-content: center;
   }
 }
+
+/* ── undecided attributes: a tie has no winner, and must not look like one ──── */
+.attr-row.undecided {
+  background: color-mix(in srgb, var(--amber) 7%, var(--panel));
+  outline: 1px dashed color-mix(in srgb, var(--amber) 45%, transparent);
+}
+.attr-undecided {
+  font-family: var(--mono);
+  font-size: 12px;
+  font-style: italic;
+  color: var(--amber);
+}
+.candidate-wrap {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.candidate.tied {
+  color: var(--amber);
+  border-color: color-mix(in srgb, var(--amber) 50%, transparent);
+}
+.vs {
+  font-family: var(--mono);
+  font-size: 10px;
+  text-transform: uppercase;
+  color: var(--amber);
+}
