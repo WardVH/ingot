@@ -258,6 +258,7 @@ defmodule Api.StewardTest do
   describe "repairs — select the wrong codes" do
     test "an approved merge appears under repairs with selectable codes and their claiming sources" do
       [k1, k2] = seed_bridged()
+
       steward!(:post, "/steward/v1/decisions", %{kind: "approve_merge", keys: [k1, k2], by: "sam"})
 
       body = decoded(steward!(:get, "/steward/v1/queue"))
@@ -272,13 +273,19 @@ defmodule Api.StewardTest do
 
     test "selecting EVERY code answers 422 — an empty key is never created" do
       [k1, k2] = seed_bridged()
+
       steward!(:post, "/steward/v1/decisions", %{kind: "approve_merge", keys: [k1, k2], by: "sam"})
 
       all_codes =
         Api.Store.state().ledger.members[k1] |> Enum.sort() |> Enum.map(&Api.Views.code/1)
 
       conn =
-        steward!(:post, "/steward/v1/decisions", %{kind: "split", key: k1, codes: all_codes, by: "sam"})
+        steward!(:post, "/steward/v1/decisions", %{
+          kind: "split",
+          key: k1,
+          codes: all_codes,
+          by: "sam"
+        })
 
       assert conn.status == 422
       assert decoded(conn)["error"] =~ "empty"
@@ -286,6 +293,7 @@ defmodule Api.StewardTest do
 
     test "the checkbox form posts codes[] and splits — the repair disappears afterwards" do
       [k1, k2] = seed_bridged()
+
       steward!(:post, "/steward/v1/decisions", %{kind: "approve_merge", keys: [k1, k2], by: "sam"})
 
       conn =
@@ -322,7 +330,8 @@ defmodule Api.StewardTest do
       conn = conn(:get, "/steward/") |> basic() |> then(&Api.Router.call(&1, Api.Router.init([])))
       assert conn.status == 200
       assert conn.resp_body =~ "Merge proposals"
-      assert conn.resp_body =~ "connected by"
+      assert conn.resp_body =~ "the new evidence"
+      assert conn.resp_body =~ "separate products"
       assert conn.resp_body =~ "Manual repairs"
     end
 

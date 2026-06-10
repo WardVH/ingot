@@ -96,6 +96,11 @@ defmodule Api.StewardRouter do
         .item.flag { border-color:#7a3b41; }
         code { background:#1b2230; border-radius:5px; padding:1px 6px; font-size:12.5px; }
         .muted { color:#8b949e; } .notice { color:#57c878; }
+        .why { color:#b9c2cc; border-left:3px solid #7a3b41; padding:4px 10px; margin:10px 0; }
+        .codecell { display:inline-block; margin:2px 10px 2px 0; }
+        .srcs { font-size:11px; color:#8b949e; margin-left:4px; }
+        .src { color:#57c878; margin-left:4px; }
+        .bridge-src { color:#f0a857; margin-left:4px; }
         .owner { font-size:10px; color:#6ea8fe; border:1px solid #2c3a55; border-radius:999px; padding:0 6px; margin-left:2px; vertical-align:1px; }
         .owner.none { color:#f0a857; border-color:#4d3a23; }
         .bridge-row { margin:6px 0; padding:7px 10px; border:1px dashed #4d3a3d; border-radius:8px; }
@@ -121,15 +126,34 @@ defmodule Api.StewardRouter do
       <%= for m <- queue.merges do %>
         <div class="item flag">
           <div><b><%= Enum.join(m.keys, " + ") %></b> <span class="muted">— proposed merge</span></div>
+          <%= if m.bridges == [] do %>
+            <p class="why">These keys now <b>directly share</b> a code that each carries as its own —
+            same dilemma: one product, or a reused code. The engine won't guess.</p>
+          <% else %>
+            <% b = hd(m.bridges) %>
+            <% extra = length(m.bridges) - 1 %>
+            <p class="why">Until <b><%= b.date %></b>, <%= Enum.join(m.keys, " and ") %> were
+            <b>separate products</b>, each backed by its own sources (shown per code below). Then
+            <b class="bridge-src"><%= b.source %></b>'s listing <code><%= b.ref %></code> claimed a code
+            from <b>both</b><%= if extra > 0, do: " (and " <> Integer.to_string(extra) <> " more listings do the same)" %>.
+            That can mean one product listed twice — or a mislabeled listing. The engine never merges
+            established identities on its own; it stopped here and is asking you.</p>
+          <% end %>
           <%= for {key, codes} <- m.members do %>
-            <div class="members-row"><b><%= key %></b>: <%= for c <- codes do %><code><%= c %></code><% end %></div>
+            <div class="members-row"><b><%= key %></b>:
+              <%= for c <- codes do %>
+                <span class="codecell"><code><%= c.code %></code><span class="srcs">by
+                  <%= for s <- c.sources do %><span class="<%= if s in m.bridge_sources, do: "bridge-src", else: "src" %>"><%= s %></span><% end %>
+                </span></span>
+              <% end %>
+            </div>
           <% end %>
           <%= if m.shared != [] do %>
             <div class="members-row"><span class="muted">directly shared:</span> <%= for c <- m.shared do %><code><%= c %></code><% end %></div>
           <% end %>
           <%= for b <- m.bridges do %>
             <div class="bridge-row">
-              <span class="muted">connected by</span> <b><%= b.source %></b> <span class="muted">listing</span> <code><%= b.ref %></code>
+              <span class="muted">the new evidence (<%= b.date %>):</span> <b class="bridge-src"><%= b.source %></b> <span class="muted">listing</span> <code><%= b.ref %></code>
               <span class="muted">claiming</span>
               <%= for c <- b.codes do %>
                 <code><%= c.code %></code><span class="owner<%= if c.owner == nil, do: " none" %>"><%= c.owner || "new" %></span>

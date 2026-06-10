@@ -502,10 +502,20 @@ components:
               keys: { type: array, items: { type: string } }
               members:
                 type: object
-                description: each key's current member codes
+                description: each key's current member codes, with the sources claiming each
                 additionalProperties:
                   type: array
-                  items: { $ref: "#/components/schemas/CodeString" }
+                  items:
+                    type: object
+                    properties:
+                      code: { $ref: "#/components/schemas/CodeString" }
+                      sources:
+                        type: array
+                        items: { type: string }
+              bridge_sources:
+                type: array
+                description: the sources whose listings caused the proposal
+                items: { type: string }
               bridges:
                 type: array
                 description: the CONNECTING CLAIMS — listings whose codes span the keys
@@ -514,6 +524,7 @@ components:
                   properties:
                     source: { type: string }
                     ref: { type: string }
+                    date: { type: string, format: date }
                     codes:
                       type: array
                       items:

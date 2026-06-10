@@ -38,6 +38,7 @@ defmodule Api.Steward do
             %{
               source: to_string(c.source),
               ref: c.data.ref,
+              date: Date.to_iso8601(c.recorded_at),
               codes:
                 for code <- Enum.sort(c.data.codes) do
                   owner =
@@ -48,12 +49,14 @@ defmodule Api.Steward do
             }
           end
 
+        bridge_sources = bridges |> Enum.map(& &1.source) |> Enum.uniq()
+
         %{
           type: "merge",
           keys: keys,
-          members:
-            Map.new(members, fn {k, m} -> {k, m |> Enum.sort() |> Enum.map(&Api.Views.code/1)} end),
+          members: Map.new(members, fn {k, _} -> {k, selectable_codes(state, claims, k)} end),
           bridges: bridges,
+          bridge_sources: bridge_sources,
           shared: shared
         }
       end
