@@ -14,6 +14,7 @@ defmodule Api.State do
             overrides: %{attr: %{}, product: %{}},
             assigned: %{},
             shared: MapSet.new(),
+            redirects: %{},
             offset: 0
 
   def new, do: %__MODULE__{ledger: IdentityLedger.new()}
@@ -51,7 +52,14 @@ defmodule Api.State do
     bump(s, r)
   end
 
-  # mint / members-changed / merge / split — the ledger's own vocabulary
+  # a merge leaves a redirect for every absorbed key, so a legacy id assigned to one keeps
+  # resolving — to the survivor — without ever scanning the log
+  def apply_event(%__MODULE__{} = s, %Events.IdentitiesMerged{from: from, into: into} = e) do
+    redirects = Enum.reduce(from -- [into], s.redirects, &Map.put(&2, &1, into))
+    bump(%{s | ledger: IdentityLedger.evolve(s.ledger, e), redirects: redirects}, e)
+  end
+
+  # mint / members-changed / split — the ledger's own vocabulary
   def apply_event(%__MODULE__{} = s, identity_event),
     do: bump(%{s | ledger: IdentityLedger.evolve(s.ledger, identity_event)}, identity_event)
 
@@ -68,6 +76,14 @@ defmodule Api.State do
   @doc "Open conflicts: flagged subjects without a steward decision, in flag order."
   def open_flags(%__MODULE__{} = s),
     do: Enum.reject(s.flags, &MapSet.member?(s.resolved, &1.subject))
+
+  @doc "Follow merge redirects to the key that answers TODAY."
+  def follow(%__MODULE__{redirects: redirects} = s, key) do
+    case Map.get(redirects, key) do
+      nil -> key
+      next -> follow(s, next)
+    end
+  end
 
   defp bump(%__MODULE__{} = s, %{order: order}) when is_integer(order),
     do: %{s | offset: max(s.offset, order)}

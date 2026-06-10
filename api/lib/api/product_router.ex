@@ -29,6 +29,61 @@ defmodule Api.ProductRouter do
     end
   end
 
+  get "/products/by-code/:scheme/:value" do
+    case Api.Reads.by_code(scheme, value) do
+      {:ok, body} -> json(conn, 200, body)
+      :not_found -> json(conn, 404, %{error: "no product carries #{scheme}:#{value}"})
+    end
+  end
+
+  get "/products/:legacy_id" do
+    conn = fetch_query_params(conn)
+
+    with {id, ""} <- Integer.parse(legacy_id) do
+      case conn.query_params["as_of"] do
+        nil ->
+          case Api.Reads.product(id) do
+            {:ok, view} -> json(conn, 200, view)
+            :not_found -> json(conn, 404, %{error: "unknown legacy id #{id}"})
+          end
+
+        raw ->
+          case Date.from_iso8601(raw) do
+            {:ok, date} ->
+              case Api.Reads.product_as_of(id, date) do
+                {:ok, view} ->
+                  json(conn, 200, view)
+
+                {:not_found_as_of, key} ->
+                  json(conn, 404, %{error: "not resolvable as of #{raw}", key: key, as_of: raw})
+
+                :not_found ->
+                  json(conn, 404, %{error: "unknown legacy id #{id}"})
+              end
+
+            _ ->
+              json(conn, 422, %{error: "as_of must be an ISO date, got #{inspect(raw)}"})
+          end
+      end
+    else
+      _ -> json(conn, 404, %{error: "legacy id must be an integer, got #{inspect(legacy_id)}"})
+    end
+  end
+
+  get "/changes" do
+    conn = fetch_query_params(conn)
+    since = Integer.parse(conn.query_params["since"] || "0")
+    limit = Integer.parse(conn.query_params["limit"] || "500")
+
+    case {since, limit} do
+      {{s, ""}, {l, ""}} when s >= 0 and l > 0 ->
+        json(conn, 200, Api.Reads.changes(s, min(l, 1_000)))
+
+      _ ->
+        json(conn, 422, %{error: "since and limit must be non-negative integers"})
+    end
+  end
+
   match _ do
     json(conn, 404, %{error: "not found"})
   end
