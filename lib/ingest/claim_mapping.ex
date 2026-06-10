@@ -142,7 +142,9 @@ defmodule ClaimMapping do
     end
   end
 
-  defp apply_identity(raw, ev) do
+  @doc false
+  # Shared with FinerClaims (the per-event fold) — same delta semantics, one implementation.
+  def apply_identity(raw, ev) do
     scheme = ev.data.scheme
     code = ev.data.code
 
@@ -163,7 +165,9 @@ defmodule ClaimMapping do
   end
 
   # raw (medipim scheme → values) → MapSet of canonicalized engine codes.
-  defp engine_codes(raw) do
+  @doc false
+  # Shared with FinerClaims.
+  def engine_codes(raw) do
     for {scheme, values} <- raw, v <- values, into: MapSet.new() do
       Codes.canonicalize({scheme_atom(scheme), v})
     end
@@ -187,9 +191,11 @@ defmodule ClaimMapping do
   # canonical GTIN ▸ any GTIN ▸ a 13-digit national code (acl13/cip13) ▸ lowest code. National
   # short codes win so Belgian listings still anchor on CNK and French ones on cip_acl7 (a stable
   # id) rather than a recycled barcode.
-  defp primary([]), do: nil
+  @doc false
+  # Shared with FinerClaims — anchoring must pick the same primary in both folds.
+  def primary([]), do: nil
 
-  defp primary(codes) do
+  def primary(codes) do
     national_short(codes) ||
       Enum.find(codes, &(match?({:gtin, _}, &1) and not Codes.restricted?(&1))) ||
       Enum.find(codes, &match?({:gtin, _}, &1)) ||
@@ -205,7 +211,9 @@ defmodule ClaimMapping do
     end)
   end
 
-  defp field_dim(ev) do
+  @doc false
+  # Shared with FinerClaims.
+  def field_dim(ev) do
     case ev.data.locale do
       nil -> ev.data.field
       locale -> "#{ev.data.field}:#{locale}"
@@ -216,7 +224,9 @@ defmodule ClaimMapping do
     for {_k, set} <- listing_codes, code <- set, shared?(code), into: MapSet.new(), do: code
   end
 
-  defp shared?({scheme, _} = code),
+  @doc false
+  # Shared with FinerClaims — both folds must agree on what may never bridge.
+  def shared?({scheme, _} = code),
     do: Codes.restricted?(code) or MapSet.member?(@non_bridging_schemes, scheme)
 
   # chronological order: later recorded_at ⇒ higher order. Stable on the original emission index.
