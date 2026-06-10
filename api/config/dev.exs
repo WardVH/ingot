@@ -8,5 +8,6 @@ config :golden_record_api,
     password: System.get_env("PGPASSWORD", "postgres"),
     database: System.get_env("PGDATABASE", "golden_record_api_dev")
   ],
-  product_token: "dev-product-token",
-  steward_token: "dev-steward-token"
+  # nil disables auth locally — no tokens, no browser prompt. Set values to exercise auth in dev.
+  product_token: nil,
+  steward_token: nil
