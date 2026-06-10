@@ -1,0 +1,567 @@
+# OpenAPI 3.1 spec for the golden-record service (api/) — bead gr-apb.
+# Matches the implemented routers; prose contract in docs/API.md.
+openapi: 3.1.0
+info:
+  title: Golden Record Product API
+  version: 0.1.0
+  description: |
+    The golden-record engine as a service for medipim. Two surfaces, separate tokens:
+
+    * **Product API** (`/v1`) — medipim's machine-to-machine surface: backfill + live claims in;
+      golden records (by backwards-compatible **legacy medipim ID**), code resolution, as-of time
+      travel, and a change feed out. A claim that bridges two established identities produces a
+      **flagged merge proposal — never an automatic merge**.
+    * **Steward API** (`/steward`) — humans curating the conflicts the engine refuses to guess on:
+      the open queue and four recorded decisions. Also a server-rendered HTML queue page.
+
+servers:
+  - url: http://localhost:4000
+    description: local dev (`cd api && iex -S mix` or the compose stack)
+
+security: []
+
+tags:
+  - name: health
+  - name: product
+    description: Product API — `PRODUCT_API_TOKEN`
+  - name: steward
+    description: Steward API — `STEWARD_API_TOKEN` (Bearer, or HTTP Basic for the browser)
+
+paths:
+  /health:
+    get:
+      tags: [health]
+      operationId: getHealth
+      summary: Liveness + database check (unauthenticated)
+      responses:
+        "200":
+          description: healthy
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Health" }
+        "503":
+          description: database unreachable
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Health" }
+
+  /v1/backfill/envelopes:
+    post:
+      tags: [product]
+      operationId: backfillEnvelopes
+      summary: Backfill contract-C history envelopes (idempotent per envelope)
+      description: |
+        Envelopes per `docs/HISTORY_ENVELOPE.md`, folded **finer-grained** (one dated identity
+        claim per raw identity event). Replaying identical envelope content is a no-op. The whole
+        batch validates or rejects — nothing partial enters the log.
+      security: [{ productToken: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [envelopes]
+              properties:
+                envelopes:
+                  type: array
+                  items: { $ref: "#/components/schemas/HistoryEnvelope" }
+      responses:
+        "200": { $ref: "#/components/responses/WriteSummary" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "422": { $ref: "#/components/responses/ValidationErrors" }
+
+  /v1/claims:
+    post:
+      tags: [product]
+      operationId: pushClaims
+      summary: Push live engine-native claims
+      description: |
+        `recorded_at` is server-side today; optional `valid_from` backdates validity. Codes are
+        `"scheme:value"` strings (`cnk`, `gtin`/`ean`/`upc`, `cip_acl7`, `mpn`, …; unknown
+        schemes pass through). Reconciliation is fold-forward against the live ledger — surrogate
+        keys stay stable.
+      security: [{ productToken: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [claims]
+              properties:
+                claims:
+                  type: array
+                  items: { $ref: "#/components/schemas/Claim" }
+      responses:
+        "200": { $ref: "#/components/responses/WriteSummary" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "422": { $ref: "#/components/responses/ValidationErrors" }
+
+  /v1/products/{legacy_id}:
+    get:
+      tags: [product]
+      operationId: getProductByLegacyId
+      summary: The product a legacy medipim ID answers to
+      description: |
+        The backwards-compatible primary read. A legacy ID assigned to a key that was later
+        merged away **keeps answering** — followed to the survivor, with `merged_from` set.
+        With `as_of`, the product as **known on** that date (log fold; honest 404 with the date
+        echoed when it wasn't resolvable yet).
+      security: [{ productToken: [] }]
+      parameters:
+        - name: legacy_id
+          in: path
+          required: true
+          schema: { type: integer }
+        - name: as_of
+          in: query
+          required: false
+          schema: { type: string, format: date }
+      responses:
+        "200":
+          description: the resolved product
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Product" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "422":
+          description: malformed `as_of`
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+
+  /v1/products/by-code/{scheme}/{code}:
+    get:
+      tags: [product]
+      operationId: getProductByCode
+      summary: Which product(s) own a code
+      description: |
+        Any spelling works — codes canonicalize (an EAN-13 finds the stored GTIN-14). A
+        legitimately shared code returns every carrier.
+      security: [{ productToken: [] }]
+      parameters:
+        - name: scheme
+          in: path
+          required: true
+          schema: { type: string }
+          example: cnk
+        - name: code
+          in: path
+          required: true
+          schema: { type: string }
+          example: "1234567"
+      responses:
+        "200":
+          description: canonical code + its carrier products
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [code, products]
+                properties:
+                  code: { type: string, example: "cnk:1234567" }
+                  products:
+                    type: array
+                    items: { $ref: "#/components/schemas/Product" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "404": { $ref: "#/components/responses/NotFound" }
+
+  /v1/changes:
+    get:
+      tags: [product]
+      operationId: getChanges
+      summary: The change feed (poll with the returned cursor)
+      security: [{ productToken: [] }]
+      parameters:
+        - name: since
+          in: query
+          schema: { type: integer, minimum: 0, default: 0 }
+          description: return events with offset strictly greater than this
+        - name: limit
+          in: query
+          schema: { type: integer, minimum: 1, maximum: 1000, default: 500 }
+      responses:
+        "200":
+          description: events after the cursor
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ChangesPage" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "422":
+          description: bad cursor
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+
+  /steward/v1/queue:
+    get:
+      tags: [steward]
+      operationId: getStewardQueue
+      summary: Open conflicts — gated merge proposals + attribute ties
+      security: [{ stewardToken: [] }, { stewardBasic: [] }]
+      responses:
+        "200":
+          description: the open queue
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Queue" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+
+  /steward/v1/decisions:
+    post:
+      tags: [steward]
+      operationId: postStewardDecision
+      summary: Record a steward decision
+      description: |
+        Four kinds, 1:1 onto the engine's stewardship operations, recorded in the event log with
+        `by`. A split immediately allocates the carved-out key its own legacy ID. Decisions appear
+        on the Product change feed like any other event.
+      security: [{ stewardToken: [] }, { stewardBasic: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/Decision" }
+      responses:
+        "200":
+          description: applied
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  applied: { type: string, example: approve_merge }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "409":
+          description: stale — the state moved on; the body lists what is live now
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error: { type: string }
+                  live_keys: { type: array, items: { type: string } }
+        "422": { $ref: "#/components/responses/ValidationErrors" }
+
+  /steward:
+    get:
+      tags: [steward]
+      operationId: getStewardPage
+      summary: The HTML queue page (browser; HTTP Basic prompts for the token)
+      security: [{ stewardBasic: [] }, { stewardToken: [] }]
+      responses:
+        "200":
+          description: server-rendered queue with decision forms
+          content:
+            text/html: {}
+        "401": { $ref: "#/components/responses/Unauthorized" }
+
+components:
+  securitySchemes:
+    productToken:
+      type: http
+      scheme: bearer
+      description: "`PRODUCT_API_TOKEN` — cannot reach steward decisions"
+    stewardToken:
+      type: http
+      scheme: bearer
+      description: "`STEWARD_API_TOKEN` — cannot write product claims"
+    stewardBasic:
+      type: http
+      scheme: basic
+      description: any username, `STEWARD_API_TOKEN` as password (the browser path)
+
+  responses:
+    Unauthorized:
+      description: missing or wrong token for this surface
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Error" }
+    NotFound:
+      description: not found
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Error" }
+    ValidationErrors:
+      description: the WHOLE batch rejects — nothing partial enters the log
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [errors]
+            properties:
+              errors:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    index: { type: [integer, "null"] }
+                    error: { type: string }
+    WriteSummary:
+      description: what identity DID — minted/changed keys and any gated proposals
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/WriteSummary" }
+
+  schemas:
+    Health:
+      type: object
+      properties:
+        status: { type: string, enum: [ok, degraded] }
+        db: { type: boolean }
+
+    Error:
+      type: object
+      required: [error]
+      properties:
+        error: { type: string }
+
+    CodeString:
+      type: string
+      description: "`scheme:value` — engine scheme vocabulary; unknown schemes pass through"
+      example: "cnk:1234567"
+
+    Claim:
+      oneOf:
+        - $ref: "#/components/schemas/IdentityClaim"
+        - $ref: "#/components/schemas/AttributeClaim"
+        - $ref: "#/components/schemas/MediaClaim"
+        - $ref: "#/components/schemas/GroupingClaim"
+      discriminator:
+        propertyName: kind
+
+    IdentityClaim:
+      type: object
+      required: [kind, source, ref, codes]
+      properties:
+        kind: { const: identity }
+        source: { type: string, example: medipim }
+        ref: { type: string, description: the source's own listing reference }
+        codes:
+          type: array
+          minItems: 1
+          items: { $ref: "#/components/schemas/CodeString" }
+        valid_from: { type: string, format: date }
+
+    AttributeClaim:
+      type: object
+      required: [kind, source, code, field, value]
+      properties:
+        kind: { const: attribute }
+        source: { type: string }
+        code: { $ref: "#/components/schemas/CodeString" }
+        field: { type: string, example: name }
+        value:
+          oneOf: [{ type: string }, { type: number }, { type: boolean }]
+        valid_from: { type: string, format: date }
+
+    MediaClaim:
+      type: object
+      required: [kind, source, asset, target, uri]
+      properties:
+        kind: { const: media }
+        source: { type: string }
+        asset: { type: string, example: IMG-1 }
+        target: { $ref: "#/components/schemas/CodeString" }
+        role: { type: string, enum: [primary, secondary], default: secondary }
+        uri: { type: string }
+        valid_from: { type: string, format: date }
+
+    GroupingClaim:
+      type: object
+      required: [kind, source, code, product]
+      properties:
+        kind: { const: grouping }
+        source: { type: string }
+        code: { $ref: "#/components/schemas/CodeString" }
+        product: { type: integer, description: the legacy entity this code belongs to }
+        valid_from: { type: string, format: date }
+
+    HistoryEnvelope:
+      type: object
+      description: contract C — see `docs/HISTORY_ENVELOPE.md` for the full event grammar
+      required: [schema_version, legacy_entity, events]
+      properties:
+        schema_version: { type: string, const: "1" }
+        legacy_entity: { type: integer, example: 422156 }
+        events:
+          type: array
+          items: { type: object }
+
+    WriteSummary:
+      type: object
+      properties:
+        accepted: { type: integer }
+        skipped: { type: integer, description: envelopes already seen (idempotent replay) }
+        claims: { type: integer }
+        events:
+          type: array
+          items:
+            type: object
+            properties:
+              type: { type: string, enum: [minted, members_changed, merged, split, merge_proposal, flag] }
+              key: { type: string }
+              date: { type: string, format: date }
+        flagged:
+          type: array
+          description: convergences the over-merge guard GATED for a steward
+          items:
+            type: object
+            properties:
+              type: { const: merge_proposal }
+              keys: { type: array, items: { type: string } }
+
+    Attribute:
+      type: object
+      properties:
+        field: { type: string }
+        value:
+          oneOf: [{ type: string }, { type: number }, { type: boolean }]
+        winner: { type: [string, "null"], description: "the winning source, or `steward:<name>`" }
+        status: { type: string, enum: [resolved, needs_review, resolved_by_steward] }
+        candidates:
+          type: array
+          description: the full ranking, best first — provenance
+          items:
+            type: object
+            properties:
+              source: { type: string }
+              value:
+                oneOf: [{ type: string }, { type: number }, { type: boolean }]
+
+    Product:
+      type: object
+      properties:
+        legacy_id: { type: integer, example: 422156 }
+        key: { type: string, example: SK_1 }
+        status: { type: string, enum: [active, merged, unknown] }
+        merged_from:
+          type: [string, "null"]
+          description: set when this legacy ID belonged to a key merged into the answering one
+        codes:
+          type: array
+          items: { $ref: "#/components/schemas/CodeString" }
+        attributes:
+          type: array
+          items: { $ref: "#/components/schemas/Attribute" }
+        media:
+          type: array
+          items:
+            type: object
+            properties:
+              asset: { type: string, example: "dam:IMG-1" }
+              source: { type: string }
+              uri: { type: string }
+        as_of:
+          type: string
+          format: date
+          description: present on time-travel reads
+
+    ChangesPage:
+      type: object
+      properties:
+        events:
+          type: array
+          items: { $ref: "#/components/schemas/FeedEvent" }
+        next: { type: integer, description: cursor for the following call }
+        count: { type: integer }
+
+    FeedEvent:
+      type: object
+      required: [offset, type, date]
+      properties:
+        offset: { type: integer }
+        type:
+          type: string
+          enum: [claim, minted, members_changed, merged, split, legacy_id_assigned, merge_proposal, flag, decision]
+        date: { type: string, format: date }
+        key: { type: string }
+        keys: { type: array, items: { type: string } }
+        codes: { type: array, items: { $ref: "#/components/schemas/CodeString" } }
+        from: { type: array, items: { type: string } }
+        into: {}
+        legacy_id: { type: integer }
+        kind: { type: string }
+        source: { type: string }
+        subject: { type: string }
+        decision: { type: string }
+        by: { type: string }
+
+    Queue:
+      type: object
+      properties:
+        open: { type: integer }
+        merges:
+          type: array
+          items:
+            type: object
+            properties:
+              type: { const: merge }
+              keys: { type: array, items: { type: string } }
+              bridge:
+                type: array
+                description: the overlapping codes — WHY it was flagged
+                items: { $ref: "#/components/schemas/CodeString" }
+              members:
+                type: object
+                additionalProperties:
+                  type: array
+                  items: { $ref: "#/components/schemas/CodeString" }
+        attributes:
+          type: array
+          items:
+            type: object
+            properties:
+              type: { const: attribute }
+              key: { type: string }
+              field: { type: string }
+              candidates:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    source: { type: string }
+                    value:
+                      oneOf: [{ type: string }, { type: number }, { type: boolean }]
+
+    Decision:
+      oneOf:
+        - title: approve_merge
+          type: object
+          required: [kind, keys, by]
+          properties:
+            kind: { const: approve_merge }
+            keys: { type: array, minItems: 2, items: { type: string } }
+            by: { type: string }
+        - title: reject_merge
+          type: object
+          required: [kind, keys, by]
+          properties:
+            kind: { const: reject_merge }
+            keys: { type: array, minItems: 2, items: { type: string } }
+            by: { type: string }
+        - title: resolve_attribute
+          type: object
+          required: [kind, key, field, value, by]
+          properties:
+            kind: { const: resolve_attribute }
+            key: { type: string }
+            field: { type: string }
+            value: { type: string }
+            by: { type: string }
+        - title: split
+          type: object
+          required: [kind, key, codes, by]
+          properties:
+            kind: { const: split }
+            key: { type: string }
+            codes:
+              type: array
+              minItems: 1
+              description: the codes to carve out into a fresh key (fresh legacy ID allocated)
+              items: { $ref: "#/components/schemas/CodeString" }
+            by: { type: string }
+      discriminator:
+        propertyName: kind
