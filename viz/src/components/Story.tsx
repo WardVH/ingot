@@ -66,9 +66,18 @@ const CHAPTERS: Chapter[] = [
 
 const COUNTS = CHAPTERS.map((c) => c.stepIds.length);
 
+// Deep-link a position with ?c=<chapter>&s=<step> (1-based) — refresh-safe mid-talk.
+function initialPos(): Position {
+  if (typeof window === "undefined") return { chapter: 0, step: 0 };
+  const q = new URLSearchParams(window.location.search);
+  const pos = jumpTo(Number(q.get("c") ?? "1") - 1, COUNTS);
+  const step = Number(q.get("s") ?? "1") - 1;
+  return { ...pos, step: Math.max(0, Math.min(COUNTS[pos.chapter] - 1, step)) };
+}
+
 // The guided story: → / ← (or the edge buttons) advance step by step; 1-6 jump to a chapter.
 export default function Story() {
-  const [pos, setPos] = useState<Position>({ chapter: 0, step: 0 });
+  const [pos, setPos] = useState<Position>(initialPos);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
