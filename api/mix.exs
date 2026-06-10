@@ -29,7 +29,7 @@ defmodule GoldenRecordApi.MixProject do
 
   defp deps do
     [
-      {:golden_record, path: "..", app: false},
+      {:golden_record, path: ".."},
       {:bandit, "~> 1.5"},
       {:plug, "~> 1.16"},
       {:postgrex, "~> 0.19"}
