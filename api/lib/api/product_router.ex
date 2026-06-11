@@ -3,7 +3,8 @@ defmodule Api.ProductRouter do
   The Product API — medipim's machine-to-machine surface (`PRODUCT_API_TOKEN`).
 
   Writes: `POST /backfill/envelopes` (contract-C, idempotent, finer-grained fold) and
-  `POST /claims` (live engine-native claims). Reads land with their bead.
+  `POST /claims` (live engine-native claims). `POST /dry-run` takes the same body as `/claims`
+  through the same pipeline uncommitted and answers with the migration report (gr-rlq).
   """
   use Plug.Router
 
@@ -25,6 +26,15 @@ defmodule Api.ProductRouter do
   post "/claims" do
     case conn.body_params do
       %{"claims" => claims} -> write(conn, Api.Writes.claims(claims))
+      _ -> json(conn, 422, %{errors: [%{index: nil, error: ~s(body must be {"claims": [...]})}]})
+    end
+  end
+
+  # The same body as /claims, run through the same pipeline, committing NOTHING — the report is
+  # the response (validation errors included), so the status is 200 either way.
+  post "/dry-run" do
+    case conn.body_params do
+      %{"claims" => claims} -> json(conn, 200, Api.DryRun.report(claims))
       _ -> json(conn, 422, %{errors: [%{index: nil, error: ~s(body must be {"claims": [...]})}]})
     end
   end

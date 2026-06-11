@@ -93,6 +93,48 @@ defmodule Api.Writes do
     end
   end
 
+  @doc """
+  The claims write UNCOMMITTED (gr-rlq, `POST /v1/dry-run`): the exact `claims/1` path —
+  validate, dedupe per slot, fold-forward reconcile, legacy-id assignment — run against `state`
+  without ever touching the store. Returns `{:ok, outcome}` where `outcome.summary` is precisely
+  what `claims/1` would respond for the same batch, `outcome.identity_events` are the raw engine
+  events the fold produced, and `outcome.would_state` is the `Api.State` the commit WOULD have
+  left behind (events pre-stamped with the offsets `Store.insert_and_fold` would assign) — or
+  `{:error, errors}` with the per-index findings `claims/1` would 422 with.
+  """
+  def simulate(state, claim_maps) do
+    case CanonicalClaims.to_engine(claim_maps, recorded_at: Date.utc_today()) do
+      {:ok, new_claims} ->
+        fresh =
+          new_claims
+          |> Enum.uniq_by(&claim_identity/1)
+          |> Enum.reject(&asserted?(state, &1))
+
+        {events, identity_events} =
+          case fresh do
+            [] -> {[], []}
+            fresh -> pipeline(state, fresh, MapSet.new())
+          end
+
+        stamped =
+          events
+          |> Enum.with_index(state.offset + 1)
+          |> Enum.map(fn {e, i} -> %{e | order: i} end)
+
+        {:ok,
+         %{
+           summary:
+             summary(length(fresh), length(new_claims) - length(fresh), fresh, identity_events),
+           identity_events: identity_events,
+           would_state: Api.State.apply_all(state, stamped)
+         }}
+
+      {:error, errors} ->
+        {:error,
+         Enum.map(errors, fn %{index: index, error: error} -> %{index: index, error: error} end)}
+    end
+  end
+
   # ── deterministic claim identity (idempotent resubmission — see the moduledoc) ─
   defp claim_identity(c), do: {c.source, c.kind, c.data, c.valid_from}
 
