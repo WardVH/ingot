@@ -3,7 +3,8 @@ defmodule Api.State do
   The materialized fold over the event log — everything reads need, maintained incrementally:
   the identity ledger, the CURRENT claim per slot (`Substrate.slot/1`), open conflict flags and
   resolved subjects, steward attribute/product overrides (mirroring `History.overrides_from/1`),
-  and the legacy-ID assignments. Pure: `apply_event/2` is the only way state changes, so the
+  pending merge endorsements (the first of the four eyes, keyed by sorted keys), and the
+  legacy-ID assignments. Pure: `apply_event/2` is the only way state changes, so the
   snapshot is disposable by construction — re-folding the log MUST reproduce it (`Store.rebuild!`).
   """
 
@@ -15,6 +16,7 @@ defmodule Api.State do
             assigned: %{},
             shared: MapSet.new(),
             redirects: %{},
+            proposals: %{},
             offset: 0
 
   def new, do: %__MODULE__{ledger: IdentityLedger.new()}
@@ -31,8 +33,19 @@ defmodule Api.State do
       else: bump(%{s | flags: s.flags ++ [f]}, f)
   end
 
+  # the first of the four eyes: remember WHO endorsed the merge (and why) until it resolves
+  def apply_event(%__MODULE__{} = s, %Events.MergeProposed{keys: keys} = p),
+    do: bump(%{s | proposals: Map.put(s.proposals, Enum.sort(keys), p)}, p)
+
   def apply_event(%__MODULE__{} = s, %Events.ConflictResolved{subject: subject} = r) do
     s = %{s | resolved: MapSet.put(s.resolved, subject)}
+
+    # a settled merge (approved or rejected) clears its pending endorsement
+    s =
+      case subject do
+        {:merge, keys} -> %{s | proposals: Map.delete(s.proposals, Enum.sort(keys))}
+        _ -> s
+      end
 
     s =
       case {subject, r.decision} do

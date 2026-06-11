@@ -1,6 +1,11 @@
 # Steward surface (bead gr-xwb), end to end: the queue (merge proposals + attribute ties), the
 # four decisions, staleness (409), the HTML page with basic-auth, and the demo's whole
 # mistake-is-cheap arc — wrong merge → contradiction → split → re-home — through HTTP this time.
+#
+# gr-bb7 changed merge approval to FOUR-EYES: a single approve_merge now ENDORSES (nothing
+# fuses) and a second, different steward's approve applies the merge — so every test that
+# previously fused with one decision now decides twice (`approve!/3`). Decisions also carry an
+# optional reason, recorded in the log and visible in the queue and the change feed.
 
 defmodule Api.StewardTest do
   use ExUnit.Case, async: false
@@ -83,6 +88,17 @@ defmodule Api.StewardTest do
     Api.Store.state().ledger.members |> Map.keys() |> Enum.sort()
   end
 
+  # four-eyes merge: endorse as `proposer`, fuse as `approver`
+  defp approve!(keys, proposer, approver) do
+    assert steward!(:post, "/steward/v1/decisions", %{
+             kind: "approve_merge",
+             keys: keys,
+             by: proposer
+           }).status == 200
+
+    steward!(:post, "/steward/v1/decisions", %{kind: "approve_merge", keys: keys, by: approver})
+  end
+
   describe "GET /steward/v1/queue" do
     test "shows the gated merge proposal with its bridge and members" do
       [k1, k2] = seed_bridged()
@@ -122,10 +138,32 @@ defmodule Api.StewardTest do
   end
 
   describe "POST /steward/v1/decisions" do
-    test "approve_merge fuses; the absorbed legacy id keeps answering; the queue closes" do
+    # gr-bb7: this test previously fused on a SINGLE approve — four-eyes is the new contract:
+    # the first approve endorses, the same steward again is refused BY THE ENGINE, a second
+    # steward fuses. The post-merge assertions (legacy id, queue closing) are unchanged.
+    test "approve_merge is four-eyes: endorse, refuse the same steward, a second one fuses" do
       [k1, k2] = seed_bridged()
       absorbed_id = Api.Store.state().assigned[k2]
 
+      # first approve: an endorsement with a reason — nothing fuses yet
+      conn =
+        steward!(:post, "/steward/v1/decisions", %{
+          kind: "approve_merge",
+          keys: [k1, k2],
+          by: "sam",
+          reason: "same product, two listings"
+        })
+
+      assert conn.status == 200
+      assert decoded(conn)["applied"] == "propose_merge"
+      assert map_size(Api.Store.state().ledger.members) == 2
+
+      # the queue shows who endorsed and why — the proposal is replayable state, not UI memory
+      assert [merge] = decoded(steward!(:get, "/steward/v1/queue"))["merges"]
+      assert merge["proposal"]["by"] == "sam"
+      assert merge["proposal"]["reason"] == "same product, two listings"
+
+      # the same steward cannot supply the second pair of eyes — refused by the engine
       conn =
         steward!(:post, "/steward/v1/decisions", %{
           kind: "approve_merge",
@@ -133,29 +171,76 @@ defmodule Api.StewardTest do
           by: "sam"
         })
 
+      assert conn.status == 422
+      assert decoded(conn)["error"] =~ "four-eyes"
+      assert map_size(Api.Store.state().ledger.members) == 2
+
+      # a different steward approves: the merge applies, the absorbed legacy id keeps answering
+      conn =
+        steward!(:post, "/steward/v1/decisions", %{
+          kind: "approve_merge",
+          keys: [k1, k2],
+          by: "alex",
+          reason: "verified against the GTIN registry"
+        })
+
       assert conn.status == 200
+      assert decoded(conn)["applied"] == "approve_merge"
 
       assert decoded(steward!(:get, "/steward/v1/queue"))["merges"] == []
 
       body = decoded(product!(:get, "/v1/products/#{absorbed_id}"))
       assert body["key"] == k1
       assert body["merged_from"] == k2
+
+      # both halves of the four eyes — endorsement and approval, each with its reason —
+      # are in the change feed
+      feed = decoded(product!(:get, "/v1/changes?since=0&limit=1000"))["events"]
+
+      assert Enum.any?(
+               feed,
+               &(&1["type"] == "merge_endorsed" and &1["by"] == "sam" and
+                   &1["reason"] == "same product, two listings")
+             )
+
+      assert Enum.any?(
+               feed,
+               &(&1["type"] == "decision" and &1["by"] == "alex" and
+                   &1["reason"] == "verified against the GTIN registry")
+             )
     end
 
+    # rejection stays SINGLE-steward: it preserves the safe status quo (nothing fuses), so it
+    # needs no second pair of eyes — and it also clears any pending endorsement.
     test "reject_merge records the verdict; both keys survive; the proposal closes for good" do
       [k1, k2] = seed_bridged()
+
+      # an endorsement exists — rejection must sweep it away too
+      steward!(:post, "/steward/v1/decisions", %{kind: "approve_merge", keys: [k1, k2], by: "sam"})
 
       conn =
         steward!(:post, "/steward/v1/decisions", %{
           kind: "reject_merge",
           keys: [k1, k2],
-          by: "sam"
+          by: "kim",
+          reason: "bundle vs unit — two products"
         })
 
       assert conn.status == 200
       assert decoded(steward!(:get, "/steward/v1/queue"))["merges"] == []
       # both keys survive — the bridging listing never minted a third (the guard gated it)
       assert map_size(Api.Store.state().ledger.members) == 2
+      # the pending endorsement died with the rejection
+      assert Api.Store.state().proposals == %{}
+
+      # the reason is in the log, readable from the feed
+      feed = decoded(product!(:get, "/v1/changes?since=0&limit=1000"))["events"]
+
+      assert Enum.any?(
+               feed,
+               &(&1["type"] == "decision" and &1["decision"] == "rejected" and
+                   &1["reason"] == "bundle vs unit — two products")
+             )
     end
 
     test "resolve_attribute records the pick — visible with steward provenance on the product" do
@@ -176,7 +261,8 @@ defmodule Api.StewardTest do
           key: key,
           field: "color",
           value: "ivory",
-          by: "sam"
+          by: "sam",
+          reason: "manufacturer spec sheet says ivory"
         })
 
       assert conn.status == 200
@@ -192,7 +278,8 @@ defmodule Api.StewardTest do
     test "the full mistake-is-cheap arc: wrong merge → split → attributes and media re-home" do
       [k1, k2] = seed_bridged()
 
-      steward!(:post, "/steward/v1/decisions", %{kind: "approve_merge", keys: [k1, k2], by: "sam"})
+      # gr-bb7: the wrong merge now takes two stewards — both fooled by the bridging listing
+      assert approve!([k1, k2], "sam", "alex").status == 200
 
       conn =
         steward!(:post, "/steward/v1/decisions", %{
@@ -259,7 +346,14 @@ defmodule Api.StewardTest do
     test "an approved merge appears under repairs with selectable codes and their claiming sources" do
       [k1, k2] = seed_bridged()
 
+      # four-eyes: the first approve endorses, the second (different steward) fuses
       steward!(:post, "/steward/v1/decisions", %{kind: "approve_merge", keys: [k1, k2], by: "sam"})
+
+      steward!(:post, "/steward/v1/decisions", %{
+        kind: "approve_merge",
+        keys: [k1, k2],
+        by: "alex"
+      })
 
       body = decoded(steward!(:get, "/steward/v1/queue"))
       assert [repair] = body["repairs"]
@@ -294,7 +388,14 @@ defmodule Api.StewardTest do
     test "the checkbox form posts codes[] and splits — the repair disappears afterwards" do
       [k1, k2] = seed_bridged()
 
+      # four-eyes: the first approve endorses, the second (different steward) fuses
       steward!(:post, "/steward/v1/decisions", %{kind: "approve_merge", keys: [k1, k2], by: "sam"})
+
+      steward!(:post, "/steward/v1/decisions", %{
+        kind: "approve_merge",
+        keys: [k1, k2],
+        by: "alex"
+      })
 
       conn =
         conn(
@@ -344,19 +445,46 @@ defmodule Api.StewardTest do
       assert get_resp_header(conn, "www-authenticate") == [~s(Basic realm="steward")]
     end
 
-    test "a form post decides and redirects back to the mounted page" do
+    # gr-bb7: a form approve now ENDORSES (four-eyes) — the same two-steward dance as the JSON
+    # API, through plain form posts. Note the keys value is form-encoded ("+" is a literal).
+    defp form_approve!(k1, k2, by, reason \\ nil) do
+      body =
+        "kind=approve_merge&keys=#{URI.encode_www_form("#{k1}+#{k2}")}&by=#{by}" <>
+          if(reason, do: "&reason=#{URI.encode_www_form(reason)}", else: "")
+
+      conn(:post, "/steward/decide", body)
+      |> put_req_header("content-type", "application/x-www-form-urlencoded")
+      |> basic()
+      |> then(&Api.Router.call(&1, Api.Router.init([])))
+    end
+
+    test "form posts walk the four-eyes dance and redirect back to the mounted page" do
       [k1, k2] = seed_bridged()
 
-      conn =
-        conn(:post, "/steward/decide", "kind=approve_merge&keys=#{k1}+#{k2}&by=sam")
-        |> put_req_header("content-type", "application/x-www-form-urlencoded")
-        |> basic()
-        |> then(&Api.Router.call(&1, Api.Router.init([])))
-
+      # first steward's form post endorses — redirect carries the notice, nothing fuses
+      conn = form_approve!(k1, k2, "sam", "same product")
       assert conn.status == 303
       assert [location] = get_resp_header(conn, "location")
       assert String.starts_with?(location, "/steward?notice=")
+      assert location =~ "propose_merge"
       assert map_size(Api.Store.state().ledger.members) == 2
+
+      # the page now shows the pending endorsement
+      page = conn(:get, "/steward/") |> basic() |> then(&Api.Router.call(&1, Api.Router.init([])))
+      assert page.resp_body =~ "endorsed by <b>sam</b>"
+      assert page.resp_body =~ "approve merge (2nd steward)"
+
+      # the same steward's second form post is refused (the notice says why), still two keys
+      conn = form_approve!(k1, k2, "sam")
+      assert conn.status == 303
+      assert [location] = get_resp_header(conn, "location")
+      assert URI.decode_www_form(location) =~ "four-eyes"
+      assert map_size(Api.Store.state().ledger.members) == 2
+
+      # a second steward's form post fuses
+      conn = form_approve!(k1, k2, "alex")
+      assert conn.status == 303
+      assert map_size(Api.Store.state().ledger.members) == 1
     end
   end
 end
