@@ -1,0 +1,268 @@
+# Canonical claims contract + scheme registry — the MIT product contract
+
+The integration surface customers code against, in **their own language**: a customer script
+exports source data, maps it to canonical **claims JSON**, and submits batches to the engine
+(`POST /v1/claims`). This document formalizes the wire format the engine already speaks
+(`Api.ClaimJson.parse/2`, pinned by `api/test/writes_test.exs`) — it does **not** invent a new
+one. Machine-readable schemas live beside it:
+
+- `contract/claims.schema.json` — a claims submission batch (JSON Schema, draft 2020-12).
+- `contract/scheme_registry.schema.json` — scheme-registry declarations (JSON Schema, draft 2020-12).
+
+Relationship to contract C (`docs/HISTORY_ENVELOPE.md`): the envelope is the **backfill**
+boundary for a legacy event log (`POST /v1/backfill/envelopes`); this contract is the **live**
+boundary for everything else. Both feed the same reconcile pipeline.
+
+---
+
+## Batch envelope
+
+A submission is one JSON object with one key:
+
+```jsonc
+{ "claims": [ /* claim objects — see below */ ] }
+```
+
+A batch validates **whole**: one invalid claim rejects the entire batch with per-index reasons,
+and **nothing partial enters the log**. There is no partial acceptance.
+
+### Success response (`200`)
+
+```jsonc
+{
+  "accepted": 3,        // claims accepted (backfill: envelopes accepted)
+  "skipped": 0,         // backfill only: envelopes replayed as no-ops; always 0 for live claims
+  "claims": 3,          // claim events appended to the log
+  "events": [ /* what identity DID: minted | members_changed | merged | split | merge_proposal */ ],
+  "flagged": [ {"type": "merge_proposal", "keys": ["SK_1", "SK_3"]} ]
+}
+```
+
+`flagged` is the important part: convergences the over-merge guard **gated** for a steward.
+A live claim bridging two **established** keys is flagged, never auto-merged.
+
+### Error response (`422`)
+
+```jsonc
+{ "errors": [ {"index": 1, "error": "code must be \"scheme:value\", got \"not-a-code\""} ] }
+```
+
+| field   | type            | notes |
+|---------|-----------------|-------|
+| `index` | integer \| null | zero-based position of the offending claim in `claims`. `null` when the failure is structural (body not `{"claims": [...]}`, or `claims` not a list). |
+| `error` | string          | human-readable reason. **Not** machine-stable — match on `index`, not on the message text. |
+
+---
+
+## Claim shape — common fields
+
+Every claim is an object with a `kind` discriminator. Fields common to all kinds:
+
+| field        | type   | notes |
+|--------------|--------|-------|
+| `kind`       | string | `identity` \| `attribute` \| `media` \| `grouping`. Anything else rejects. |
+| `source`     | string | **source attribution** — who asserts this claim (e.g. `"medipim"`, an org id, a feed name). Resolution ranks sources; the contract just records them. Free-form, non-empty. |
+| `valid_from` | string, optional | ISO 8601 **date** (`"2024-03-01"`). See bitemporal fields below. |
+
+Unknown extra fields are **ignored**, not rejected (actual behavior of the parser's pattern
+matching). Do not rely on this — a stricter validator may reject them later (open question 6).
+
+### Bitemporal fields: `valid_from` vs `recorded_at`
+
+- **`recorded_at`** — when the engine learned the fact. **Server-side, always the submission
+  date.** Clients cannot supply it on the live contract (the backfill envelope is the path for
+  historical `recorded_at`).
+- **`valid_from`** — when the fact became true in the world. Optional; defaults to
+  `recorded_at`. Supply it when a change applied earlier than it was reported (back-dating).
+  Date precision only — no time component (open question 3).
+
+### Codes are `"scheme:value"` strings
+
+Everywhere a claim carries a code, it is a single string: the scheme name, a colon, the value.
+Split on the **first** colon — the value may itself contain colons. Both halves must be
+non-empty.
+
+```
+"cnk:1000001"   "gtin:05012345678900"   "ean:5012345678900"   "mpn:AB-1234"
+```
+
+- **Known schemes** are the registry's engine-native names (see the scheme registry below).
+  The engine canonicalizes per scheme: the GTIN family (`gtin`/`ean`/`upc`) folds to a
+  14-digit zero-filled GTIN, padded national schemes left-pad to their width, everything else
+  is trimmed.
+- **Unknown schemes pass through** as opaque strings — conservative, never rejected, never
+  bridging-grade. `"mystery:42"` is stored as-is and treated as a non-identifying code.
+
+---
+
+## Node claims
+
+### `identity` — what a listing IS
+
+The clustering input: a source's listing (`ref`) asserts a set of codes. Codes **bridge**
+listings into one identity (subject to each scheme's class and bridge grade).
+
+```jsonc
+{
+  "kind": "identity",
+  "source": "medipim",
+  "ref": "P-1",                                   // the source's OWN listing id — stable per source
+  "codes": ["cnk:1000001", "gtin:05012345678900"], // non-empty array of "scheme:value"
+  "valid_from": "2024-03-01"                       // optional
+}
+```
+
+`ref` is the claim's anchor within the source: a later `identity` claim with the same
+`(source, ref)` **replaces** the earlier code-set (last-wins per slot — see idempotency).
+
+### `attribute` — a fact about a coded thing
+
+```jsonc
+{
+  "kind": "attribute",
+  "source": "medipim",
+  "code": "cnk:1000001",   // the code the fact is anchored to
+  "field": "name",          // free-form field name; localized fields use "field:locale" ("name:fr")
+  "value": "Sunscreen"      // string | number | boolean
+}
+```
+
+Attributes never bridge; survivorship decides which source's value wins per `(code, field)`.
+
+### `media` — an asset attached to a coded thing
+
+```jsonc
+{
+  "kind": "media",
+  "source": "medipim",
+  "asset": "img-001",               // the asset id in the submitting DAM/source
+  "target": "cnk:1000001",          // the code the asset attaches to
+  "uri": "https://cdn.example/img-001.jpg",
+  "role": "primary"                  // optional; "primary" — ANY other value (or absence) means secondary
+}
+```
+
+## Edge claims
+
+### `grouping` — code → legacy product id
+
+The continuity edge to a predecessor system: this code belonged to legacy product `product`.
+Drives legacy-id assignment (a minted key inherits the legacy id its codes group to).
+
+```jsonc
+{
+  "kind": "grouping",
+  "source": "medipim",
+  "code": "cnk:1000001",
+  "product": 422156          // integer — the legacy system's own product id
+}
+```
+
+> The engine internally also has a `member_of` claim kind (code → collection membership:
+> categories, brands, …), produced by the medipim reference adapter. It is **not yet accepted
+> on this wire contract** — see open question 1.
+
+---
+
+## Idempotency expectations
+
+- **Live claims are slot-keyed, last-wins.** Each claim occupies a deterministic slot —
+  `identity`: `(source, ref)`; `attribute`: `(source, code, field)`; `media`:
+  `(source, asset, target)`; `grouping`: `(source, code)` — and the current view keeps the
+  latest claim per slot. Re-submitting the same claim appends to the log but changes nothing
+  in the resolved state; re-submitting with a changed payload updates that slot only.
+- **Re-runs converge.** Because claim identity is deterministic, iterating on a mapping script
+  and re-submitting is safe: keys stay stable, and the same evidence produces the same
+  resolution. (Batch-level content fingerprinting — replay-is-a-no-op without log growth —
+  exists today only on the backfill path; see open question 7.)
+- **Established keys never auto-merge.** New evidence bridging two established keys yields a
+  `merge_proposal` flag for steward review, regardless of how often it is re-submitted.
+
+---
+
+## The scheme registry — declaring code types
+
+What the engine knows about a scheme is **data, not code** (precedent: `CodeRegistry` —
+adding a market is a table change). A registry document declares the schemes a deployment
+speaks; `contract/scheme_registry.schema.json` is its schema.
+
+```jsonc
+{
+  "schema_version": "1",
+  "schemes": [
+    {
+      "name": "gtin",                  // the canonical engine-native scheme name
+      "class": "identity",             // identity | external_ref | attribute | entity_id
+      "bridge_grade": "barcode",       // national | barcode | none — the over-merge guard's axis
+      "normalizer": {"kind": "gtin"},  // trim | pad_left(width) | gtin
+      "checksum": "gtin_mod10",        // none | gtin_mod10
+      "equivalence_family": "gtin",    // codes in one family compare equal after normalization
+      "aliases": ["ean", "upc"]        // accepted wire spellings that fold to `name`
+    },
+    {
+      "name": "cnk",
+      "class": "identity",
+      "bridge_grade": "national",
+      "normalizer": {"kind": "trim"},
+      "checksum": "none"
+    },
+    {
+      "name": "cb_id",
+      "class": "external_ref"          // identifies the product in ANOTHER system — never bridges
+    }
+  ]
+}
+```
+
+### Declaration fields
+
+| field                | required | notes |
+|----------------------|----------|-------|
+| `name`               | yes      | canonical scheme name — the string before the colon in `"scheme:value"`. Lowercase snake_case. |
+| `class`              | yes      | how clustering uses the code: **`identity`** bridges listings; **`external_ref`** identifies the thing in another system and is carried but **never bridges**; **`attribute`** is a non-identifying classification (customs code, reimbursement class); **`entity_id`** is the source system's own record id — not a code claim at all. |
+| `bridge_grade`       | no       | the over-merge guard's **orthogonal** axis, deliberately distinct from `class`: a merge bridged by a **`national`** code is trusted; one bridged *solely* by a **`barcode`**-grade code (reusable/reassignable GS1 codes — `gtin`, `acl13`, `cip13`) is suspect and gated; **`none`** (default) is not a bridge. Note `acl13`/`cip13` are `class: identity` (they DO bridge) yet barcode-grade here. |
+| `normalizer`         | no       | canonicalization rule: `{"kind": "trim"}` (default — whitespace trim only); `{"kind": "pad_left", "width": N}` (all-digit values shorter than N left-pad with zeros — e.g. `cip_acl7`:7, `pzn`:8, `cn`:6); `{"kind": "gtin"}` (8/12/13/14-digit values zero-fill to GTIN-14; non-GTIN-shaped values pass through untouched). |
+| `checksum`           | no       | validity rule for **validators**: `"none"` (default) or `"gtin_mod10"` (GS1 mod-10 check digit). The engine does **not** enforce checksums at the submission boundary today — see open question 2. |
+| `equivalence_family` | no       | schemes sharing a family denote the same code space at different widths/spellings; after normalization their values compare equal. Precedent: the **GTIN family** — `ean`, `upc`, and medipim's `eanGtin8/12/13/14` all fold to `gtin`, and an EAN-13 equals its zero-padded GTIN-14. |
+| `aliases`            | no       | alternative scheme spellings accepted on the wire that fold to `name` (e.g. `"ean:5012345678900"` is accepted and canonicalized as `gtin`). |
+
+### Semantics inherited from the engine (normative behavior)
+
+- **Unknown schemes**: a scheme name not in the registry is accepted, passed through as an
+  opaque string, trim-normalized, classified as a non-bridging `attribute`, bridge grade
+  `none`. Registries extend coverage; they never gate submission.
+- **Restricted GTINs**: GTIN-family values with GS1 prefix `02` or `20–29` (in-store /
+  variable-measure) are not globally unique and are excluded from bridging regardless of the
+  scheme's declared class.
+- **Never-bridging schemes**: `mpn` and `supplier_ref` are accepted identity-claim codes but
+  excluded from bridging (manufacturer part numbers and supplier refs are shared across
+  distinct trade items).
+
+---
+
+## Open questions (underspecified in the current format)
+
+1. **`member_of` edge claims are not on the wire.** The engine produces them internally
+   (medipim adapter: categories, brands, labos); the live contract has no JSON shape for them
+   yet. Candidate shape: `{"kind": "member_of", "source", "code", "collection", "member"}`.
+2. **Checksums are advisory.** `gtin_mod10` is implemented (`Codes.valid_gtin?/1`) but not
+   called at the submission boundary — a syntactically valid GTIN with a bad check digit is
+   accepted. Should the MIT validator warn, and should the engine optionally reject?
+3. **`valid_from` is date-only.** No time-of-day, no timezone. Contract C uses unix seconds;
+   the live contract uses ISO dates. Sub-day validity ordering is unspecified.
+4. **`recorded_at` is not client-suppliable on the live path.** Historical loads must go
+   through the backfill envelope. Is that split permanent, or should live claims accept a
+   bounded `recorded_at` for near-real-time feeds with delivery lag?
+5. **`media.role` is forgiving.** Any value other than the string `"primary"` — including
+   typos — silently becomes `secondary`. The schema constrains it to the enum; the engine
+   today does not.
+6. **Extra fields are ignored.** The parser pattern-matches required fields and ignores the
+   rest, so typoed optional fields (e.g. `"valid_form"`) silently vanish. The schemas mirror
+   actual behavior (`additionalProperties` left open); a strict validation mode is a candidate.
+7. **No batch fingerprint on live claims.** Backfill envelopes are content-fingerprinted
+   (replay is a no-op); live claim batches are not — replays converge in resolved state but
+   grow the log. Is a client-supplied batch idempotency key wanted?
+8. **No batch size limit is specified.** The whole-batch-validates rule makes very large
+   batches all-or-nothing; a documented maximum (and a recommended chunking size) is open.
+9. **Scheme-name grammar.** The schema requires lowercase snake_case for *declared* names
+   (matching every existing scheme), but the wire accepts any non-empty scheme string.
