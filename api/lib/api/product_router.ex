@@ -5,6 +5,8 @@ defmodule Api.ProductRouter do
   Writes: `POST /backfill/envelopes` (contract-C, idempotent, finer-grained fold) and
   `POST /claims` (live engine-native claims). `POST /dry-run` takes the same body as `/claims`
   through the same pipeline uncommitted and answers with the migration report (gr-rlq).
+  `POST /cutover` commits a migration batch with convergent re-run semantics and answers with
+  the committed report (gr-w4l, `Api.Cutover`).
   """
   use Plug.Router
 
@@ -26,6 +28,15 @@ defmodule Api.ProductRouter do
   post "/claims" do
     case conn.body_params do
       %{"claims" => claims} -> write(conn, Api.Writes.claims(claims))
+      _ -> json(conn, 422, %{errors: [%{index: nil, error: ~s(body must be {"claims": [...]})}]})
+    end
+  end
+
+  # The same body as /claims, COMMITTED with migration semantics (per-slot compaction,
+  # convergent re-runs) — the committed report is the response; a rejected batch is 422.
+  post "/cutover" do
+    case conn.body_params do
+      %{"claims" => claims} -> write(conn, Api.Cutover.commit(claims))
       _ -> json(conn, 422, %{errors: [%{index: nil, error: ~s(body must be {"claims": [...]})}]})
     end
   end

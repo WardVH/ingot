@@ -98,15 +98,25 @@ defmodule Api.Writes do
   validate, dedupe per slot, fold-forward reconcile, legacy-id assignment — run against `state`
   without ever touching the store. Returns `{:ok, outcome}` where `outcome.summary` is precisely
   what `claims/1` would respond for the same batch, `outcome.identity_events` are the raw engine
-  events the fold produced, and `outcome.would_state` is the `Api.State` the commit WOULD have
-  left behind (events pre-stamped with the offsets `Store.insert_and_fold` would assign) — or
+  events the fold produced, `outcome.events` are the full stamped events the commit would append
+  (offsets exactly what `Store.insert_and_fold` will re-assign from the same `state` — so a
+  caller holding the writer lock may append them verbatim, which is how `Api.Cutover` commits),
+  and `outcome.would_state` is the `Api.State` the commit WOULD have left behind — or
   `{:error, errors}` with the per-index findings `claims/1` would 422 with.
+
+  `compact: true` (gr-w4l, the cutover flavor) first keeps only the LAST claim per slot: a
+  migration batch is the source's CURRENT truth, not a replay of its history, and without
+  compaction a batch carrying several values for one slot can never converge — every re-run
+  re-appends the non-final values and the last append wins, flipping the answer back.
+  `outcome.compacted` counts the claims dropped that way (0 without the option).
   """
-  def simulate(state, claim_maps) do
+  def simulate(state, claim_maps, opts \\ []) do
     case CanonicalClaims.to_engine(claim_maps, recorded_at: Date.utc_today()) do
       {:ok, new_claims} ->
+        batch = if opts[:compact], do: compact(new_claims), else: new_claims
+
         fresh =
-          new_claims
+          batch
           |> Enum.uniq_by(&claim_identity/1)
           |> Enum.reject(&asserted?(state, &1))
 
@@ -123,9 +133,10 @@ defmodule Api.Writes do
 
         {:ok,
          %{
-           summary:
-             summary(length(fresh), length(new_claims) - length(fresh), fresh, identity_events),
+           summary: summary(length(fresh), length(batch) - length(fresh), fresh, identity_events),
+           compacted: length(new_claims) - length(batch),
            identity_events: identity_events,
+           events: stamped,
            would_state: Api.State.apply_all(state, stamped)
          }}
 
@@ -134,6 +145,10 @@ defmodule Api.Writes do
          Enum.map(errors, fn %{index: index, error: error} -> %{index: index, error: error} end)}
     end
   end
+
+  # Last claim per slot wins, batch order preserved — the cutover's compaction (see simulate/3).
+  defp compact(claims),
+    do: claims |> Enum.reverse() |> Enum.uniq_by(&Substrate.slot/1) |> Enum.reverse()
 
   # ── deterministic claim identity (idempotent resubmission — see the moduledoc) ─
   defp claim_identity(c), do: {c.source, c.kind, c.data, c.valid_from}
