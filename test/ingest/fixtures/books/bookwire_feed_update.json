@@ -1,0 +1,14 @@
+{
+  "feed": "bookwire",
+  "generated_at": "2026-06-20",
+  "comment": "Post-cutover correction feed (gr-vgb): bookwire enriched BW-9002 with the original hardcover's ISBN (librex 1004's 'Moth Hours'). The new evidence bridges two ESTABLISHED golden records — the over-merge guard must queue a merge proposal for a steward, never auto-fuse.",
+  "items": [
+    {
+      "sku": "BW-9002",
+      "isbns": ["979-10-90636-07-1", "978-0-571-19998-3"],
+      "title": "Moth Hours: Collected Poems",
+      "pages": 184,
+      "imprint": "Editions Phalene"
+    }
+  ]
+}

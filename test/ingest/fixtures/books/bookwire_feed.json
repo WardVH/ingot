@@ -1,0 +1,28 @@
+{
+  "feed": "bookwire",
+  "generated_at": "2026-06-05",
+  "comment": "Modern trade feed (gr-vgb). ISBN-13 era, hyphenated, multiple ISBNs per sku (ONIX-style). BW-9001 is the equivalence + contradiction case (same book as librex 1001 via the 10/13 pair, but disagrees on pages). BW-9002 is a 979 title — no ISBN-10 form exists. BW-9003 wrongly carries both editions' ISBNs on one sku.",
+  "items": [
+    {
+      "sku": "BW-9001",
+      "isbns": ["978-1-86197-271-2"],
+      "title": "The Tide Atlas",
+      "pages": 256,
+      "imprint": "Brackwater Press"
+    },
+    {
+      "sku": "BW-9002",
+      "isbns": ["979-10-90636-07-1"],
+      "title": "Moth Hours: Collected Poems",
+      "pages": 184,
+      "imprint": "Editions Phalene"
+    },
+    {
+      "sku": "BW-9003",
+      "isbns": ["978-0-19-852663-6", "978-0-19-852664-3"],
+      "title": "Field Guide to Lichens (2nd ed)",
+      "pages": 328,
+      "imprint": "Calder & Holt"
+    }
+  ]
+}

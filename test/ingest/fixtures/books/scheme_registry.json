@@ -1,0 +1,21 @@
+{
+  "schema_version": "1",
+  "schemes": [
+    {
+      "name": "isbn13",
+      "class": "identity",
+      "bridge_grade": "national",
+      "normalizer": { "kind": "trim" },
+      "checksum": "gtin_mod10",
+      "equivalence_family": "isbn"
+    },
+    {
+      "name": "isbn10",
+      "class": "identity",
+      "bridge_grade": "national",
+      "normalizer": { "kind": "trim" },
+      "checksum": "none",
+      "equivalence_family": "isbn"
+    }
+  ]
+}
