@@ -4,7 +4,7 @@
 # canonical claim maps (docs/CLAIMS_CONTRACT.md — the same shape `POST /v1/claims` accepts) into
 # the engine's `%Events.ClaimAsserted{}` structs. Every path into the engine meets here: the
 # medipim reference adapter (lib/ingest/claim_mapping.ex) derives these maps from legacy
-# envelopes; the Product API's live path (gr-ajc, next) parses them off the wire.
+# envelopes; the Product API's live path (`Api.Writes.claims/1`, gr-ajc) takes them off the wire.
 #
 # Validation at the seam — DOCUMENTED CHOICE (gr-3jd): the executable contract
 # (`ClaimsValidator`) runs in `to_engine/2`, the live-wire entrypoint, and is SKIPPED by

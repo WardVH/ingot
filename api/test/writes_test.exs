@@ -109,6 +109,68 @@ defmodule Api.WritesTest do
       assert map_size(Api.Store.state().ledger.members) == 1
     end
 
+    test "resubmitting the SAME batch is idempotent: nothing appended, no state churn" do
+      batch = %{
+        claims: [
+          %{
+            kind: "identity",
+            source: "medipim",
+            ref: "P-1",
+            codes: ["cnk:1000001", "gtin:05012345678900"]
+          },
+          %{
+            kind: "attribute",
+            source: "medipim",
+            code: "cnk:1000001",
+            field: "name",
+            value: "Sunscreen"
+          }
+        ]
+      }
+
+      assert post!("/v1/claims", batch).status == 200
+      log = Api.Store.log()
+      state = Api.Store.state()
+
+      conn = post!("/v1/claims", batch)
+      assert conn.status == 200
+      body = decoded(conn)
+      assert body["accepted"] == 0
+      assert body["skipped"] == 2
+      assert body["claims"] == 0
+      assert body["events"] == []
+
+      assert Api.Store.log() == log
+      assert Api.Store.state() == state
+    end
+
+    test "an overlapping batch appends ONLY the new claims" do
+      post!("/v1/claims", %{
+        claims: [%{kind: "identity", source: "m", ref: "A", codes: ["cnk:1000001"]}]
+      })
+
+      conn =
+        post!("/v1/claims", %{
+          claims: [
+            # identical content — its slot already holds this claim, so it is skipped
+            %{kind: "identity", source: "m", ref: "A", codes: ["cnk:1000001"]},
+            %{kind: "identity", source: "m", ref: "B", codes: ["cnk:1000002"]}
+          ]
+        })
+
+      assert conn.status == 200
+      body = decoded(conn)
+      assert body["accepted"] == 1
+      assert body["skipped"] == 1
+      assert body["claims"] == 1
+      assert Enum.count(body["events"], &(&1["type"] == "minted")) == 1
+
+      # each listing's claim is in the log exactly once
+      claim_events = for %Events.ClaimAsserted{} = e <- Api.Store.log(), do: e
+      assert length(claim_events) == 2
+      assert map_size(Api.Store.state().ledger.members) == 2
+    end
+
     test "a live bridge between two ESTABLISHED keys is flagged, never merged" do
       post!("/v1/claims", %{
         claims: [

@@ -240,7 +240,7 @@ defmodule Api.Steward do
   defp parse_codes(codes) do
     codes
     |> Enum.reduce_while({:ok, []}, fn raw, {:ok, acc} ->
-      case Api.ClaimJson.parse_code(raw) do
+      case CanonicalClaims.parse_code(raw) do
         {:ok, code} -> {:cont, {:ok, [code | acc]}}
         {:error, reason} -> {:halt, {:error, reason}}
       end
