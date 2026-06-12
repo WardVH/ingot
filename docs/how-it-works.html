@@ -64,6 +64,18 @@
   .act > p.say b, .act > p.say strong { color: var(--ink); }
   .act h3 { font-size: 15px; margin: 20px 0 2px; }
   .act h3 .n { color: var(--accent); font-family: var(--mono); font-size: 13px; margin-right: 6px; }
+  .lanes { max-width: 640px; margin: 14px auto 0; }
+  .lanes .title { font-size: 13px; font-weight: 700; color: var(--ink); margin-bottom: 8px; text-align: center; }
+  .lane { display: flex; gap: 12px; align-items: baseline; padding: 7px 0; border-top: 1px dashed var(--line); font-size: 13.5px; color: var(--muted); }
+  .lane.l1 { border-top: 0; }
+  .lane .badge {
+    flex: 0 0 150px; text-align: center;
+    border: 1px solid; border-radius: 99px; padding: 1px 10px; font-size: 12px;
+  }
+  .lane.l1 .badge { color: var(--green);  border-color: #2e5238; }
+  .lane.l2 .badge { color: var(--blue);   border-color: #2a4663; }
+  .lane.l3 .badge { color: var(--purple); border-color: #4d3a6b; }
+  .lane b { color: var(--ink); }
   .viz { display: flex; justify-content: center; margin: 6px 0 2px; }
   .viz svg { max-width: 100%; height: auto; }
   .caption { color: var(--muted); font-size: 13.5px; margin-top: 12px; text-align: center; }
@@ -439,6 +451,19 @@
   <p class="caption">That's also why fuzzy name-matching is off the table: it would happily fuse the
      75&nbsp;ml and the 200&nbsp;ml — and you'd ship the wrong product. <b>Grouping is for people;
      identity is for codes.</b></p>
+
+  <div class="lanes">
+    <div class="title">So how does a family get built? Three lanes, in order of trust:</div>
+    <div class="lane l1"><span class="badge">the feeds say it</span>
+      <span>most sources carry it explicitly — <b>brand and product-line fields</b> arrive as
+      claims like everything else, and fold the same way.</span></div>
+    <div class="lane l2"><span class="badge">matching attributes</span>
+      <span>no family field? group on trustworthy attributes: <b>same brand + same line</b> —
+      rule-based and explainable, never a similarity score.</span></div>
+    <div class="lane l3"><span class="badge">look-alike names</span>
+      <span><b>suggestion only</b> — "these look like one family, group them?" goes to the steward
+      queue. Safe here, because a wrong grouping is one click to undo; a wrong merge isn't.</span></div>
+  </div>
 </section>
 
 <div class="between"><span class="lbl">machines stop where judgment starts</span></div>
