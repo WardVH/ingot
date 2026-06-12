@@ -23,7 +23,8 @@ jobs:
       matrix:
         elixir:
           - "1.18-otp-27" # supported floor — built-in JSON module landed in Elixir 1.18
-          - "1.19-otp-28" # matches local dev
+          - "1.19-otp-28"
+          - "1.20-otp-29" # matches local dev; whole-program gradual type checking
     steps:
       - uses: actions/checkout@v4
         with:
