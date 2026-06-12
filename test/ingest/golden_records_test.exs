@@ -92,9 +92,10 @@ defmodule GoldenRecordsTest do
       assert field(variant, "name:nl").value == "Aderma Primalba Wasgel 2in1 750ml"
     end
 
-    test "media is empty by design (claim_mapping emits no media claims)", %{gr: gr} do
+    test "media carries the depicted media-lane records via :depicts edges (gr-kek)", %{gr: gr} do
       [%{variants: [variant]}] = gr.records
-      assert variant.media == []
+      assert variant.media != []
+      assert Enum.all?(variant.media, &String.starts_with?(&1.asset, "MED_"))
     end
 
     test "the pass-through log still folds through the engine's read layer", %{gr: gr} do

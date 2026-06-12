@@ -49,8 +49,10 @@ defmodule LegacyXref do
       end)
 
     # SK -> %{codes: MapSet, sources: MapSet} drawn from the grouping claims landing on its members.
+    # PRODUCT lane only (gr-2a8): legacy entities are products — description/media/substance keys
+    # have no legacy id to cross-reference.
     per_key =
-      for {key, member_codes} <- ledger.members, into: %{} do
+      for {key, member_codes} <- Lanes.partition_members(ledger.members).product, into: %{} do
         contributing =
           Enum.filter(groupings, fn g -> MapSet.member?(member_codes, g.data.code) end)
 

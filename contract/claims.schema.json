@@ -18,7 +18,8 @@
         { "$ref": "#/$defs/identityClaim" },
         { "$ref": "#/$defs/attributeClaim" },
         { "$ref": "#/$defs/mediaClaim" },
-        { "$ref": "#/$defs/groupingClaim" }
+        { "$ref": "#/$defs/groupingClaim" },
+        { "$ref": "#/$defs/edgeClaim" }
       ]
     },
     "code": {
@@ -53,6 +54,10 @@
           "type": "array",
           "items": { "$ref": "#/$defs/code" },
           "minItems": 1
+        },
+        "entity": {
+          "description": "Entity lane of this record. Usually derived from the codes' schemes (one claim, one lane — mixing lanes rejects); required only when every code is lane-neutral (the engine-minted 'uuid' scheme).",
+          "enum": ["product", "substance", "description", "media"]
         },
         "valid_from": { "$ref": "#/$defs/validFrom" }
       }
@@ -107,6 +112,23 @@
           "description": "The legacy system's own product id.",
           "type": "integer"
         },
+        "valid_from": { "$ref": "#/$defs/validFrom" }
+      }
+    },
+    "edgeClaim": {
+      "description": "Edge claim: a typed relationship between two coded records — both endpoints are codes, resolved to their current owner key at read time, so the edge survives merge/split on either side. The relation must be declared in the scheme registry with a lane signature (contains: product→substance, describes: description→product|substance, depicts: media→product|substance, member_of: product→collection); a mismatched endpoint rejects. Edges union across sources; slot: (source, from, relation, to), last-wins.",
+      "type": "object",
+      "required": ["kind", "source", "from", "relation", "to"],
+      "properties": {
+        "kind": { "const": "edge" },
+        "source": { "$ref": "#/$defs/source" },
+        "from": { "$ref": "#/$defs/code" },
+        "relation": {
+          "description": "A relation name declared in the scheme registry.",
+          "type": "string",
+          "minLength": 1
+        },
+        "to": { "$ref": "#/$defs/code" },
         "valid_from": { "$ref": "#/$defs/validFrom" }
       }
     }

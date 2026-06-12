@@ -34,8 +34,9 @@ defmodule ClaimMappingTest do
       "code" => code
     }
 
+  # product-lane clusters — the description/media lanes reconcile separately (gr-2a8)
   defp clusters(%{claims: claims, shared: shared}),
-    do: Cluster.variants(Substrate.current(claims), shared)
+    do: Cluster.variants(Lanes.identity_claims(Substrate.current(claims), :product), shared)
 
   # ── fold semantics ─────────────────────────────────────────────────────────
   describe "fold" do

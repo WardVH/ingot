@@ -48,7 +48,8 @@ defmodule RederivationTest do
       result = Rederivation.run([env], 1)
 
       assert [_only] = result.clusters
-      assert [{"SK_1", codes}] = Map.to_list(result.ledger.members)
+      # the PRODUCT lane converges to one key; description/media lanes mint their own (gr-2a8)
+      assert [{"SK_1", codes}] = Map.to_list(Lanes.partition_members(result.ledger.members).product)
 
       # the convergence the design calls out: CNK + the canonical GTIN of 03282770146004.
       assert MapSet.member?(codes, {:cnk, "3612173"})

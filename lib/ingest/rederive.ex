@@ -43,16 +43,17 @@ defmodule Rederivation do
   """
   def from_claims(%{claims: claims, shared: shared}, at) do
     live = Substrate.current(claims)
-    clusters = Cluster.variants(live, shared)
 
-    identity_events =
-      IdentityLedger.new()
-      |> IdentityLedger.decide({:reconcile, clusters, shared, at})
-      |> stamp(claims)
+    # Per-lane reconcile (gr-2a8): each entity lane clusters against its own ledger, minting
+    # under its own prefix (SK/SUB/DSC/MED). `clusters` and `ledger` keep their historical,
+    # product-lane meaning for existing callers; `ledgers` is the full per-lane map.
+    {lane_events, ledgers} = Lanes.reconcile(live, shared, Lanes.new_ledgers(), at)
+    identity_events = stamp(lane_events, claims)
 
     ledger = Enum.reduce(identity_events, IdentityLedger.new(), &IdentityLedger.evolve(&2, &1))
+    clusters = Cluster.variants(Lanes.identity_claims(live, :product), shared)
 
-    %{log: claims ++ identity_events, ledger: ledger, clusters: clusters, shared: shared}
+    %{log: claims ++ identity_events, ledger: ledger, ledgers: ledgers, clusters: clusters, shared: shared}
   end
 
   # Continue the identity events' `:order` after the highest claim order, preserving decide's

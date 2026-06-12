@@ -98,9 +98,11 @@ defmodule Api.E2eMigrationTest do
     assert report["conflicts"] == dry["conflicts"]
     assert report["steward_queue"] == dry["steward_queue"]
 
-    # migration semantics: the batch is the source's current truth — slot history compacts
+    # migration semantics: the batch is the source's current truth — slot history compacts.
+    # 117 = the 73 product-side claims + 44 lane claims (gr-kek: 22 surviving description/media
+    # references × identity + edge each).
     assert report["counts"]["compacted"] == 19
-    assert report["counts"]["accepted"] == 73
+    assert report["counts"]["accepted"] == 117
     assert report["counts"]["skipped"] == 0
 
     # lineage: both legacy entities keep their ids on the minted keys
@@ -158,7 +160,7 @@ defmodule Api.E2eMigrationTest do
     second = decoded(request(:post, "/v1/cutover", %{claims: batch}))
 
     assert second["counts"]["accepted"] == 0
-    assert second["counts"]["skipped"] == 73
+    assert second["counts"]["skipped"] == 117
     assert second["counts"]["mints"] == 0
     assert second["lineage"] == []
 
@@ -190,7 +192,7 @@ defmodule Api.E2eMigrationTest do
 
     # exactly the four name:fr slots supersede; nothing else moves
     assert report["counts"]["accepted"] == 4
-    assert report["counts"]["skipped"] == 69
+    assert report["counts"]["skipped"] == 113
     assert report["counts"]["mints"] == 0
     assert report["lineage"] == []
 

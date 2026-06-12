@@ -161,11 +161,175 @@ defmodule Codes do
   end
 end
 
+defmodule Lanes do
+  @moduledoc """
+  Typed entity lanes (gr-2a8): every code scheme belongs to exactly one entity type, identity
+  claims route to their lane, and each lane folds its own ledger with a lane-qualified surrogate
+  key prefix. Cross-lane bridging is structurally impossible — the lanes are disjoint folds, not
+  a validation rule. `:uuid` is the one shared scheme (engine-minted identity for records born
+  without a source code, see `Uuid`); an identity claim whose codes are all lane-neutral must
+  carry an explicit `entity:` in its data.
+  """
+
+  @lanes [:product, :substance, :description, :media]
+
+  # scheme => lane. Anything not listed is :product — every pre-lane scheme (cnk, gtin, isbn, …)
+  # was a product code, so the default keeps existing logs and adapters meaning what they meant.
+  @lane_of %{
+    cas: :substance,
+    unii: :substance,
+    substance_id: :substance,
+    text_id: :description,
+    asset_id: :media
+  }
+
+  # Lane-qualified surrogate-key prefixes. :product keeps the legacy "SK" so existing logs,
+  # fixtures, and customer-facing keys are unchanged by the lanes migration.
+  @prefix %{product: "SK", substance: "SUB", description: "DSC", media: "MED"}
+
+  @by_name Map.new(@lanes, &{Atom.to_string(&1), &1})
+
+  def lanes, do: @lanes
+  def prefix(lane), do: Map.fetch!(@prefix, lane)
+
+  @doc ~s{Lane atom for a wire entity name ("description" => :description) — never an atom leak.}
+  def parse(name), do: Map.fetch(@by_name, name)
+
+  @doc "Lane of one code scheme. `:uuid` is shared (nil); unknown schemes default to :product."
+  def lane_of_scheme(:uuid), do: nil
+  def lane_of_scheme(scheme), do: Map.get(@lane_of, scheme, :product)
+
+  @doc "Lane of a surrogate key, by its prefix (\"SUB_3\" => :substance)."
+  def lane_of_key(key) do
+    Enum.find(@lanes -- [:product], :product, &String.starts_with?(key, prefix(&1) <> "_"))
+  end
+
+  @doc """
+  Lane of an identity claim: the unique lane among its codes' schemes (`:uuid` is neutral),
+  falling back to an explicit `entity:` in the claim data, else :product. Codes from two lanes
+  in one claim are a contract violation — `{:error, {:mixed_lanes, lanes}}`.
+  """
+  def of_claim(%Events.ClaimAsserted{kind: :identity, data: data}) do
+    data.codes
+    |> Enum.map(fn {scheme, _} -> lane_of_scheme(scheme) end)
+    |> Enum.reject(&is_nil/1)
+    |> Enum.uniq()
+    |> case do
+      [] -> {:ok, Map.get(data, :entity, :product)}
+      [lane] -> {:ok, lane}
+      lanes -> {:error, {:mixed_lanes, Enum.sort(lanes)}}
+    end
+  end
+
+  @doc "The identity claims of one lane (mixed-lane claims belong to no lane)."
+  def identity_claims(claims, lane),
+    do: Enum.filter(claims, &(&1.kind == :identity and of_claim(&1) == {:ok, lane}))
+
+  @doc "Partition a ledger's members map by each key's lane."
+  def partition_members(members) do
+    grouped = Enum.group_by(members, fn {k, _codes} -> lane_of_key(k) end)
+    Map.new(@lanes, fn lane -> {lane, Map.new(Map.get(grouped, lane, []))} end)
+  end
+
+  @doc "A fresh ledger per lane, each minting under its own prefix."
+  def new_ledgers, do: Map.new(@lanes, &{&1, IdentityLedger.new(prefix(&1))})
+
+  @doc """
+  Cluster + reconcile each lane's identity claims against that lane's own ledger — the per-lane
+  fold. Returns `{identity_events, ledgers}`; events come out in lane order (product first).
+  """
+  def reconcile(live_claims, shared, ledgers, at) do
+    Enum.flat_map_reduce(@lanes, ledgers, fn lane, acc ->
+      case identity_claims(live_claims, lane) do
+        [] ->
+          {[], acc}
+
+        claims ->
+          clusters = Cluster.variants(claims, shared)
+          events = IdentityLedger.decide(acc[lane], {:reconcile, clusters, shared, at})
+          {events, Map.put(acc, lane, Enum.reduce(events, acc[lane], &IdentityLedger.evolve(&2, &1)))}
+      end
+    end)
+  end
+end
+
+defmodule Relations do
+  @moduledoc """
+  The relation registry (gr-dig): each edge relation declares a type signature — which lanes its
+  endpoints may live in — and product-page traversal is relation-scoped, named config, never
+  blanket closure (a common excipient must not drag its descriptions onto thousands of
+  products). Adding a relation is a data change here, not an engine change.
+  """
+
+  # relation => {allowed from-lanes, allowed to-lanes}. :member_of's target is a collection
+  # namespace, not a coded entity — its to-side is unchecked (nil = any).
+  @signatures %{
+    contains: {[:product], [:substance]},
+    describes: {[:description], [:product, :substance]},
+    depicts: {[:media], [:product, :substance]},
+    member_of: {[:product], nil},
+    suppress: {[:description], [:product]}
+  }
+
+  @by_name Map.new(@signatures, fn {rel, _sig} -> {Atom.to_string(rel), rel} end)
+
+  def signatures, do: @signatures
+
+  @doc ~s{Relation atom for a wire name ("contains" => :contains) — never an atom leak.}
+  def parse(name), do: Map.fetch(@by_name, name)
+
+  @doc "Do an edge's endpoints satisfy the relation's lane signature? (`:uuid` is lane-neutral.)"
+  def valid_signature?(relation, {from_scheme, _}, to) do
+    case Map.fetch(@signatures, relation) do
+      :error ->
+        false
+
+      {:ok, {froms, tos}} ->
+        lane_ok?(Lanes.lane_of_scheme(from_scheme), froms) and
+          (tos == nil or (match?({_, _}, to) and lane_ok?(Lanes.lane_of_scheme(elem(to, 0)), tos)))
+    end
+  end
+
+  defp lane_ok?(nil, _allowed), do: true
+  defp lane_ok?(lane, allowed), do: lane in allowed
+
+  @doc """
+  Product-page description traversal (gr-sw0) — the named, bounded rules: descriptions tagged
+  directly to the product (one hop), plus descriptions tagged to any substance the product
+  contains (two hops, via :contains).
+  """
+  def product_descriptions, do: [direct: :describes, via: {:contains, :describes}]
+end
+
+defmodule Uuid do
+  @moduledoc """
+  Engine-minted identity (gr-2a8): a record born without a source code — a steward-created
+  description, an uploaded asset — gets a `{:uuid, v4}` identity code. The scheme is shared
+  across lanes, so such a claim must carry an explicit `entity:` (see `Lanes.of_claim/1`).
+  """
+
+  def mint, do: {:uuid, v4()}
+
+  def v4 do
+    <<a::48, _::4, b::12, _::2, c::62>> = :crypto.strong_rand_bytes(16)
+    <<u0::32, u1::16, u2::16, u3::16, u4::48>> = <<a::48, 4::4, b::12, 2::2, c::62>>
+
+    :io_lib.format(~c"~8.16.0b-~4.16.0b-~4.16.0b-~4.16.0b-~12.16.0b", [u0, u1, u2, u3, u4])
+    |> IO.iodata_to_binary()
+  end
+end
+
 defmodule Substrate do
   alias Events.ClaimAsserted
 
   # Every ingested code is canonicalized here so equivalent representations (EAN-13 vs GTIN-14,
   # UPC vs its EAN-13 form, a GTIN-8 vs its zero-padded width) collapse to one identity.
+  #
+  # :member_of is the legacy spelling of an :edge (gr-xde): the constructor still accepts it,
+  # but the LOG holds the generalized edge — one relationship representation, one traversal.
+  def claim(source, :member_of, %{member_code: m, collection: c}, valid_from, recorded_at),
+    do: claim(source, :edge, %{from: m, relation: :member_of, to: c}, valid_from, recorded_at)
+
   def claim(source, kind, data, valid_from, recorded_at),
     do: %ClaimAsserted{
       source: source,
@@ -180,6 +344,12 @@ defmodule Substrate do
   defp normalize(:attribute, %{code: c} = d), do: %{d | code: Codes.canonicalize(c)}
   defp normalize(:media, %{target: t} = d), do: %{d | target: Codes.canonicalize(t)}
 
+  # Both edge endpoints canonicalize, so an edge addressed by EAN-13 matches a cluster holding
+  # the GTIN-14 form. (:member_of claims no longer reach here — claim/5 lowers them to :edge —
+  # but a previously persisted log may still carry them, so the clause stays foldable.)
+  defp normalize(:edge, %{from: f, to: t} = d),
+    do: %{d | from: Codes.canonicalize(f), to: Codes.canonicalize(t)}
+
   defp normalize(:member_of, %{member_code: m, collection: c} = d),
     do: %{d | member_code: Codes.canonicalize(m), collection: Codes.canonicalize(c)}
 
@@ -192,6 +362,9 @@ defmodule Substrate do
   def slot(%ClaimAsserted{source: s, kind: :grouping, data: %{code: c}}), do: {s, :grouping, c}
   def slot(%ClaimAsserted{source: s, kind: :attribute, data: %{code: c, field: f}}), do: {s, :attr, c, f}
   def slot(%ClaimAsserted{source: s, kind: :media, data: %{asset: a, target: t}}), do: {s, :media, a, t}
+
+  def slot(%ClaimAsserted{source: s, kind: :edge, data: %{from: f, relation: r, to: t}}),
+    do: {s, :edge, f, r, t}
 
   def slot(%ClaimAsserted{source: s, kind: :member_of, data: %{member_code: m, collection: c}}),
     do: {s, :member_of, m, c}
@@ -272,14 +445,16 @@ end
 
 defmodule IdentityLedger do
   @enforce_keys [:members, :next]
-  defstruct [:members, :next]
+  defstruct [:members, :next, prefix: "SK"]
 
-  def new, do: %__MODULE__{members: %{}, next: 1}
+  # The prefix is the lane qualifier (gr-2a8): :product ledgers keep the legacy "SK", other
+  # lanes mint under their own prefix ("SUB_1", "DSC_1", …) — see Lanes.prefix/1.
+  def new(prefix \\ "SK"), do: %__MODULE__{members: %{}, next: 1, prefix: prefix}
 
   def decide(state, {:reconcile, clusters, at}), do: decide(state, {:reconcile, clusters, MapSet.new(), at})
 
-  def decide(%__MODULE__{members: members, next: next}, {:reconcile, clusters, shared, at}) do
-    members |> reconcile(next, clusters, shared) |> then(&build_events(members, &1, at))
+  def decide(%__MODULE__{members: members, next: next, prefix: prefix}, {:reconcile, clusters, shared, at}) do
+    members |> reconcile(next, prefix, clusters, shared) |> then(&build_events(members, &1, at))
   end
 
   def evolve(%__MODULE__{} = s, %Events.IdentityMinted{key: k, codes: c}),
@@ -303,14 +478,14 @@ defmodule IdentityLedger do
   def evolve(%__MODULE__{} = s, %Events.ClaimAsserted{}), do: s
   def evolve(%__MODULE__{} = s, %Events.LegacyIdAssigned{}), do: s
 
-  defp reconcile(old_members, next, clusters, shared) do
+  defp reconcile(old_members, next, prefix, clusters, shared) do
     original = old_members
 
     {assigns, members, next, minted, proposals} =
       Enum.reduce(clusters, {[], old_members, next, [], []}, fn cluster, {assigns, m, n, minted, proposals} ->
         case overlapping_keys(original, cluster, shared) do
           [] ->
-            key = "SK_#{n}"
+            key = "#{prefix}_#{n}"
             {[{cluster, key} | assigns], Map.put(m, key, cluster), n + 1, [key | minted], proposals}
 
           [key] ->
@@ -341,7 +516,7 @@ defmodule IdentityLedger do
             |> Enum.map(&elem(&1, 0))
             |> List.delete(keep_cluster)
             |> Enum.reduce({[], m, n}, fn c, {ks, m, n} ->
-              {[{"SK_#{n}", c} | ks], Map.put(m, "SK_#{n}", c), n + 1}
+              {[{"#{prefix}_#{n}", c} | ks], Map.put(m, "#{prefix}_#{n}", c), n + 1}
             end)
 
           {Map.put(m, key, keep_cluster), n, [{key, Enum.reverse(into)} | split]}
@@ -398,7 +573,9 @@ defmodule IdentityLedger do
   end
 
   defp has_spine?(cluster), do: Enum.any?(cluster, fn {scheme, _} -> scheme == :gtin end)
-  defp key_num("SK_" <> n), do: String.to_integer(n)
+
+  # Works for any lane prefix ("SK_7", "SUB_3", "DSC_12" — the trailing integer is the counter).
+  defp key_num(key), do: key |> String.split("_") |> List.last() |> String.to_integer()
 end
 
 defmodule Stewardship do
@@ -507,19 +684,70 @@ defmodule Stewardship do
   end
 
   @doc """
+  Suppress one derived description↔product pairing (gr-745) — four-eyes, exactly like merges:
+  the first steward endorsement records a proposal, a second DISTINCT steward emits the steward
+  suppress edge. The suppression is an ordinary `:edge` claim (source `:steward`, relation
+  `:suppress`, description code → product code), so it is retractable, bitemporal, visible in
+  history, and re-homes on splits like every other edge. It hides the description on THAT
+  product only — the substance tag stays intact. `pending` is the open proposal or `nil`
+  (see `pending_suppress/3`).
+  """
+  def endorse_suppress(from, to, pending, by, at, reason \\ nil)
+
+  def endorse_suppress(from, to, nil, by, at, reason),
+    do:
+      {:proposed,
+       [%Events.MergeProposed{keys: [suppress_subject(from, to)], by: by, reason: reason, recorded_at: at}]}
+
+  def endorse_suppress(_from, _to, %{by: proposer}, by, _at, _reason) when proposer == by,
+    do: {:error, :four_eyes}
+
+  def endorse_suppress(from, to, %{by: _other}, by, at, reason) do
+    {:ok,
+     [
+       Substrate.claim(:steward, :edge, %{from: from, relation: :suppress, to: to}, at, at),
+       %Events.ConflictResolved{
+         subject: suppress_subject(from, to),
+         decision: :approved,
+         by: by,
+         reason: reason,
+         recorded_at: at
+       }
+     ]}
+  end
+
+  @doc "The open suppress proposal for this description↔product pairing, or nil (decided/none)."
+  def pending_suppress(log, from, to) do
+    subject = suppress_subject(from, to)
+
+    if Enum.any?(log, &match?(%Events.ConflictResolved{subject: ^subject}, &1)),
+      do: nil,
+      else: Enum.find(log, &match?(%Events.MergeProposed{keys: [^subject]}, &1))
+  end
+
+  defp suppress_subject(from, to), do: {:suppress, Codes.canonicalize(from), Codes.canonicalize(to)}
+
+  @doc """
   Steward-initiated split: carve groups of codes out of `key` into freshly minted keys; whatever
   remains stays with the original key. Mirrors `approve_merge/4`, but takes the ledger — minting
   the carved-out keys needs its `next` counter. Carve-out codes are canonicalized and clipped to
   the codes the key actually owns. The decision event records WHO split (`IdentitySplit` has no
   `by` field), so the steward survives in the lineage.
   """
-  def split(%IdentityLedger{members: members, next: next}, key, carve_outs, by, at, reason \\ nil) do
+  def split(
+        %IdentityLedger{members: members, next: next, prefix: prefix},
+        key,
+        carve_outs,
+        by,
+        at,
+        reason \\ nil
+      ) do
     owned = Map.get(members, key, MapSet.new())
 
     {into, _} =
       Enum.map_reduce(carve_outs, next, fn codes, n ->
         carved = codes |> MapSet.new(&Codes.canonicalize/1) |> MapSet.intersection(owned)
-        {{"SK_#{n}", carved}, n + 1}
+        {{"#{prefix}_#{n}", carved}, n + 1}
       end)
 
     kept = Enum.reduce(into, owned, fn {_k, codes}, acc -> MapSet.difference(acc, codes) end)
@@ -550,26 +778,56 @@ end
 
 defmodule Catalog do
   # overrides: %{attr: %{{key, field} => ConflictResolved}, product: %{key => product}}
+  #
+  # `members` may span every lane (gr-2a8): the product lane becomes the variants below; the
+  # other lanes feed the edge-traversal resolvers (substances/descriptions/depicted media) and
+  # are projectable standalone via `lane_records/3`. Visibility is DERIVED at read time — a new
+  # `contains` edge instantly pulls the substance's descriptions onto that product's page,
+  # because nothing is copied; the projection is a fold (gr-sw0).
   def project(members, live_claims, priority, overrides) do
+    lanes = Lanes.partition_members(members)
     attrs = Enum.filter(live_claims, &(&1.kind == :attribute))
     groups = Enum.filter(live_claims, &(&1.kind == :grouping))
     media = Enum.filter(live_claims, &(&1.kind == :media))
-    edges = Enum.filter(live_claims, &(&1.kind == :member_of))
+    edges = Enum.filter(live_claims, &(&1.kind == :edge))
 
-    members
+    lanes.product
     |> Enum.map(fn {key, codes} ->
       %{
         key: key,
         codes: Enum.sort(MapSet.to_list(codes)),
         attributes: resolve_attributes(key, codes, attrs, priority, overrides.attr),
         product: resolve_product(key, codes, groups, priority, overrides.product),
-        media: resolve_media(codes, media, priority),
-        categories: resolve_categories(codes, edges)
+        media:
+          resolve_media(codes, media, priority) ++
+            resolve_depicted(codes, edges, lanes.media, attrs, priority),
+        categories: resolve_categories(codes, edges),
+        substances: resolve_substances(codes, edges, lanes.substance),
+        descriptions: resolve_descriptions(codes, edges, lanes, attrs, priority)
       }
     end)
     |> Enum.group_by(& &1.product.value)
     |> Enum.sort_by(fn {product, _} -> product end)
     |> Enum.map(fn {product, vs} -> %{product: product, variants: Enum.sort_by(vs, & &1.key)} end)
+  end
+
+  @doc """
+  Standalone view of a non-product lane's records (gr-2a8): each is a first-class golden record
+  — identity codes, resolved attributes with survivorship — exactly what the product page embeds
+  via edges, minus the traversal.
+  """
+  def lane_records(lane_members, live_claims, priority) do
+    attrs = Enum.filter(live_claims, &(&1.kind == :attribute))
+
+    lane_members
+    |> Enum.map(fn {key, codes} ->
+      %{
+        key: key,
+        codes: Enum.sort(MapSet.to_list(codes)),
+        attributes: lane_attributes(codes, attrs, priority)
+      }
+    end)
+    |> Enum.sort_by(& &1.key)
   end
 
   defp resolve_attributes(key, codes, attrs, priority, attr_overrides) do
@@ -605,14 +863,108 @@ defmodule Catalog do
     |> Enum.sort_by(fn m -> {m.role != :primary, m.asset} end)
   end
 
-  # Collection membership (e.g. ATC categories) attaches by code too, so it re-homes on a split,
-  # and unions across sources by default. Each edge points the member's code at a collection code.
+  # Collection membership (e.g. ATC categories) is the :member_of edge relation (gr-xde): it
+  # attaches by code so it re-homes on a split, and unions across sources by default.
   defp resolve_categories(codes, edges) do
     edges
-    |> Enum.filter(&MapSet.member?(codes, &1.data.member_code))
-    |> Enum.map(& &1.data.collection)
+    |> Enum.filter(&(&1.data.relation == :member_of and MapSet.member?(codes, &1.data.from)))
+    |> Enum.map(& &1.data.to)
     |> Enum.uniq()
     |> Enum.sort()
+  end
+
+  # The substances this variant claims, via :contains edges — both hops resolve code → current
+  # owner key at read time, so a substance merge converges every product's view with zero writes.
+  defp resolve_substances(codes, edges, sub_members) do
+    edges
+    |> Enum.filter(&(&1.data.relation == :contains and MapSet.member?(codes, &1.data.from)))
+    |> Enum.group_by(&owner(sub_members, &1.data.to))
+    |> Enum.map(fn {key, es} ->
+      %{
+        key: key,
+        codes: es |> Enum.map(& &1.data.to) |> Enum.uniq() |> Enum.sort(),
+        sources: es |> Enum.map(& &1.source) |> Enum.uniq() |> Enum.sort()
+      }
+    end)
+    |> Enum.sort_by(& &1.key)
+  end
+
+  # The derived description set (gr-sw0): descriptions tagged directly to this variant, plus
+  # descriptions tagged to any substance it contains — Relations.product_descriptions/0 is the
+  # named traversal, never blanket closure. Each entry carries its provenance (`via` — WHY it is
+  # on this page) and drops steward-suppressed pairings (gr-745) for THIS product only.
+  defp resolve_descriptions(codes, edges, lanes, attrs, priority) do
+    describes = Enum.filter(edges, &(&1.data.relation == :describes))
+    contained = MapSet.new(resolve_substances(codes, edges, lanes.substance), & &1.key)
+
+    direct = for e <- describes, MapSet.member?(codes, e.data.to), do: {e, :direct}
+
+    via =
+      for e <- describes,
+          key = owner(lanes.substance, e.data.to),
+          MapSet.member?(contained, key),
+          do: {e, {:substance, key}}
+
+    (direct ++ via)
+    |> Enum.reject(&suppressed?(&1, codes, edges, lanes.description))
+    |> Enum.group_by(fn {e, route} -> {owner(lanes.description, e.data.from), route} end)
+    |> Enum.map(fn {{key, route}, entries} ->
+      desc_codes = Map.get(lanes.description, key) || MapSet.new([key])
+
+      %{
+        key: key,
+        via: route,
+        asserted_by: entries |> Enum.map(fn {e, _} -> e.source end) |> Enum.uniq() |> Enum.sort(),
+        attributes: lane_attributes(desc_codes, attrs, priority)
+      }
+    end)
+    |> Enum.sort_by(&{&1.via != :direct, &1.via, &1.key})
+  end
+
+  # A steward :suppress edge (description code → product code) hides that ONE pairing: it must
+  # resolve to the same description record AND target a code this variant carries. Resolution is
+  # by key, so the suppression survives merges on either side.
+  defp suppressed?({e, _route}, codes, edges, desc_members) do
+    desc_key = owner(desc_members, e.data.from)
+
+    Enum.any?(edges, fn s ->
+      s.data.relation == :suppress and MapSet.member?(codes, s.data.to) and
+        owner(desc_members, s.data.from) == desc_key
+    end)
+  end
+
+  # Media-lane records reach the page via :depicts edges — the first-class path (gr-kek). The
+  # legacy :media claim kind keeps resolving in resolve_media/3 until every producer emits lanes.
+  defp resolve_depicted(codes, edges, media_members, attrs, priority) do
+    edges
+    |> Enum.filter(&(&1.data.relation == :depicts and MapSet.member?(codes, &1.data.to)))
+    |> Enum.group_by(&owner(media_members, &1.data.from))
+    |> Enum.map(fn {key, es} ->
+      attributes = lane_attributes(Map.get(media_members, key) || MapSet.new([key]), attrs, priority)
+
+      %{
+        asset: key,
+        role: attr_value(attributes, "role", :secondary),
+        source: es |> Enum.map(& &1.source) |> Enum.uniq() |> Enum.sort() |> hd(),
+        uri: attr_value(attributes, "uri", nil)
+      }
+    end)
+    |> Enum.sort_by(& &1.asset)
+  end
+
+  # Resolve an edge endpoint to the key that currently owns it; an endpoint with no identity
+  # claim yet resolves to itself — the code IS the identity until a record exists for it.
+  defp owner(members, code),
+    do: Enum.find_value(members, code, fn {k, set} -> if MapSet.member?(set, code), do: k end)
+
+  defp lane_attributes(codes, attrs, priority),
+    do: codes |> Survivorship.field_decisions(attrs, priority) |> Enum.sort()
+
+  defp attr_value(attributes, field, default) do
+    case List.keyfind(attributes, field, 0) do
+      {_, %{value: v}} -> v
+      nil -> default
+    end
   end
 
   defp resolve_product_from_claims(codes, groups, priority) do
