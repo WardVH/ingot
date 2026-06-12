@@ -59,6 +59,10 @@ defmodule BooksAdapter do
   end
 
   # ── bookwire: ONIX-style, several ISBNs per sku, 979-capable ─────────────────
+  defp bookwire_item(%{"sku" => sku, "isbns" => []}) do
+    raise ArgumentError, "bookwire sku #{sku}: isbns is empty — every sku needs at least one ISBN"
+  end
+
   defp bookwire_item(%{"sku" => sku, "isbns" => isbns} = item) do
     codes = Enum.map(isbns, &isbn_code!(&1, "bookwire sku #{sku}"))
 
