@@ -1,0 +1,423 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>How it works — one trusted product record from many messy feeds</title>
+<style>
+  :root {
+    --bg: #0d1117;
+    --panel: #161b22;
+    --panel-2: #1c2330;
+    --line: #2d3748;
+    --ink: #e6edf3;
+    --muted: #8b949e;
+    --accent: #d4a843;      /* gold — it is a golden record, after all */
+    --accent-dim: #8a6d2f;
+    --blue: #58a6ff;
+    --green: #3fb950;
+    --red: #f47067;
+    --purple: #bc8cff;
+    --mono: "SF Mono", ui-monospace, Menlo, Consolas, monospace;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font: 16px/1.6 -apple-system, "Segoe UI", Helvetica, Arial, sans-serif;
+    padding: 56px 24px 96px;
+  }
+  .wrap { max-width: 900px; margin: 0 auto; }
+
+  header { text-align: center; margin-bottom: 6px; }
+  header h1 { font-size: 30px; margin: 0 0 8px; letter-spacing: -0.3px; }
+  header h1 em { color: var(--accent); font-style: normal; }
+  header p.sub { color: var(--muted); margin: 0 auto 18px; max-width: 600px; font-size: 16.5px; }
+  header p.sub b { color: var(--ink); }
+  .hero { display: flex; justify-content: center; }
+  .hero svg { max-width: 100%; height: auto; }
+
+  svg text { font-family: var(--mono); font-size: 12px; fill: var(--ink); }
+  svg text.dim { fill: var(--muted); font-family: -apple-system, "Segoe UI", sans-serif; }
+  svg text.lbl { font-family: -apple-system, "Segoe UI", sans-serif; font-size: 12.5px; }
+
+  .act {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 24px 26px;
+    margin-top: 34px;
+    position: relative;
+  }
+  .act > .tag {
+    position: absolute; top: -12px; left: 20px;
+    background: var(--bg);
+    border: 1px solid var(--line);
+    border-radius: 99px;
+    padding: 2px 14px;
+    font-size: 11px; font-weight: 700; letter-spacing: 1.4px;
+    text-transform: uppercase; color: var(--muted);
+  }
+  .act h2 { margin: 4px 0 6px; font-size: 20px; }
+  .act > p.say { color: var(--muted); margin: 0 0 14px; max-width: 700px; }
+  .act > p.say b, .act > p.say strong { color: var(--ink); }
+  .viz { display: flex; justify-content: center; margin: 6px 0 2px; }
+  .viz svg { max-width: 100%; height: auto; }
+  .caption { color: var(--muted); font-size: 13.5px; margin-top: 12px; text-align: center; }
+  .caption b { color: var(--ink); }
+
+  .between {
+    text-align: center; margin: 4px 0 -26px;
+    position: relative; z-index: 1;
+  }
+  .between .lbl {
+    display: inline-block; font-size: 13px; color: var(--muted);
+    background: var(--bg); padding: 0 12px; font-style: italic;
+  }
+  .between::after {
+    content: ""; display: block; margin: 4px auto 0;
+    width: 0; height: 28px; border-left: 2px solid var(--line);
+  }
+
+  /* act 1: the three feeds */
+  .feeds { display: flex; gap: 14px; flex-wrap: wrap; }
+  .feed {
+    flex: 1 1 0; min-width: 220px;
+    background: var(--panel-2); border: 1px solid var(--line);
+    border-radius: 12px; padding: 14px 16px; position: relative;
+  }
+  .feed .who { font-weight: 700; font-size: 14px; }
+  .feed .who small { display: block; color: var(--muted); font-weight: 400; font-size: 12px; }
+  .feed dl { margin: 10px 0 0; font-size: 13.5px; }
+  .feed dt { color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: .8px; margin-top: 7px; }
+  .feed dd { margin: 0; }
+  .feed dd.code { font-family: var(--mono); font-size: 13px; }
+  .pill { display: inline-block; border-radius: 99px; padding: 0 9px; font-size: 12px; border: 1px solid; }
+  .pill.diff { color: var(--red); border-color: #5c3338; }
+  .pill.ok   { color: var(--green); border-color: #2e5238; }
+
+  /* act 6: the golden record card */
+  .golden {
+    border: 1px solid var(--accent-dim);
+    box-shadow: 0 0 0 1px rgba(212,168,67,.15), 0 0 40px rgba(212,168,67,.07);
+    border-radius: 12px; background: var(--panel-2);
+    padding: 18px 22px; max-width: 440px; margin: 6px auto 0;
+  }
+  .golden .name { font-size: 17px; font-weight: 700; }
+  .golden dl { margin: 10px 0 0; font-size: 14px; }
+  .golden dt { color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: .8px; margin-top: 8px; }
+  .golden dd { margin: 0; }
+  .golden dd .why {
+    font-size: 11.5px; color: var(--muted);
+    border: 1px solid var(--line); border-radius: 99px; padding: 0 8px; margin-left: 8px;
+    vertical-align: 1px;
+  }
+  .golden dd.code { font-family: var(--mono); font-size: 13.5px; }
+
+  footer { text-align: center; color: var(--muted); font-size: 13px; margin-top: 40px; }
+  footer a { color: var(--blue); text-decoration: none; }
+  footer a:hover { text-decoration: underline; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <h1>Three databases. One product.<br>Whose version is <em>true</em>?</h1>
+  <p class="sub">Ingot melts every system's version of your product data down into one trusted
+     <b>golden record</b> — and can show its work for every field.</p>
+  <div class="hero">
+    <svg width="760" height="170" viewBox="0 0 760 170">
+      <!-- three messy cards -->
+      <g transform="rotate(-4 90 50)">
+        <rect x="20" y="28" width="150" height="44" rx="9" fill="#1c2330" stroke="#2d3748"/>
+        <text x="34" y="47" class="lbl">PharmaBase</text>
+        <text x="34" y="63" class="dim">"…SPF50, 75 ml"</text>
+      </g>
+      <g transform="rotate(3 95 105)">
+        <rect x="22" y="80" width="150" height="44" rx="9" fill="#1c2330" stroke="#2d3748"/>
+        <text x="36" y="99" class="lbl">ERP</text>
+        <text x="36" y="115" class="dim">"…SPF 50, 50 ml"</text>
+      </g>
+      <g transform="rotate(-2 100 155)">
+        <rect x="26" y="130" width="150" height="38" rx="9" fill="#1c2330" stroke="#2d3748"/>
+        <text x="40" y="147" class="lbl">Marketplace</text>
+        <text x="40" y="161" class="dim">"sun crm" + photo</text>
+      </g>
+      <!-- converging arrows -->
+      <path d="M 180 50  C 260 50, 280 82, 330 86"  fill="none" stroke="#8b949e"/>
+      <path d="M 182 102 C 240 102, 260 90, 330 90" fill="none" stroke="#8b949e"/>
+      <path d="M 186 149 C 260 149, 280 96, 330 94" fill="none" stroke="#8b949e"/>
+      <!-- the machine -->
+      <rect x="332" y="62" width="118" height="56" rx="12" fill="#161b22" stroke="#d4a843" stroke-opacity=".6"/>
+      <text x="362" y="86" fill="#d4a843">Ingot</text>
+      <text x="350" y="103" class="dim">match · decide</text>
+      <path d="M 450 90 L 500 90" stroke="#8b949e"/>
+      <path d="M 494 85 L 502 90 L 494 95" fill="none" stroke="#8b949e"/>
+      <!-- the gold ingot -->
+      <polygon points="520,78 680,78 700,118 500,118" fill="#d4a843" fill-opacity=".18" stroke="#d4a843"/>
+      <polygon points="520,78 680,78 672,66 528,66" fill="#d4a843" fill-opacity=".35" stroke="#d4a843"/>
+      <text x="544" y="104" fill="#d4a843">the golden record</text>
+      <text x="708" y="74" fill="#d4a843">✦</text>
+    </svg>
+  </div>
+</header>
+
+<!-- ─────────────── act 1: the mess ─────────────── -->
+<section class="act">
+  <span class="tag">The problem</span>
+  <h2>One sunscreen, three stories</h2>
+  <p class="say">Three systems know this tube — and none of them quite agree.</p>
+  <div class="feeds">
+    <div class="feed">
+      <div class="who">PharmaBase <small>industry product database</small></div>
+      <dl>
+        <dt>Name</dt><dd>Solaire Sun Cream SPF50</dd>
+        <dt>Barcode</dt><dd class="code">5410013112345 <span class="pill ok">13 digits</span></dd>
+        <dt>Size</dt><dd>75 ml <span class="pill diff">≠ ERP</span></dd>
+      </dl>
+    </div>
+    <div class="feed">
+      <div class="who">The ERP <small>your own master data</small></div>
+      <dl>
+        <dt>Name</dt><dd>SOLAIRE CREME SPF 50</dd>
+        <dt>Barcode</dt><dd class="code">05410013112345 <span class="pill ok">14 digits</span></dd>
+        <dt>Size</dt><dd>50 ml <span class="pill diff">≠ PharmaBase</span></dd>
+      </dl>
+    </div>
+    <div class="feed">
+      <div class="who">Marketplace <small>a reseller's catalog</small></div>
+      <dl>
+        <dt>Name</dt><dd>Solaire SPF50 sun crm</dd>
+        <dt>Barcode</dt><dd class="code">5410013112345 <span class="pill ok">13 digits</span></dd>
+        <dt>Photo</dt><dd>img-001.jpg <span class="pill ok">only source with one</span></dd>
+      </dl>
+    </div>
+  </div>
+  <p class="caption">The barcode is written <b>two different ways</b>, the names never match, and two
+     sources <b>disagree about the size</b>. Now multiply by 100,000 products.</p>
+</section>
+
+<div class="between"><span class="lbl">what Ingot does with it, step by step</span></div>
+
+<!-- ─────────────── act 2: write it down ─────────────── -->
+<section class="act">
+  <span class="tag">Step 1</span>
+  <h2>Write everything down — like a notary</h2>
+  <p class="say">No system edits the record directly. Every statement lands in a permanent logbook —
+     <strong>who said what, when</strong>. Nothing is ever erased; corrections sit <em>next to</em>
+     the mistakes they fix.</p>
+  <div class="viz">
+    <svg width="760" height="190" viewBox="0 0 760 190">
+      <!-- timeline axis -->
+      <line x1="30" y1="120" x2="730" y2="120" stroke="#2d3748" stroke-width="2"/>
+      <!-- entry 1 -->
+      <circle cx="110" cy="120" r="4" fill="#58a6ff"/>
+      <line x1="110" y1="116" x2="110" y2="78" stroke="#2d3748"/>
+      <rect x="38" y="44" width="150" height="36" rx="9" fill="#1c2330" stroke="#2a4663"/>
+      <text x="50" y="60" fill="#58a6ff">PharmaBase</text>
+      <text x="50" y="74" class="dim">"…75 ml"</text>
+      <text x="86" y="140" class="dim">12 Mar</text>
+      <!-- entry 2 -->
+      <circle cx="280" cy="120" r="4" fill="#58a6ff"/>
+      <line x1="280" y1="116" x2="280" y2="78" stroke="#2d3748"/>
+      <rect x="210" y="44" width="140" height="36" rx="9" fill="#1c2330" stroke="#2a4663"/>
+      <text x="222" y="60" fill="#58a6ff">ERP</text>
+      <text x="222" y="74" class="dim">"…50 ml"</text>
+      <text x="258" y="140" class="dim">12 Mar</text>
+      <!-- entry 3 -->
+      <circle cx="450" cy="120" r="4" fill="#58a6ff"/>
+      <line x1="450" y1="116" x2="450" y2="78" stroke="#2d3748"/>
+      <rect x="378" y="44" width="146" height="36" rx="9" fill="#1c2330" stroke="#2a4663"/>
+      <text x="390" y="60" fill="#58a6ff">Marketplace</text>
+      <text x="390" y="74" class="dim">photo img-001</text>
+      <text x="426" y="140" class="dim">14 Mar</text>
+      <!-- entry 4: steward -->
+      <circle cx="640" cy="120" r="4" fill="#d4a843"/>
+      <line x1="640" y1="116" x2="640" y2="78" stroke="#2d3748"/>
+      <rect x="556" y="36" width="172" height="44" rx="9" fill="#1c2330" stroke="#8a6d2f"/>
+      <text x="568" y="53" fill="#d4a843">Sarah decides ✓</text>
+      <text x="568" y="69" class="dim">"75 ml — checked pack"</text>
+      <text x="618" y="140" class="dim">2 Jun</text>
+      <!-- never erased -->
+      <text x="280" y="172" class="dim">▲ the "wrong" 50 ml entry stays in the book — that's why every answer can be explained</text>
+    </svg>
+  </div>
+</section>
+
+<div class="between"><span class="lbl">first, make the codes comparable</span></div>
+
+<!-- ─────────────── act 3: tidy the codes ─────────────── -->
+<section class="act">
+  <span class="tag">Step 2</span>
+  <h2>Tidy the barcodes</h2>
+  <p class="say">The same barcode arrives spelled differently — like
+     <em>+32&nbsp;478…</em> and <em>0478…</em> are the same phone number. Ingot rewrites every code
+     into one standard spelling, and catches typos on the way.</p>
+  <div class="viz">
+    <svg width="740" height="190" viewBox="0 0 740 190">
+      <!-- inputs -->
+      <rect x="20" y="18" width="200" height="36" rx="9" fill="#1c2330" stroke="#2d3748"/>
+      <text x="34" y="40">5410013112345</text>
+      <text x="158" y="40" class="dim">·13</text>
+      <rect x="20" y="74" width="200" height="36" rx="9" fill="#1c2330" stroke="#2d3748"/>
+      <text x="34" y="96">05410013112345</text>
+      <text x="166" y="96" class="dim">·14</text>
+      <rect x="20" y="130" width="200" height="36" rx="9" fill="#1c2330" stroke="#5c3338"/>
+      <text x="34" y="152" fill="#f47067">5410013112340</text>
+      <text x="158" y="152" class="dim">typo</text>
+      <!-- arrows in -->
+      <path d="M 220 36  C 280 36, 300 76, 340 84"  fill="none" stroke="#8b949e"/>
+      <path d="M 220 92  L 340 92" fill="none" stroke="#8b949e"/>
+      <path d="M 220 148 C 280 148, 290 120, 336 102" fill="none" stroke="#8b949e"/>
+      <!-- the tidier -->
+      <rect x="340" y="66" width="120" height="52" rx="12" fill="#161b22" stroke="#2d3748"/>
+      <text x="368" y="88" class="lbl">tidy ⚙</text>
+      <text x="354" y="106" class="dim">one spelling</text>
+      <!-- good out -->
+      <path d="M 460 84 L 520 70" fill="none" stroke="#3fb950"/>
+      <rect x="522" y="46" width="196" height="40" rx="20" fill="none" stroke="#d4a843"/>
+      <text x="540" y="70" fill="#d4a843">0 5410013112345 ✓</text>
+      <text x="522" y="100" class="dim">all three feeds now point at the SAME code</text>
+      <!-- typo out -->
+      <path d="M 460 102 L 520 134" fill="none" stroke="#f47067" stroke-dasharray="4 3"/>
+      <rect x="522" y="120" width="170" height="34" rx="9" fill="none" stroke="#5c3338"/>
+      <text x="536" y="141" fill="#f47067">rejected ✗</text>
+      <text x="616" y="141" class="dim">fails its check digit</text>
+    </svg>
+  </div>
+</section>
+
+<div class="between"><span class="lbl">now matching is possible</span></div>
+
+<!-- ─────────────── act 4: match ─────────────── -->
+<section class="act">
+  <span class="tag">Step 3</span>
+  <h2>Match what belongs together</h2>
+  <p class="say">Feeds that point at the same code are talking about <strong>the same product</strong> —
+     no fuzzy guessing on names, so every match is explainable.</p>
+  <div class="viz">
+    <svg width="740" height="220" viewBox="0 0 740 220">
+      <!-- the happy match -->
+      <rect x="20"  y="14" width="140" height="32" rx="9" fill="#1c2330" stroke="#2d3748"/>
+      <text x="34" y="34" class="lbl">PharmaBase</text>
+      <rect x="20"  y="56" width="140" height="32" rx="9" fill="#1c2330" stroke="#2d3748"/>
+      <text x="34" y="76" class="lbl">Marketplace</text>
+      <rect x="20"  y="98" width="140" height="32" rx="9" fill="#1c2330" stroke="#2d3748"/>
+      <text x="34" y="118" class="lbl">ERP</text>
+      <line x1="160" y1="30"  x2="250" y2="68" stroke="#8b949e"/>
+      <line x1="160" y1="72"  x2="250" y2="72" stroke="#8b949e"/>
+      <line x1="160" y1="114" x2="250" y2="76" stroke="#8b949e"/>
+      <rect x="250" y="54" width="160" height="36" rx="18" fill="none" stroke="#d4a843"/>
+      <text x="262" y="76">…5410013112345</text>
+      <line x1="410" y1="72" x2="460" y2="72" stroke="#8b949e"/>
+      <path d="M 454 67 L 462 72 L 454 77" fill="none" stroke="#8b949e"/>
+      <circle cx="520" cy="72" r="34" fill="none" stroke="#3fb950" stroke-opacity=".8"/>
+      <text x="498" y="68" class="lbl">one</text>
+      <text x="488" y="84" class="lbl">product</text>
+      <text x="568" y="60" class="dim">the sunscreen — name, size,</text>
+      <text x="568" y="76" class="dim">photo and barcode now live</text>
+      <text x="568" y="92" class="dim">on a single record</text>
+      <!-- the careful exception -->
+      <line x1="20" y1="150" x2="720" y2="150" stroke="#2d3748" stroke-dasharray="4 4"/>
+      <circle cx="80" cy="190" r="22" fill="none" stroke="#58a6ff" stroke-opacity=".8"/>
+      <text x="64" y="195" class="lbl">prod A</text>
+      <circle cx="230" cy="190" r="22" fill="none" stroke="#bc8cff" stroke-opacity=".8"/>
+      <text x="214" y="195" class="lbl">prod B</text>
+      <line x1="102" y1="190" x2="208" y2="190" stroke="#f47067" stroke-dasharray="5 4"/>
+      <text x="120" y="182" fill="#f47067">new link?</text>
+      <rect x="290" y="172" width="36" height="36" rx="9" fill="#161b22" stroke="#f47067"/>
+      <text x="300" y="196" fill="#f47067">✋</text>
+      <text x="340" y="186" class="dim">two long-established products suddenly look connected?</text>
+      <text x="340" y="202" class="dim">Ingot never merges them on its own — it asks a person.</text>
+    </svg>
+  </div>
+</section>
+
+<div class="between"><span class="lbl">machines stop where judgment starts</span></div>
+
+<!-- ─────────────── act 5: people decide ─────────────── -->
+<section class="act">
+  <span class="tag">Step 4</span>
+  <h2>People decide the close calls</h2>
+  <p class="say">When the data honestly disagrees, the question goes to a <strong>review queue</strong>
+     with the evidence laid out — and the verdict is written into the same logbook.</p>
+  <div class="viz">
+    <svg width="740" height="210" viewBox="0 0 740 210">
+      <!-- the tie -->
+      <rect x="20" y="16" width="330" height="84" rx="12" fill="#1c2330" stroke="#4d3a6b"/>
+      <text x="36" y="40" class="lbl">Size — which is right?</text>
+      <rect x="36" y="54" width="120" height="30" rx="15" fill="none" stroke="#3fb950"/>
+      <text x="50" y="73" fill="#3fb950">75 ml ✓</text>
+      <rect x="170" y="54" width="110" height="30" rx="15" fill="none" stroke="#2d3748"/>
+      <text x="184" y="73" class="dim">50 ml</text>
+      <!-- steward -->
+      <circle cx="420" cy="46" r="20" fill="#1c2330" stroke="#d4a843"/>
+      <text x="413" y="51" fill="#d4a843">S</text>
+      <text x="448" y="40" class="dim">Sarah picks 75 ml, 2 Jun —</text>
+      <text x="448" y="56" class="dim">"checked the physical package"</text>
+      <path d="M 398 56 C 380 70, 370 70, 352 70" fill="none" stroke="#d4a843" stroke-dasharray="3 3"/>
+      <!-- four eyes -->
+      <rect x="20" y="124" width="700" height="70" rx="12" fill="#161b22" stroke="#4d3a6b"/>
+      <text x="36" y="148" class="lbl">Fusing two established products needs FOUR eyes:</text>
+      <circle cx="362" cy="158" r="17" fill="#1c2330" stroke="#bc8cff"/>
+      <text x="356" y="163" fill="#bc8cff">S</text>
+      <text x="384" y="163" class="dim">endorses…</text>
+      <circle cx="482" cy="158" r="17" fill="#1c2330" stroke="#bc8cff"/>
+      <text x="477" y="163" fill="#bc8cff">J</text>
+      <text x="504" y="163" class="dim">confirms</text>
+      <text x="584" y="163" fill="#3fb950">→ merged ✓</text>
+      <text x="36" y="180" class="dim">one person alone can never fuse two products — not by accident, not on a bad day</text>
+    </svg>
+  </div>
+</section>
+
+<div class="between"><span class="lbl">and the result</span></div>
+
+<!-- ─────────────── act 6: the golden record ─────────────── -->
+<section class="act">
+  <span class="tag">The result</span>
+  <h2>One golden record — with receipts</h2>
+  <p class="say">The best available source wins <strong>per field</strong> — and every field can say
+     where it came from.</p>
+  <div class="golden">
+    <div class="name">Solaire Sun Cream SPF50</div>
+    <dl>
+      <dt>Barcode</dt><dd class="code">05410013112345</dd>
+      <dt>Size</dt><dd>75 ml <span class="why">decided by Sarah, 2 Jun</span></dd>
+      <dt>Name</dt><dd>Solaire Sun Cream SPF50 <span class="why">from PharmaBase</span></dd>
+      <dt>Photo</dt><dd>img-001.jpg <span class="why">from Marketplace</span></dd>
+    </dl>
+  </div>
+  <div class="viz" style="margin-top:18px">
+    <svg width="740" height="150" viewBox="0 0 740 150">
+      <!-- time machine slider -->
+      <text x="20" y="24" class="lbl">⏱ The time machine — ask the record any date:</text>
+      <line x1="40" y1="70" x2="700 " y2="70" stroke="#2d3748" stroke-width="3"/>
+      <circle cx="40"  cy="70" r="3" fill="#8b949e"/><text x="28"  y="94" class="dim">12 Mar</text>
+      <circle cx="370" cy="70" r="3" fill="#8b949e"/><text x="354" y="94" class="dim">15 Apr</text>
+      <circle cx="700" cy="70" r="3" fill="#8b949e"/><text x="680" y="94" class="dim">today</text>
+      <!-- handle at 15 Apr -->
+      <circle cx="370" cy="70" r="9" fill="#0d1117" stroke="#58a6ff" stroke-width="2"/>
+      <rect x="262" y="106" width="220" height="32" rx="9" fill="#1c2330" stroke="#2a4663"/>
+      <text x="276" y="126" class="dim">back then we believed: <tspan fill="#58a6ff">50 ml</tspan></text>
+      <rect x="560" y="106" width="160" height="32" rx="9" fill="#1c2330" stroke="#8a6d2f"/>
+      <text x="574" y="126" class="dim">today: <tspan fill="#d4a843">75 ml ✓</tspan></text>
+      <line x1="370" y1="79" x2="370" y2="106" stroke="#2a4663"/>
+      <line x1="640" y1="79" x2="640" y2="106" stroke="#8a6d2f"/>
+      <circle cx="640" cy="70" r="5" fill="#d4a843"/>
+    </svg>
+  </div>
+  <p class="caption"><b>"Why does it say 75 ml?"</b> is always answerable — who claimed it, who confirmed
+     it, when, and what it overruled. Audits stop being archaeology.</p>
+</section>
+
+<footer>
+  Curious about the machinery behind this? There's a
+  <a href="engine-visual.html">technical map of the engine</a> for the engineers.
+</footer>
+
+</div>
+</body>
+</html>
