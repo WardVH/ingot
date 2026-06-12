@@ -7,10 +7,10 @@ defmodule Api.StewardRouter do
   use Plug.Router
   require EEx
 
-  plug Api.Auth, :steward
-  plug :match
-  plug Plug.Parsers, parsers: [:json, :urlencoded], json_decoder: JSON
-  plug :dispatch
+  plug(Api.Auth, :steward)
+  plug(:match)
+  plug(Plug.Parsers, parsers: [:json, :urlencoded], json_decoder: JSON)
+  plug(:dispatch)
 
   get "/v1/queue" do
     json(conn, 200, Api.Steward.queue())
@@ -55,7 +55,8 @@ defmodule Api.StewardRouter do
       "kind" => "split",
       "key" => p["key"],
       "codes" => split_codes(p["codes"]),
-      "by" => p["by"]
+      "by" => p["by"],
+      "reason" => p["reason"]
     }
 
   defp form_to_decision(%{"keys" => keys} = p) when is_binary(keys),
@@ -169,16 +170,21 @@ defmodule Api.StewardRouter do
               <% end %>
             </div>
           <% end %>
+          <%= if m.proposal do %>
+            <div class="muted">endorsed by <b><%= m.proposal.by %></b><%= if m.proposal.reason do %> — “<%= m.proposal.reason %>”<% end %> · awaiting a second steward</div>
+          <% end %>
           <form method="post" action="<%= base %>/decide" class="inline">
             <input type="hidden" name="kind" value="approve_merge"/>
             <input type="hidden" name="keys" value="<%= Enum.join(m.keys, "+") %>"/>
             <input type="text" name="by" placeholder="your name" required/>
-            <button class="go">approve — same product</button>
+            <input type="text" name="reason" placeholder="reason (optional)"/>
+            <button class="go"><%= if m.proposal, do: "approve merge (2nd steward)", else: "propose — same product" %></button>
           </form>
           <form method="post" action="<%= base %>/decide" class="inline">
             <input type="hidden" name="kind" value="reject_merge"/>
             <input type="hidden" name="keys" value="<%= Enum.join(m.keys, "+") %>"/>
             <input type="text" name="by" placeholder="your name" required/>
+            <input type="text" name="reason" placeholder="reason (optional)"/>
             <button class="danger">reject — two products</button>
           </form>
         </div>
@@ -196,6 +202,7 @@ defmodule Api.StewardRouter do
             <input type="hidden" name="field" value="<%= a.field %>"/>
             <input type="text" name="value" placeholder="the correct value" required/>
             <input type="text" name="by" placeholder="your name" required/>
+            <input type="text" name="reason" placeholder="reason (optional)"/>
             <button class="go">pick</button>
           </form>
         </div>
@@ -217,6 +224,7 @@ defmodule Api.StewardRouter do
                 <span class="muted">claimed by <%= Enum.join(c.sources, ", ") %></span></label>
             <% end %>
             <input type="text" name="by" placeholder="your name" required/>
+            <input type="text" name="reason" placeholder="reason (optional)"/>
             <button class="danger">split the selected out</button>
           </form>
         </div>
@@ -236,6 +244,7 @@ defmodule Api.StewardRouter do
                     <span class="muted">claimed by <%= Enum.join(c.sources, ", ") %></span></label>
                 <% end %>
                 <input type="text" name="by" placeholder="your name" required/>
+                <input type="text" name="reason" placeholder="reason (optional)"/>
                 <button class="danger">split the selected out</button>
               </form>
             </div>

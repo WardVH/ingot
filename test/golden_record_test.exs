@@ -245,6 +245,34 @@ defmodule EngineTest do
       assert Enum.any?(res2, &match?(%Events.ConflictFlagged{subject: {:merge, _}}, &1))
       assert map_size(ledger2.members) == 2, "the merge must NOT have been applied automatically"
     end
+
+    # gr-bb7: merging established keys is FOUR-EYES — the decision function itself refuses a
+    # single steward acting alone, no router or UI involved.
+    test "endorse_merge: first steward proposes, the same steward is refused, a second fuses" do
+      members = %{"SK_1" => MapSet.new([{:gtin, "0111"}]), "SK_2" => MapSet.new([{:gtin, "0222"}])}
+
+      # the first endorsement records a proposal (with its reason) — nothing fuses
+      assert {:proposed, [proposal]} =
+               Stewardship.endorse_merge(members, ["SK_2", "SK_1"], nil, :alice, @d2, "same product")
+
+      assert %Events.MergeProposed{keys: ["SK_1", "SK_2"], by: :alice, reason: "same product"} = proposal
+
+      # the SAME steward approving their own proposal is refused by the engine
+      assert {:error, :four_eyes} =
+               Stewardship.endorse_merge(members, ["SK_1", "SK_2"], proposal, :alice, @d2)
+
+      # a DIFFERENT steward supplies the second pair of eyes — the merge events fire,
+      # and the decision records who approved and why
+      assert {:ok, events} =
+               Stewardship.endorse_merge(members, ["SK_1", "SK_2"], proposal, :bob, @d2, "verified GTINs")
+
+      assert Enum.any?(events, &match?(%Events.IdentitiesMerged{into: "SK_1"}, &1))
+
+      assert Enum.any?(
+               events,
+               &match?(%Events.ConflictResolved{decision: :approved, by: :bob, reason: "verified GTINs"}, &1)
+             )
+    end
   end
 
   describe "shared codes" do

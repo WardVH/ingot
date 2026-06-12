@@ -2,9 +2,13 @@ defmodule Api.Steward do
   @moduledoc """
   The steward surface's logic: the open queue (merge proposals from the log + attribute ties
   detected fresh, minus everything already decided) and the four decisions, mapped 1:1 onto the
-  engine's `Stewardship` functions — recorded with the steward's name, applied through the
-  store's writer transaction. A decision against state that has moved on answers `409` with
-  what's there now, instead of acting on stale ground.
+  engine's `Stewardship` functions — recorded with the steward's name and an optional reason,
+  applied through the store's writer transaction. A decision against state that has moved on
+  answers `409` with what's there now, instead of acting on stale ground.
+
+  Merges of established keys are FOUR-EYES: the first `approve_merge` records an endorsement,
+  a second one by a DIFFERENT steward fuses; the same steward twice is refused by the engine
+  (`Stewardship.endorse_merge/6`), not by this module or any UI.
   """
 
   @priority Priority.new(%{}, [])
@@ -57,7 +61,8 @@ defmodule Api.Steward do
           members: Map.new(members, fn {k, _} -> {k, selectable_codes(state, claims, k)} end),
           bridges: bridges,
           bridge_sources: bridge_sources,
-          shared: shared
+          shared: shared,
+          proposal: proposal_view(Map.get(state.proposals, Enum.sort(keys)))
         }
       end
 
@@ -130,13 +135,44 @@ defmodule Api.Steward do
   end
 
   # ── decisions ───────────────────────────────────────────────────────────────
-  def decide(%{"kind" => "approve_merge", "keys" => keys, "by" => by} = _params)
+  # Four-eyes: the engine's `Stewardship.endorse_merge/6` decides what this approve MEANS —
+  # first steward endorses (nothing fuses), a SECOND, different steward fuses, the same steward
+  # twice is refused. This function only ferries the pending proposal from state to the engine.
+  def decide(%{"kind" => "approve_merge", "keys" => keys, "by" => by} = params)
       when is_list(keys) and length(keys) >= 2 and is_binary(by) and by != "" do
     Api.Store.append(fn state, _conn ->
+      pending = Map.get(state.proposals, Enum.sort(keys))
+
       case keys -- Map.keys(state.ledger.members) do
         [] ->
-          {:ok, Stewardship.approve_merge(state.ledger.members, keys, by, Date.utc_today()),
-           applied("approve_merge")}
+          case Stewardship.endorse_merge(
+                 state.ledger.members,
+                 keys,
+                 pending,
+                 by,
+                 Date.utc_today(),
+                 reason(params)
+               ) do
+            {:proposed, events} ->
+              {:ok, events,
+               %{
+                 applied: "propose_merge",
+                 proposed_by: by,
+                 awaiting: "approval by a second steward"
+               }}
+
+            {:ok, events} ->
+              {:ok, events, applied("approve_merge")}
+
+            {:error, :four_eyes} ->
+              {:error,
+               {422,
+                %{
+                  error:
+                    "four-eyes: #{by} already proposed this merge — " <>
+                      "a different steward must approve it"
+                }}}
+          end
 
         gone ->
           stale(state, "keys no longer live: #{Enum.join(gone, ", ")}")
@@ -145,11 +181,11 @@ defmodule Api.Steward do
     |> respond()
   end
 
-  def decide(%{"kind" => "reject_merge", "keys" => keys, "by" => by})
+  def decide(%{"kind" => "reject_merge", "keys" => keys, "by" => by} = params)
       when is_list(keys) and length(keys) >= 2 and is_binary(by) and by != "" do
     Api.Store.append(fn state, _conn ->
       if Enum.any?(Api.State.open_flags(state), &(&1.subject == {:merge, Enum.sort(keys)})) do
-        {:ok, Stewardship.reject_merge(keys, by, Date.utc_today()), applied("reject_merge")}
+        {:ok, Stewardship.reject_merge(keys, by, Date.utc_today(), reason(params)), applied("reject_merge")}
       else
         stale(state, "no open merge proposal for #{Enum.join(keys, "+")}")
       end
@@ -157,17 +193,19 @@ defmodule Api.Steward do
     |> respond()
   end
 
-  def decide(%{
-        "kind" => "resolve_attribute",
-        "key" => key,
-        "field" => field,
-        "value" => value,
-        "by" => by
-      })
+  def decide(
+        %{
+          "kind" => "resolve_attribute",
+          "key" => key,
+          "field" => field,
+          "value" => value,
+          "by" => by
+        } = params
+      )
       when is_binary(key) and is_binary(field) and is_binary(by) and by != "" do
     Api.Store.append(fn state, _conn ->
       if Map.has_key?(state.ledger.members, key) do
-        {:ok, Stewardship.resolve_attribute(key, field, value, by, Date.utc_today()),
+        {:ok, Stewardship.resolve_attribute(key, field, value, by, Date.utc_today(), reason(params)),
          applied("resolve_attribute")}
       else
         stale(state, "key #{key} is not live")
@@ -176,7 +214,7 @@ defmodule Api.Steward do
     |> respond()
   end
 
-  def decide(%{"kind" => "split", "key" => key, "codes" => codes, "by" => by})
+  def decide(%{"kind" => "split", "key" => key, "codes" => codes, "by" => by} = params)
       when is_binary(key) and is_list(codes) and codes != [] and is_binary(by) and by != "" do
     with {:ok, parsed} <- parse_codes(codes) do
       Api.Store.append(fn state, _conn ->
@@ -188,11 +226,10 @@ defmodule Api.Steward do
 
           MapSet.subset?(member, MapSet.new(parsed)) ->
             {:error,
-             {422,
-              %{error: "selecting every code would leave #{key} empty — reject the merge instead"}}}
+             {422, %{error: "selecting every code would leave #{key} empty — reject the merge instead"}}}
 
           true ->
-            split_events(state, key, parsed, by)
+            split_events(state, key, parsed, by, reason(params))
         end
       end)
       |> respond()
@@ -207,12 +244,13 @@ defmodule Api.Steward do
        %{
          error:
            "decision must be one of: approve_merge/reject_merge (keys, by), " <>
-             "resolve_attribute (key, field, value, by), split (key, codes, by)"
+             "resolve_attribute (key, field, value, by), split (key, codes, by) — " <>
+             "each takes an optional reason"
        }}
 
   # ── plumbing ────────────────────────────────────────────────────────────────
-  defp split_events(state, key, parsed, by) do
-    events = Stewardship.split(state.ledger, key, [parsed], by, Date.utc_today())
+  defp split_events(state, key, parsed, by, reason) do
+    events = Stewardship.split(state.ledger, key, [parsed], by, Date.utc_today(), reason)
     ledger = Enum.reduce(events, state.ledger, &IdentityLedger.evolve(&2, &1))
 
     # the carved-out key needs a legacy id of its own — continuity, immediately
@@ -229,10 +267,21 @@ defmodule Api.Steward do
 
   defp applied(kind), do: %{applied: kind}
 
+  # every decision may carry a free-text justification; blank means none
+  defp reason(params) do
+    case params["reason"] do
+      r when is_binary(r) -> with("" <- String.trim(r), do: nil)
+      _ -> nil
+    end
+  end
+
+  defp proposal_view(nil), do: nil
+
+  defp proposal_view(%Events.MergeProposed{by: by, reason: reason, recorded_at: at}),
+    do: %{by: by, reason: reason, at: at}
+
   defp stale(state, message),
-    do:
-      {:error,
-       {409, %{error: message, live_keys: state.ledger.members |> Map.keys() |> Enum.sort()}}}
+    do: {:error, {409, %{error: message, live_keys: state.ledger.members |> Map.keys() |> Enum.sort()}}}
 
   defp respond({:ok, body}), do: {200, body}
   defp respond({:error, {status, body}}), do: {status, body}

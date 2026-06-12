@@ -49,10 +49,19 @@ defmodule Events do
     defstruct [:subject, :candidates, :recorded_at, :order]
   end
 
+  # Four-eyes on merges: one steward ENDORSES a flagged merge of established keys; nothing fuses
+  # until a SECOND, different steward approves. The endorsement is an event so the pending
+  # proposal is replayable state, not UI memory.
+  defmodule MergeProposed do
+    @enforce_keys [:keys, :by, :recorded_at]
+    defstruct [:keys, :by, :reason, :recorded_at, :order]
+  end
+
   # decision: {:pick, value} | :rejected | :approved | :shared
+  # `reason` is the steward's optional free-text justification, kept in the log.
   defmodule ConflictResolved do
     @enforce_keys [:subject, :decision, :by, :recorded_at]
-    defstruct [:subject, :decision, :by, :recorded_at, :order]
+    defstruct [:subject, :decision, :by, :reason, :recorded_at, :order]
   end
 end
 
@@ -289,6 +298,7 @@ defmodule IdentityLedger do
   end
 
   def evolve(%__MODULE__{} = s, %Events.ConflictFlagged{}), do: s
+  def evolve(%__MODULE__{} = s, %Events.MergeProposed{}), do: s
   def evolve(%__MODULE__{} = s, %Events.ConflictResolved{}), do: s
   def evolve(%__MODULE__{} = s, %Events.ClaimAsserted{}), do: s
   def evolve(%__MODULE__{} = s, %Events.LegacyIdAssigned{}), do: s
@@ -420,22 +430,24 @@ defmodule Stewardship do
     |> Enum.map(&%{source: &1.source, product: &1.data.product})
   end
 
-  def resolve_attribute(key, field, value, by, at),
+  def resolve_attribute(key, field, value, by, at, reason \\ nil),
     do: [
       %Events.ConflictResolved{
         subject: {:attr, key, field},
         decision: {:pick, value},
         by: by,
+        reason: reason,
         recorded_at: at
       }
     ]
 
-  def reject_merge(keys, by, at),
+  def reject_merge(keys, by, at, reason \\ nil),
     do: [
       %Events.ConflictResolved{
         subject: {:merge, Enum.sort(keys)},
         decision: :rejected,
         by: by,
+        reason: reason,
         recorded_at: at
       }
     ]
@@ -454,7 +466,30 @@ defmodule Stewardship do
       }
     ]
 
-  def approve_merge(members, keys, by, at) do
+  @doc """
+  Endorse a merge proposal — the four-eyes gate. Merging ESTABLISHED keys needs two distinct
+  stewards: the first endorsement records a `MergeProposed`, the second (by a DIFFERENT steward)
+  fuses via `approve_merge/5`. The same steward endorsing twice is refused HERE, by the decision
+  function — no router or UI gets a say. `pending` is the open proposal (anything with a `:by`,
+  e.g. the folded `MergeProposed`) or `nil`.
+  """
+  def endorse_merge(members, keys, pending, by, at, reason \\ nil)
+
+  def endorse_merge(_members, keys, nil, by, at, reason),
+    do: {:proposed, propose_merge(keys, by, at, reason)}
+
+  def endorse_merge(_members, _keys, %{by: proposer}, by, _at, _reason) when proposer == by,
+    do: {:error, :four_eyes}
+
+  def endorse_merge(members, keys, %{by: _other}, by, at, reason),
+    do: {:ok, approve_merge(members, keys, by, at, reason)}
+
+  @doc "The first of the four eyes: record a steward's endorsement of a merge, fusing nothing."
+  def propose_merge(keys, by, at, reason \\ nil),
+    do: [%Events.MergeProposed{keys: Enum.sort(keys), by: by, reason: reason, recorded_at: at}]
+
+  @doc "The raw fuse — emits the merge events. The steward surface reaches it via `endorse_merge/6`."
+  def approve_merge(members, keys, by, at, reason \\ nil) do
     [survivor | _] = Enum.sort(keys)
     union = keys |> Enum.map(&Map.get(members, &1, MapSet.new())) |> Enum.reduce(&MapSet.union/2)
 
@@ -465,6 +500,7 @@ defmodule Stewardship do
         subject: {:merge, Enum.sort(keys)},
         decision: :approved,
         by: by,
+        reason: reason,
         recorded_at: at
       }
     ]
@@ -477,7 +513,7 @@ defmodule Stewardship do
   the codes the key actually owns. The decision event records WHO split (`IdentitySplit` has no
   `by` field), so the steward survives in the lineage.
   """
-  def split(%IdentityLedger{members: members, next: next}, key, carve_outs, by, at) do
+  def split(%IdentityLedger{members: members, next: next}, key, carve_outs, by, at, reason \\ nil) do
     owned = Map.get(members, key, MapSet.new())
 
     {into, _} =
@@ -490,7 +526,13 @@ defmodule Stewardship do
 
     [
       %Events.IdentitySplit{key: key, kept_codes: kept, into: into, recorded_at: at},
-      %Events.ConflictResolved{subject: {:split, key}, decision: :approved, by: by, recorded_at: at}
+      %Events.ConflictResolved{
+        subject: {:split, key},
+        decision: :approved,
+        by: by,
+        reason: reason,
+        recorded_at: at
+      }
     ]
   end
 
@@ -623,6 +665,7 @@ defmodule History do
       %Events.ConflictFlagged{subject: {:merge, keys}} -> key in keys
       %Events.ConflictFlagged{subject: {:attr, k, _}} -> k == key
       %Events.ConflictFlagged{subject: {:collision, k}} -> k == key
+      %Events.MergeProposed{keys: keys} -> key in keys
       %Events.ConflictResolved{subject: {:merge, keys}} -> key in keys
       %Events.ConflictResolved{subject: {:attr, k, _}} -> k == key
       %Events.ConflictResolved{subject: {:collision, k}} -> k == key

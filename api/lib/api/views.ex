@@ -74,6 +74,16 @@ defmodule Api.Views do
   def feed_event(%Events.ConflictFlagged{} = e),
     do: %{offset: e.order, type: "flag", subject: subject(e.subject), date: e.recorded_at}
 
+  def feed_event(%Events.MergeProposed{} = e),
+    do: %{
+      offset: e.order,
+      type: "merge_endorsed",
+      keys: e.keys,
+      by: to_string(e.by),
+      reason: e.reason,
+      date: e.recorded_at
+    }
+
   def feed_event(%Events.ConflictResolved{} = e),
     do: %{
       offset: e.order,
@@ -81,6 +91,7 @@ defmodule Api.Views do
       subject: subject(e.subject),
       decision: decision(e.decision),
       by: to_string(e.by),
+      reason: e.reason,
       date: e.recorded_at
     }
 
