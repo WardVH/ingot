@@ -91,8 +91,18 @@ defmodule Api.StewardTest do
       assert body["open"] >= 1
       assert [merge] = body["merges"]
       assert Enum.sort(merge["keys"]) == [k1, k2]
-      assert merge["bridge"] != []
       assert Map.keys(merge["members"]) |> Enum.sort() == [k1, k2]
+
+      # the CONNECTING CLAIM is named: the marketplace listing, each code tagged with its owner
+      assert [bridge] = merge["bridges"]
+      assert bridge["source"] == "mkt"
+      assert bridge["ref"] == "K"
+      owners = Map.new(bridge["codes"], &{&1["code"], &1["owner"]})
+      assert owners["gtin:05012345678900"] == k1
+      assert owners["gtin:08712345678906"] == k2
+
+      # no code is directly shared between the keys here — the bridge is the listing
+      assert merge["shared"] == []
     end
 
     test "shows attribute ties the permissive priority cannot settle" do
@@ -245,6 +255,70 @@ defmodule Api.StewardTest do
     end
   end
 
+  describe "repairs — select the wrong codes" do
+    test "an approved merge appears under repairs with selectable codes and their claiming sources" do
+      [k1, k2] = seed_bridged()
+
+      steward!(:post, "/steward/v1/decisions", %{kind: "approve_merge", keys: [k1, k2], by: "sam"})
+
+      body = decoded(steward!(:get, "/steward/v1/queue"))
+      assert [repair] = body["repairs"]
+      assert repair["key"] == k1
+      assert repair["merged_from"] == [k2]
+
+      by_code = Map.new(repair["codes"], &{&1["code"], &1["sources"]})
+      assert "bolt" in by_code["gtin:08712345678906"]
+      assert "acme" in by_code["cnk:1000001"]
+    end
+
+    test "selecting EVERY code answers 422 — an empty key is never created" do
+      [k1, k2] = seed_bridged()
+
+      steward!(:post, "/steward/v1/decisions", %{kind: "approve_merge", keys: [k1, k2], by: "sam"})
+
+      all_codes =
+        Api.Store.state().ledger.members[k1] |> Enum.sort() |> Enum.map(&Api.Views.code/1)
+
+      conn =
+        steward!(:post, "/steward/v1/decisions", %{
+          kind: "split",
+          key: k1,
+          codes: all_codes,
+          by: "sam"
+        })
+
+      assert conn.status == 422
+      assert decoded(conn)["error"] =~ "empty"
+    end
+
+    test "the checkbox form posts codes[] and splits — the repair disappears afterwards" do
+      [k1, k2] = seed_bridged()
+
+      steward!(:post, "/steward/v1/decisions", %{kind: "approve_merge", keys: [k1, k2], by: "sam"})
+
+      conn =
+        conn(
+          :post,
+          "/steward/decide",
+          "kind=split&key=#{k1}&codes[]=gtin%3A08712345678906&codes[]=cnk%3A1000002&by=sam"
+        )
+        |> put_req_header("content-type", "application/x-www-form-urlencoded")
+        |> put_req_header("authorization", "Basic " <> Base.encode64("sam:test-steward-token"))
+        |> then(&Api.Router.call(&1, Api.Router.init([])))
+
+      assert conn.status == 303
+      state = Api.Store.state()
+      assert map_size(state.ledger.members) == 2
+      # the carved key is back on its own, with its own legacy id
+      {carved, _} =
+        Enum.find(state.ledger.members, fn {_k, codes} ->
+          MapSet.member?(codes, {:gtin, "08712345678906"})
+        end)
+
+      assert state.assigned[carved] != nil
+    end
+  end
+
   describe "the HTML queue page" do
     defp basic(conn),
       do:
@@ -256,7 +330,12 @@ defmodule Api.StewardTest do
       conn = conn(:get, "/steward/") |> basic() |> then(&Api.Router.call(&1, Api.Router.init([])))
       assert conn.status == 200
       assert conn.resp_body =~ "Merge proposals"
-      assert conn.resp_body =~ "bridged by"
+      assert conn.resp_body =~ "the new evidence"
+      assert conn.resp_body =~ "separate products"
+      # forms must post INSIDE the mount — a relative "decide" resolved to /decide (404)
+      assert conn.resp_body =~ ~s(action="/steward/decide")
+      refute conn.resp_body =~ ~s(action="decide")
+      assert conn.resp_body =~ "Manual repairs"
     end
 
     test "challenges without credentials so the browser prompts" do

@@ -27,7 +27,7 @@ defmodule Api.StewardRouter do
 
     conn
     |> put_resp_content_type("text/html")
-    |> send_resp(200, page(Api.Steward.queue(), conn.query_params["notice"]))
+    |> send_resp(200, page(Api.Steward.page_data(), conn.query_params["notice"], form_base(conn)))
   end
 
   post "/decide" do
@@ -48,12 +48,13 @@ defmodule Api.StewardRouter do
     json(conn, 404, %{error: "not found"})
   end
 
-  # forms send flat string params; decisions speak the JSON shapes
+  # forms send flat string params; decisions speak the JSON shapes. The split selection
+  # arrives as checkbox values (codes[] -> list); a string still splits for curl-style posts.
   defp form_to_decision(%{"kind" => "split"} = p),
     do: %{
       "kind" => "split",
       "key" => p["key"],
-      "codes" => String.split(p["codes"] || "", ~r/[\s,]+/, trim: true),
+      "codes" => split_codes(p["codes"]),
       "by" => p["by"]
     }
 
@@ -62,9 +63,22 @@ defmodule Api.StewardRouter do
 
   defp form_to_decision(p), do: p
 
+  defp split_codes(codes) when is_list(codes), do: codes
+  defp split_codes(codes) when is_binary(codes), do: String.split(codes, ~r/[\s,]+/, trim: true)
+  defp split_codes(_), do: []
+
   # mounted under /steward by the front router — Location must include the mount
   defp steward_path(%Plug.Conn{script_name: []}), do: "/"
   defp steward_path(%Plug.Conn{script_name: parts}), do: "/" <> Enum.join(parts, "/")
+
+  # form actions must be ABSOLUTE: the page lives at /steward (no trailing slash), so a relative
+  # action="<%= base %>/decide" resolves to /decide — outside the mount. "" when standalone -> "/decide".
+  defp form_base(conn) do
+    case steward_path(conn) do
+      "/" -> ""
+      base -> base
+    end
+  end
 
   defp json(conn, status, body) do
     conn
@@ -91,11 +105,25 @@ defmodule Api.StewardRouter do
         .item.flag { border-color:#7a3b41; }
         code { background:#1b2230; border-radius:5px; padding:1px 6px; font-size:12.5px; }
         .muted { color:#8b949e; } .notice { color:#57c878; }
-        form { display:inline-block; margin:8px 8px 0 0; }
+        .why { color:#b9c2cc; border-left:3px solid #7a3b41; padding:4px 10px; margin:10px 0; }
+        .codecell { display:inline-block; margin:2px 10px 2px 0; }
+        .srcs { font-size:11px; color:#8b949e; margin-left:4px; }
+        .src { color:#57c878; margin-left:4px; }
+        .bridge-src { color:#f0a857; margin-left:4px; }
+        .owner { font-size:10px; color:#6ea8fe; border:1px solid #2c3a55; border-radius:999px; padding:0 6px; margin-left:2px; vertical-align:1px; }
+        .owner.none { color:#f0a857; border-color:#4d3a23; }
+        .bridge-row { margin:6px 0; padding:7px 10px; border:1px dashed #4d3a3d; border-radius:8px; }
+        .members-row { margin:3px 0; }
+        label.pick { display:block; margin:5px 0; cursor:pointer; }
+        label.pick input { margin-right:8px; }
+        form { margin:8px 8px 0 0; }
+        form.inline { display:inline-block; }
         input[type=text] { background:#1b2230; color:#e6edf3; border:1px solid #232a33; border-radius:6px; padding:5px 8px; }
         button { background:#1b2230; color:#e6edf3; border:1px solid #3b4351; border-radius:999px; padding:6px 14px; cursor:pointer; }
         button.danger { border-color:#f0616d; color:#f0616d; }
         button.go { border-color:#6ea8fe; color:#6ea8fe; }
+        details { margin-top:10px; }
+        summary { cursor:pointer; color:#8b949e; }
       </style>
     </head>
     <body>
@@ -106,19 +134,48 @@ defmodule Api.StewardRouter do
       <%= if queue.merges != [] do %><h2>Merge proposals — gated, never automatic</h2><% end %>
       <%= for m <- queue.merges do %>
         <div class="item flag">
-          <div><b><%= Enum.join(m.keys, " + ") %></b> <span class="muted">bridged by</span>
-            <%= for c <- m.bridge do %><code><%= c %></code><% end %>
-          </div>
-          <%= for {key, codes} <- m.members do %>
-            <div class="muted"><%= key %>: <%= for c <- codes do %><code><%= c %></code><% end %></div>
+          <div><b><%= Enum.join(m.keys, " + ") %></b> <span class="muted">— proposed merge</span></div>
+          <%= if m.bridges == [] do %>
+            <p class="why">These keys now <b>directly share</b> a code that each carries as its own —
+            same dilemma: one product, or a reused code. The engine won't guess.</p>
+          <% else %>
+            <% b = hd(m.bridges) %>
+            <% extra = length(m.bridges) - 1 %>
+            <p class="why">Until <b><%= b.date %></b>, <%= Enum.join(m.keys, " and ") %> were
+            <b>separate products</b>, each backed by its own sources (shown per code below). Then
+            <b class="bridge-src"><%= b.source %></b>'s listing <code><%= b.ref %></code> claimed a code
+            from <b>both</b><%= if extra > 0, do: " (and " <> Integer.to_string(extra) <> " more listings do the same)" %>.
+            That can mean one product listed twice — or a mislabeled listing. The engine never merges
+            established identities on its own; it stopped here and is asking you.</p>
           <% end %>
-          <form method="post" action="decide">
+          <%= for {key, codes} <- m.members do %>
+            <div class="members-row"><b><%= key %></b>:
+              <%= for c <- codes do %>
+                <span class="codecell"><code><%= c.code %></code><span class="srcs">by
+                  <%= for s <- c.sources do %><span class="<%= if s in m.bridge_sources, do: "bridge-src", else: "src" %>"><%= s %></span><% end %>
+                </span></span>
+              <% end %>
+            </div>
+          <% end %>
+          <%= if m.shared != [] do %>
+            <div class="members-row"><span class="muted">directly shared:</span> <%= for c <- m.shared do %><code><%= c %></code><% end %></div>
+          <% end %>
+          <%= for b <- m.bridges do %>
+            <div class="bridge-row">
+              <span class="muted">the new evidence (<%= b.date %>):</span> <b class="bridge-src"><%= b.source %></b> <span class="muted">listing</span> <code><%= b.ref %></code>
+              <span class="muted">claiming</span>
+              <%= for c <- b.codes do %>
+                <code><%= c.code %></code><span class="owner<%= if c.owner == nil, do: " none" %>"><%= c.owner || "new" %></span>
+              <% end %>
+            </div>
+          <% end %>
+          <form method="post" action="<%= base %>/decide" class="inline">
             <input type="hidden" name="kind" value="approve_merge"/>
             <input type="hidden" name="keys" value="<%= Enum.join(m.keys, "+") %>"/>
             <input type="text" name="by" placeholder="your name" required/>
-            <button class="go">approve merge</button>
+            <button class="go">approve — same product</button>
           </form>
-          <form method="post" action="decide">
+          <form method="post" action="<%= base %>/decide" class="inline">
             <input type="hidden" name="kind" value="reject_merge"/>
             <input type="hidden" name="keys" value="<%= Enum.join(m.keys, "+") %>"/>
             <input type="text" name="by" placeholder="your name" required/>
@@ -133,7 +190,7 @@ defmodule Api.StewardRouter do
           <div><b><%= a.field %></b> on <b><%= a.key %></b>:
             <%= for c <- a.candidates do %><code><%= c.source %> says <%= c.value %></code><% end %>
           </div>
-          <form method="post" action="decide">
+          <form method="post" action="<%= base %>/decide">
             <input type="hidden" name="kind" value="resolve_attribute"/>
             <input type="hidden" name="key" value="<%= a.key %>"/>
             <input type="hidden" name="field" value="<%= a.field %>"/>
@@ -144,20 +201,50 @@ defmodule Api.StewardRouter do
         </div>
       <% end %>
 
-      <h2>Split a key</h2>
-      <div class="item">
-        <div class="muted">Carve codes out of a key into a fresh product (one recorded operation; attributes and media re-home by code).</div>
-        <form method="post" action="decide">
-          <input type="hidden" name="kind" value="split"/>
-          <input type="text" name="key" placeholder="SK_1" required/>
-          <input type="text" name="codes" placeholder="gtin:0871... cnk:7654321" size="34" required/>
-          <input type="text" name="by" placeholder="your name" required/>
-          <button class="danger">split</button>
-        </form>
-      </div>
+      <%= if queue.repairs != [] do %>
+        <h2>Recently merged — select what doesn't belong</h2>
+        <p class="muted">A wrong merge is cheap to undo: tick the codes that are NOT this product and split them
+        back out. Attributes and media follow their codes automatically; the carved-out product gets its own id.</p>
+      <% end %>
+      <%= for r <- queue.repairs do %>
+        <div class="item">
+          <div><b><%= r.key %></b> <span class="muted">absorbed <%= Enum.join(r.merged_from, ", ") %></span></div>
+          <form method="post" action="<%= base %>/decide">
+            <input type="hidden" name="kind" value="split"/>
+            <input type="hidden" name="key" value="<%= r.key %>"/>
+            <%= for c <- r.codes do %>
+              <label class="pick"><input type="checkbox" name="codes[]" value="<%= c.code %>"/><code><%= c.code %></code>
+                <span class="muted">claimed by <%= Enum.join(c.sources, ", ") %></span></label>
+            <% end %>
+            <input type="text" name="by" placeholder="your name" required/>
+            <button class="danger">split the selected out</button>
+          </form>
+        </div>
+      <% end %>
+
+      <details>
+        <summary>Manual repairs — split any key</summary>
+        <%= for k <- queue.manual do %>
+          <details>
+            <summary><b><%= k.key %></b> <span class="muted">(<%= length(k.codes) %> codes)</span></summary>
+            <div class="item">
+              <form method="post" action="<%= base %>/decide">
+                <input type="hidden" name="kind" value="split"/>
+                <input type="hidden" name="key" value="<%= k.key %>"/>
+                <%= for c <- k.codes do %>
+                  <label class="pick"><input type="checkbox" name="codes[]" value="<%= c.code %>"/><code><%= c.code %></code>
+                    <span class="muted">claimed by <%= Enum.join(c.sources, ", ") %></span></label>
+                <% end %>
+                <input type="text" name="by" placeholder="your name" required/>
+                <button class="danger">split the selected out</button>
+              </form>
+            </div>
+          </details>
+        <% end %>
+      </details>
     </body>
     </html>
     """,
-    [:queue, :notice]
+    [:queue, :notice, :base]
   )
 end

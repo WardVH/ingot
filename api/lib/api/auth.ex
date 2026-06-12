@@ -6,6 +6,9 @@ defmodule Api.Auth do
   The steward surface ALSO accepts HTTP Basic (any username, the steward token as password) and
   challenges with `WWW-Authenticate` — that is what lets a plain browser open `/steward` and the
   queue page's forms post back, with no JS and no token field.
+
+  A `nil` token DISABLES auth for that surface — a dev convenience (config/dev.exs); production
+  config (config/runtime.exs) unconditionally requires both tokens at boot.
   """
   import Plug.Conn
 
@@ -14,7 +17,7 @@ defmodule Api.Auth do
   def call(conn, surface) do
     expected = Application.fetch_env!(:golden_record_api, :"#{surface}_token")
 
-    if authorized?(get_req_header(conn, "authorization"), expected, surface) do
+    if expected == nil or authorized?(get_req_header(conn, "authorization"), expected, surface) do
       conn
     else
       conn

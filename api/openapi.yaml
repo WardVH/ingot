@@ -492,7 +492,7 @@ components:
     Queue:
       type: object
       properties:
-        open: { type: integer }
+        open: { type: integer, description: open conflicts (merges + attribute ties) }
         merges:
           type: array
           items:
@@ -500,15 +500,62 @@ components:
             properties:
               type: { const: merge }
               keys: { type: array, items: { type: string } }
-              bridge:
-                type: array
-                description: the overlapping codes — WHY it was flagged
-                items: { $ref: "#/components/schemas/CodeString" }
               members:
                 type: object
+                description: each key's current member codes, with the sources claiming each
                 additionalProperties:
                   type: array
-                  items: { $ref: "#/components/schemas/CodeString" }
+                  items:
+                    type: object
+                    properties:
+                      code: { $ref: "#/components/schemas/CodeString" }
+                      sources:
+                        type: array
+                        items: { type: string }
+              bridge_sources:
+                type: array
+                description: the sources whose listings caused the proposal
+                items: { type: string }
+              bridges:
+                type: array
+                description: the CONNECTING CLAIMS — listings whose codes span the keys
+                items:
+                  type: object
+                  properties:
+                    source: { type: string }
+                    ref: { type: string }
+                    date: { type: string, format: date }
+                    codes:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          code: { $ref: "#/components/schemas/CodeString" }
+                          owner:
+                            type: [string, "null"]
+                            description: the key this code belongs to (null = not yet on any key)
+              shared:
+                type: array
+                description: codes directly present on more than one of the keys (rare)
+                items: { $ref: "#/components/schemas/CodeString" }
+        repairs:
+          type: array
+          description: recently merged survivors — split candidates ("select what doesn't belong")
+          items:
+            type: object
+            properties:
+              key: { type: string }
+              merged_from: { type: array, items: { type: string } }
+              codes:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    code: { $ref: "#/components/schemas/CodeString" }
+                    sources:
+                      type: array
+                      description: the sources currently claiming this code
+                      items: { type: string }
         attributes:
           type: array
           items:
