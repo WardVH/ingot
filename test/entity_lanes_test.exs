@@ -273,7 +273,7 @@ defmodule EntityLanesTest do
     test "member_of is lowered to an :edge with relation :member_of — categories still resolve" do
       lowered = claim(:s, :member_of, %{member_code: {:cnk, "0111"}, collection: {:atc, "A10"}}, @d1, @d1)
       assert lowered.kind == :edge
-      assert lowered.data == %{from: {:cnk, "0111"}, relation: :member_of, to: {:atc, "A10"}}
+      assert lowered.data == %Claims.Edge{from: {:cnk, "0111"}, relation: :member_of, to: {:atc, "A10"}}
 
       golden =
         project([
@@ -316,7 +316,7 @@ defmodule EntityLanesTest do
 
       assert {:ok, [c]} = CanonicalClaims.to_engine(batch, recorded_at: @d1)
       assert c.kind == :edge
-      assert c.data == %{from: {:text_id, "D1"}, relation: :describes, to: {:substance_id, "PARA"}}
+      assert c.data == %Claims.Edge{from: {:text_id, "D1"}, relation: :describes, to: {:substance_id, "PARA"}}
     end
 
     test "an unknown relation rejects" do

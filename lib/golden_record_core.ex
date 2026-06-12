@@ -65,6 +65,46 @@ defmodule Events do
   end
 end
 
+defmodule Claims do
+  @moduledoc """
+  Typed claim payloads (gr-03z): one struct per claim kind, so `ClaimAsserted.data` is a closed
+  union the type checker can see through instead of an anonymous map. Constructed centrally by
+  `Substrate.claim/5` — callers keep passing plain maps. Bare-map data from logs persisted before
+  this change upcasts at the store's decode boundary (`Api.Codec`), never inside a fold.
+
+  `:member_of` has no struct: `Substrate.claim/5` lowers it to an `:edge` at construction, and
+  the legacy in-log shape stays a bare map (see `Substrate.slot/1`).
+  """
+
+  defmodule Identity do
+    # entity: the explicit lane, needed only when every code is lane-neutral (Lanes.of_claim/1).
+    @enforce_keys [:ref, :codes]
+    defstruct [:ref, :codes, :entity]
+  end
+
+  defmodule Edge do
+    # to: a {scheme, value} code — except for :member_of, where it is a {collection, member}
+    # namespace pair (Relations: the to-side of :member_of is unchecked).
+    @enforce_keys [:from, :relation, :to]
+    defstruct [:from, :relation, :to]
+  end
+
+  defmodule Attribute do
+    @enforce_keys [:code, :field, :value]
+    defstruct [:code, :field, :value]
+  end
+
+  defmodule Media do
+    @enforce_keys [:asset, :target, :role, :uri]
+    defstruct [:asset, :target, :role, :uri]
+  end
+
+  defmodule Grouping do
+    @enforce_keys [:code, :product]
+    defstruct [:code, :product]
+  end
+end
+
 defmodule Codes do
   @moduledoc """
   Code normalization & validation. The GTIN family (EAN-8 / UPC-12 / EAN-13 / GTIN-14) is ONE
@@ -209,13 +249,13 @@ defmodule Lanes do
   falling back to an explicit `entity:` in the claim data, else :product. Codes from two lanes
   in one claim are a contract violation — `{:error, {:mixed_lanes, lanes}}`.
   """
-  def of_claim(%Events.ClaimAsserted{kind: :identity, data: data}) do
+  def of_claim(%Events.ClaimAsserted{kind: :identity, data: %Claims.Identity{} = data}) do
     data.codes
     |> Enum.map(fn {scheme, _} -> lane_of_scheme(scheme) end)
     |> Enum.reject(&is_nil/1)
     |> Enum.uniq()
     |> case do
-      [] -> {:ok, Map.get(data, :entity, :product)}
+      [] -> {:ok, data.entity || :product}
       [lane] -> {:ok, lane}
       lanes -> {:error, {:mixed_lanes, Enum.sort(lanes)}}
     end
@@ -334,38 +374,56 @@ defmodule Substrate do
     do: %ClaimAsserted{
       source: source,
       kind: kind,
-      data: normalize(kind, data),
+      data: data |> typed(kind) |> normalize(),
       valid_from: valid_from,
       recorded_at: recorded_at
     }
 
-  defp normalize(:identity, %{codes: codes} = d), do: %{d | codes: Enum.map(codes, &Codes.canonicalize/1)}
-  defp normalize(:grouping, %{code: c} = d), do: %{d | code: Codes.canonicalize(c)}
-  defp normalize(:attribute, %{code: c} = d), do: %{d | code: Codes.canonicalize(c)}
-  defp normalize(:media, %{target: t} = d), do: %{d | target: Codes.canonicalize(t)}
+  @doc """
+  The map → struct seam (gr-03z): every claim payload becomes its kind's `Claims` struct here,
+  so consumers can pattern-match a closed union. Idempotent (a struct passes through), and the
+  upcast `Api.Codec` runs over pre-struct persisted rows. `struct!` makes a stray key in the
+  payload a construction-time error instead of silent baggage. Unknown kinds (the legacy in-log
+  `:member_of` shape) keep their bare map.
+  """
+  def typed(%_{} = data, _kind), do: data
+  def typed(data, :identity), do: struct!(Claims.Identity, data)
+  def typed(data, :edge), do: struct!(Claims.Edge, data)
+  def typed(data, :attribute), do: struct!(Claims.Attribute, data)
+  def typed(data, :media), do: struct!(Claims.Media, data)
+  def typed(data, :grouping), do: struct!(Claims.Grouping, data)
+  def typed(data, _kind), do: data
+
+  defp normalize(%Claims.Identity{codes: codes} = d),
+    do: %{d | codes: Enum.map(codes, &Codes.canonicalize/1)}
+
+  defp normalize(%Claims.Grouping{code: c} = d), do: %{d | code: Codes.canonicalize(c)}
+  defp normalize(%Claims.Attribute{code: c} = d), do: %{d | code: Codes.canonicalize(c)}
+  defp normalize(%Claims.Media{target: t} = d), do: %{d | target: Codes.canonicalize(t)}
 
   # Both edge endpoints canonicalize, so an edge addressed by EAN-13 matches a cluster holding
-  # the GTIN-14 form. (:member_of claims no longer reach here — claim/5 lowers them to :edge —
-  # but a previously persisted log may still carry them, so the clause stays foldable.)
-  defp normalize(:edge, %{from: f, to: t} = d),
+  # the GTIN-14 form.
+  defp normalize(%Claims.Edge{from: f, to: t} = d),
     do: %{d | from: Codes.canonicalize(f), to: Codes.canonicalize(t)}
 
-  defp normalize(:member_of, %{member_code: m, collection: c} = d),
+  # The legacy in-log :member_of shape (claim/5 lowers new ones to :edge before they get here).
+  defp normalize(%{member_code: m, collection: c} = d),
     do: %{d | member_code: Codes.canonicalize(m), collection: Codes.canonicalize(c)}
 
-  defp normalize(_kind, d), do: d
+  defp normalize(d), do: d
 
   # Public (@doc false) so the API's fold-state can maintain the current view INCREMENTALLY —
   # one Map.put per claim instead of re-grouping the whole log per projection.
   @doc false
-  def slot(%ClaimAsserted{source: s, kind: :identity, data: %{ref: r}}), do: {s, :identity, r}
-  def slot(%ClaimAsserted{source: s, kind: :grouping, data: %{code: c}}), do: {s, :grouping, c}
-  def slot(%ClaimAsserted{source: s, kind: :attribute, data: %{code: c, field: f}}), do: {s, :attr, c, f}
-  def slot(%ClaimAsserted{source: s, kind: :media, data: %{asset: a, target: t}}), do: {s, :media, a, t}
+  def slot(%ClaimAsserted{source: s, data: %Claims.Identity{ref: r}}), do: {s, :identity, r}
+  def slot(%ClaimAsserted{source: s, data: %Claims.Grouping{code: c}}), do: {s, :grouping, c}
+  def slot(%ClaimAsserted{source: s, data: %Claims.Attribute{code: c, field: f}}), do: {s, :attr, c, f}
+  def slot(%ClaimAsserted{source: s, data: %Claims.Media{asset: a, target: t}}), do: {s, :media, a, t}
 
-  def slot(%ClaimAsserted{source: s, kind: :edge, data: %{from: f, relation: r, to: t}}),
+  def slot(%ClaimAsserted{source: s, data: %Claims.Edge{from: f, relation: r, to: t}}),
     do: {s, :edge, f, r, t}
 
+  # The legacy in-log :member_of shape — bare map by design (see the Claims moduledoc).
   def slot(%ClaimAsserted{source: s, kind: :member_of, data: %{member_code: m, collection: c}}),
     do: {s, :member_of, m, c}
 

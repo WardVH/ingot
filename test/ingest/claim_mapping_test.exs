@@ -160,7 +160,7 @@ defmodule ClaimMappingTest do
     test "grouping points every code at the legacy entity" do
       env = envelope(99, [id("A", "set", "cnk", "111", 10)])
       grp = Enum.find(ClaimMapping.build([env]).claims, &(&1.kind == :grouping))
-      assert grp.data == %{code: {:cnk, "111"}, product: 99}
+      assert grp.data == %Claims.Grouping{code: {:cnk, "111"}, product: 99}
     end
 
     # PR #3 review (CodeRabbit): a sourced event must not re-home onto another listing.

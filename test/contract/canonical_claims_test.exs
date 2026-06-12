@@ -32,12 +32,16 @@ defmodule CanonicalClaimsTest do
       assert {:ok, [identity, attribute]} = CanonicalClaims.to_engine(batch, recorded_at: today)
 
       # codes parse + canonicalize (EAN-13 → GTIN-14); valid_from honored, recorded_at server-side
-      assert identity.data == %{ref: "P-1", codes: [{:cnk, "1000001"}, {:gtin, "05012345678900"}]}
+      assert identity.data == %Claims.Identity{
+               ref: "P-1",
+               codes: [{:cnk, "1000001"}, {:gtin, "05012345678900"}]
+             }
+
       assert identity.valid_from == ~D[2024-03-01]
       assert identity.recorded_at == today
 
       # no valid_from on the claim → defaults to recorded_at
-      assert attribute.data == %{code: {:cnk, "1000001"}, field: "name", value: "Sunscreen"}
+      assert attribute.data == %Claims.Attribute{code: {:cnk, "1000001"}, field: "name", value: "Sunscreen"}
       assert attribute.valid_from == today
     end
 
@@ -68,7 +72,7 @@ defmodule CanonicalClaimsTest do
       # but the log holds the generalized edge — one relationship representation.
       assert [claim] = CanonicalClaims.to_engine!(batch)
       assert claim.kind == :edge
-      assert claim.data == %{from: {:cnk, "3612173"}, relation: :member_of, to: {"brands", "211"}}
+      assert claim.data == %Claims.Edge{from: {:cnk, "3612173"}, relation: :member_of, to: {"brands", "211"}}
       assert claim.valid_from == 1_535_726_805
       assert claim.recorded_at == 1_535_726_805
     end

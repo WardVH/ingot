@@ -11,7 +11,20 @@ defmodule Api.Codec do
   def encode!(event), do: :erlang.term_to_binary(event)
 
   # Our own database is trusted input; structs decode only if their modules exist in this app.
-  def decode!(binary), do: :erlang.binary_to_term(binary)
+  def decode!(binary), do: binary |> :erlang.binary_to_term() |> upcast()
+
+  # The upcast seam (gr-03z): rows written before the typed claim structs carry bare-map
+  # `ClaimAsserted.data`. Decode is the ONE place legacy bytes enter, so they become structs
+  # here and every fold upstream matches on the closed union. A snapshot holds claims only in
+  # `State.current`; its slot keys are extracted values, not the data map, so they stay valid.
+  # The legacy in-log :member_of shape stays a bare map (Substrate.typed/2 passes it through).
+  defp upcast(%Events.ClaimAsserted{kind: kind, data: data} = e) when not is_struct(data),
+    do: %{e | data: Substrate.typed(data, kind)}
+
+  defp upcast(%Api.State{current: current} = s),
+    do: %{s | current: Map.new(current, fn {slot, c} -> {slot, upcast(c)} end)}
+
+  defp upcast(term), do: term
 
   @doc "Short type tag for the events table — e.g. \"ClaimAsserted\", \"IdentitiesMerged\"."
   def type(%mod{}), do: mod |> Module.split() |> List.last()
