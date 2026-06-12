@@ -1,0 +1,39 @@
+{
+  "system": "librex",
+  "exported_at": "2026-06-01",
+  "comment": "Legacy book-trade ERP export (gr-vgb). ISBN-10 era: one hyphenated ISBN-10 per record, integer product ids downstream systems keep using. Records 1002/1003 are the deliberate data wart: two editions the warehouse never reconciled (bookwire's BW-9003 spans both, producing a code collision).",
+  "records": [
+    {
+      "id": 1001,
+      "isbn": "1-86197-271-7",
+      "title": "The Tide Atlas",
+      "pages": 240,
+      "publisher": "Brackwater Press",
+      "binding": "hardcover"
+    },
+    {
+      "id": 1002,
+      "isbn": "0-19-852663-6",
+      "title": "Field Guide to Lichens",
+      "pages": 312,
+      "publisher": "Calder & Holt",
+      "binding": "paperback"
+    },
+    {
+      "id": 1003,
+      "isbn": "0-19-852664-4",
+      "title": "Field Guide to Lichens (2nd ed)",
+      "pages": 328,
+      "publisher": "Calder & Holt",
+      "binding": "paperback"
+    },
+    {
+      "id": 1004,
+      "isbn": "0-571-19998-4",
+      "title": "Moth Hours",
+      "pages": 96,
+      "publisher": "Brackwater Press",
+      "binding": "hardcover"
+    }
+  ]
+}

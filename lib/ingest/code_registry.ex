@@ -61,6 +61,14 @@ defmodule CodeRegistry do
     "cisCode" => {:cis_code, :external_ref},
     "publicPageIdentifier" => {:public_page_identifier, :external_ref},
 
+    # ── identity — the books vertical (gr-vgb: the genericity gate) ──────────────
+    # ISBN rows are DATA, exactly like adding a pharma market. isbn13 is the canonical scheme
+    # (an ISBN-13 is a Bookland EAN-13); the 10 → 13 VALUE conversion is the adapter's job
+    # (Isbn.to_isbn13/1 — the engine's normalizer vocabulary has no mod-11 transform), so a raw
+    # "isbn10:…" on the wire keeps its own scheme atom rather than being silently mislabeled.
+    "isbn13" => {:isbn13, :identity},
+    "isbn10" => {:isbn10, :identity},
+
     # ── entity-id — medipim's own id == the legacy entity, not a code claim ───────
     "productId" => {:product_id, :entity_id},
 
@@ -143,7 +151,11 @@ defmodule CodeRegistry do
                       :pin,
                       :lppr,
                       :fred,
-                      :zcode
+                      :zcode,
+                      # ISBNs are registration-agency-assigned once per title/format (ISO 2108),
+                      # never reissued the way GS1 barcodes are — a trusted bridge (gr-vgb).
+                      :isbn13,
+                      :isbn10
                     ])
 
   @barcode_schemes MapSet.new([:gtin, :acl13, :cip13])
