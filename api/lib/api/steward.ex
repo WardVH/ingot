@@ -185,7 +185,8 @@ defmodule Api.Steward do
       when is_list(keys) and length(keys) >= 2 and is_binary(by) and by != "" do
     Api.Store.append(fn state, _conn ->
       if Enum.any?(Api.State.open_flags(state), &(&1.subject == {:merge, Enum.sort(keys)})) do
-        {:ok, Stewardship.reject_merge(keys, by, Date.utc_today(), reason(params)), applied("reject_merge")}
+        {:ok, Stewardship.reject_merge(keys, by, Date.utc_today(), reason(params)),
+         applied("reject_merge")}
       else
         stale(state, "no open merge proposal for #{Enum.join(keys, "+")}")
       end
@@ -205,7 +206,8 @@ defmodule Api.Steward do
       when is_binary(key) and is_binary(field) and is_binary(by) and by != "" do
     Api.Store.append(fn state, _conn ->
       if Map.has_key?(state.ledger.members, key) do
-        {:ok, Stewardship.resolve_attribute(key, field, value, by, Date.utc_today(), reason(params)),
+        {:ok,
+         Stewardship.resolve_attribute(key, field, value, by, Date.utc_today(), reason(params)),
          applied("resolve_attribute")}
       else
         stale(state, "key #{key} is not live")
@@ -226,7 +228,8 @@ defmodule Api.Steward do
 
           MapSet.subset?(member, MapSet.new(parsed)) ->
             {:error,
-             {422, %{error: "selecting every code would leave #{key} empty — reject the merge instead"}}}
+             {422,
+              %{error: "selecting every code would leave #{key} empty — reject the merge instead"}}}
 
           true ->
             split_events(state, key, parsed, by, reason(params))
@@ -281,7 +284,9 @@ defmodule Api.Steward do
     do: %{by: by, reason: reason, at: at}
 
   defp stale(state, message),
-    do: {:error, {409, %{error: message, live_keys: state.ledger.members |> Map.keys() |> Enum.sort()}}}
+    do:
+      {:error,
+       {409, %{error: message, live_keys: state.ledger.members |> Map.keys() |> Enum.sort()}}}
 
   defp respond({:ok, body}), do: {200, body}
   defp respond({:error, {status, body}}), do: {status, body}
