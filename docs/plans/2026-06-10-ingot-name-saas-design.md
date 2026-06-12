@@ -10,20 +10,21 @@ The golden-record engine's product name is **Ingot**.
 An ingot is what comes out of smelting: ore from many sources, melted down, cast into one
 standardized, stamped, tradeable bar — which is exactly what this engine does to product data.
 Short, typeable, works as CLI (`ingot push`), package, and domain (`ingot.dev` / `getingot.com`).
-Collision check (2026-06-10): no data-tooling collisions; nearest are Inngot (IP valuation,
-different spelling) and Ingot Brokers (forex).
+Collision check (2026-06-10, preliminary web/domain search — formal EUIPO check is next-step 1):
+no obvious data-tooling collisions; nearest are Inngot (IP valuation, different spelling) and
+Ingot Brokers (forex).
 
 The metaphor extends to feature vocabulary, end to end:
 
 | Term | Meaning in metallurgy | Meaning in Ingot |
 |---|---|---|
 | **Ingot** | standardized cast bar | the golden record |
-| **mint** | strike new coin | identity creation (events already say `IdentityMinted`) |
+| **mint** | strike new coin | identity creation (the engine's `Events.IdentityMinted` event) |
 | **assay** | test gold purity | merge verification / the over-merge guard |
 | **hallmark** | certification stamp | the per-record audit trail |
 
-Rejected: **Assay** (best meaning, but biotech owns the SEO), **Crucible** (Atlassian trademark,
-stale code-review association), **Smelt** (unserious), **Cupel** (unpronounceable),
+Rejected: **Assay** (best meaning, but biotech owns the SEO), **Crucible** (Atlassian's
+code-review product — stale association), **Smelt** (unserious), **Cupel** (unpronounceable),
 **Hallmark** (culturally owned by greeting cards), **Mint/Karat/Aurum** (taken/overused).
 
 ## Positioning
@@ -45,11 +46,11 @@ stale code-review association), **Smelt** (unserious), **Cupel** (unpronounceabl
 
 ## Next steps (beads filed under the ingot epic)
 
-1. Reserve name assets — domains, GitHub org, package names; quick EUIPO class-42 check.
+1. (gr-c3i) Reserve name assets — domains, GitHub org, package names; quick EUIPO class-42 check.
    Human decision: costs money.
-2. Rebrand public surfaces — OpenAPI spec title, API docs, README.
-3. Time-to-first-merge quickstart — a curl-able 5-minute demo on the 422156 fixture; this is
-   the positioning made tangible.
-4. Landing page copy — one-liner, wedge, audit-moat story, waitlist CTA.
-5. Customer discovery — list 10 product-data prospects (aggregators, marketplaces, pharma data)
-   and validate the wedge before building more.
+2. (gr-gju) Rebrand public surfaces — OpenAPI spec title, API docs, README.
+3. (gr-25s) Time-to-first-merge quickstart — a curl-able 5-minute demo on the 422156 fixture;
+   this is the positioning made tangible.
+4. (gr-o02) Landing page copy — one-liner, wedge, audit-moat story, waitlist CTA.
+5. (gr-uo0) Customer discovery — list 10 product-data prospects (aggregators, marketplaces,
+   pharma data) and validate the wedge before building more.
