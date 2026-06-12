@@ -4,7 +4,18 @@ defmodule Api.Writes do
 
   * `backfill/1` — contract-C envelopes, folded finer-grained (`FinerClaims`), idempotent per
     envelope via a content fingerprint in `backfill_seen` (same transaction as the append).
-  * `claims/1` — live engine-native claims (`Api.ClaimJson`), validated whole.
+  * `claims/1` — live canonical claims (`docs/CLAIMS_CONTRACT.md`), validated whole and built
+    by the generic canonical→engine stage (`CanonicalClaims.to_engine/2`), idempotent per claim.
+
+  Live-claim idempotency — the deterministic claim identity: a claim IS its content,
+  `{source, kind, data, valid_from}` — the contract's idempotency fields (source, scheme+code,
+  field, value, valid_from); `data` carries codes already canonicalized by `Substrate.claim/5`,
+  so equivalent spellings (`"ean:…"` vs its GTIN-14) share one identity. `recorded_at` (the
+  server clock) and `order` are deliberately excluded, so resubmitting the same claim on a later
+  day is still the same claim. Inside the writer transaction a claim whose slot
+  (`Substrate.slot/1`) currently holds identical content is SKIPPED — resubmitting a batch
+  appends nothing and churns nothing (mirrors the backfill no-op branch), while a changed
+  payload still updates its slot (last-wins per the contract).
 
   Pipeline (inside the store's writer transaction): pre-stamp the new claims with the offsets
   they WILL get → fold-forward reconcile over the FULL current claim set, threading the live
@@ -50,15 +61,47 @@ defmodule Api.Writes do
     do: {:error, {422, %{errors: [%{index: nil, error: "envelopes must be a list"}]}}}
 
   def claims(claim_maps) do
-    case Api.ClaimJson.parse(claim_maps, Date.utc_today()) do
+    case CanonicalClaims.to_engine(claim_maps, recorded_at: Date.utc_today()) do
       {:ok, new_claims} ->
         Api.Store.append(fn state, _conn ->
-          {events, identity_events} = pipeline(state, new_claims, MapSet.new())
-          {:ok, events, summary(length(new_claims), 0, new_claims, identity_events)}
+          fresh =
+            new_claims
+            |> Enum.uniq_by(&claim_identity/1)
+            |> Enum.reject(&asserted?(state, &1))
+
+          case fresh do
+            [] ->
+              {:ok, [], summary(0, length(new_claims), [], [])}
+
+            fresh ->
+              {events, identity_events} = pipeline(state, fresh, MapSet.new())
+
+              {:ok, events,
+               summary(length(fresh), length(new_claims) - length(fresh), fresh, identity_events)}
+          end
         end)
 
       {:error, errors} ->
-        {:error, {422, %{errors: errors}}}
+        {:error,
+         {422,
+          %{
+            errors:
+              Enum.map(errors, fn %{index: index, error: error} ->
+                %{index: index, error: error}
+              end)
+          }}}
+    end
+  end
+
+  # ── deterministic claim identity (idempotent resubmission — see the moduledoc) ─
+  defp claim_identity(c), do: {c.source, c.kind, c.data, c.valid_from}
+
+  # Already asserted: the claim's slot currently holds identical content, so appending it would
+  # be a pure no-op under last-wins. Changed content in the same slot is NOT a duplicate.
+  defp asserted?(state, claim) do
+    case Map.get(state.current, Substrate.slot(claim)) do
+      nil -> false
+      current -> claim_identity(current) == claim_identity(claim)
     end
   end
 

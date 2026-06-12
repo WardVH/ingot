@@ -3,8 +3,8 @@
 The integration surface customers code against, in **their own language**: a customer script
 exports source data, maps it to canonical **claims JSON**, and submits batches to the engine
 (`POST /v1/claims`). This document formalizes the wire format the engine already speaks
-(`Api.ClaimJson.parse/2`, pinned by `api/test/writes_test.exs`) — it does **not** invent a new
-one. Machine-readable schemas live beside it:
+(`CanonicalClaims.to_engine/2`, pinned by `api/test/writes_test.exs`) — it does **not** invent a
+new one. Machine-readable schemas live beside it:
 
 - `contract/claims.schema.json` — a claims submission batch (JSON Schema, draft 2020-12).
 - `contract/scheme_registry.schema.json` — scheme-registry declarations (JSON Schema, draft 2020-12).
@@ -31,7 +31,7 @@ and **nothing partial enters the log**. There is no partial acceptance.
 ```jsonc
 {
   "accepted": 3,        // claims accepted (backfill: envelopes accepted)
-  "skipped": 0,         // backfill only: envelopes replayed as no-ops; always 0 for live claims
+  "skipped": 0,         // replayed no-ops: backfill envelopes already seen; live claims whose slot already holds identical content
   "claims": 3,          // claim events appended to the log
   "events": [ /* what identity DID: minted | members_changed | merged | split | merge_proposal */ ],
   "flagged": [ {"type": "merge_proposal", "keys": ["SK_1", "SK_3"]} ]
@@ -169,12 +169,15 @@ Drives legacy-id assignment (a minted key inherits the legacy id its codes group
 - **Live claims are slot-keyed, last-wins.** Each claim occupies a deterministic slot —
   `identity`: `(source, ref)`; `attribute`: `(source, code, field)`; `media`:
   `(source, asset, target)`; `grouping`: `(source, code)` — and the current view keeps the
-  latest claim per slot. Re-submitting the same claim appends to the log but changes nothing
-  in the resolved state; re-submitting with a changed payload updates that slot only.
+  latest claim per slot. Re-submitting a claim identical to its slot's current content is
+  **skipped** (counted in `skipped`, nothing appended); re-submitting with a changed payload
+  updates that slot only. Claim identity is the content `(source, kind, payload, valid_from)`
+  after code canonicalization — `recorded_at` is excluded, so the same claim resubmitted on a
+  later day is still the same claim.
 - **Re-runs converge.** Because claim identity is deterministic, iterating on a mapping script
-  and re-submitting is safe: keys stay stable, and the same evidence produces the same
-  resolution. (Batch-level content fingerprinting — replay-is-a-no-op without log growth —
-  exists today only on the backfill path; see open question 7.)
+  and re-submitting is safe: keys stay stable, replays are no-ops without log growth (backfill:
+  per-envelope content fingerprints; live: per-slot claim identity), and the same evidence
+  produces the same resolution.
 - **Established keys never auto-merge.** New evidence bridging two established keys yields a
   `merge_proposal` flag for steward review, regardless of how often it is re-submitted.
 
@@ -259,9 +262,9 @@ speaks; `contract/scheme_registry.schema.json` is its schema.
 6. **Extra fields are ignored.** The parser pattern-matches required fields and ignores the
    rest, so typoed optional fields (e.g. `"valid_form"`) silently vanish. The schemas mirror
    actual behavior (`additionalProperties` left open); a strict validation mode is a candidate.
-7. **No batch fingerprint on live claims.** Backfill envelopes are content-fingerprinted
-   (replay is a no-op); live claim batches are not — replays converge in resolved state but
-   grow the log. Is a client-supplied batch idempotency key wanted?
+7. **No batch fingerprint on live claims.** Live replays are deduped **per claim** (a claim
+   whose slot already holds identical content is skipped — no log growth), not per batch. Is a
+   client-supplied batch idempotency key (ack/reject a whole batch by key) still wanted?
 8. **No batch size limit is specified.** The whole-batch-validates rule makes very large
    batches all-or-nothing; a documented maximum (and a recommended chunking size) is open.
 9. **Scheme-name grammar.** The schema requires lowercase snake_case for *declared* names
