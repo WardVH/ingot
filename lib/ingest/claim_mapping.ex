@@ -1,10 +1,19 @@
-# lib/ingest/claim_mapping.ex — fold listings + build engine claims from HistoryEnvelopes (gr-beo).
+# lib/ingest/claim_mapping.ex — the medipim REFERENCE ADAPTER: envelopes → canonical claims
+# (gr-beo; split onto the contract seam in gr-3jd).
 #
-# Stage 2 of the legacy-medipim ingest. Takes the decoded-but-unresolved envelopes (gr-n8i) and
-# produces the engine's claim log + the `shared` code set, ready for clustering/reconcile (gr-chq:
+# Stage 2 of the legacy-medipim ingest, and the adapter every future customer copies: it maps a
+# source system's export (here, contract-C HistoryEnvelopes from gr-n8i) to CANONICAL CLAIMS —
+# plain wire-shaped maps per docs/CLAIMS_CONTRACT.md (`canonical_claims/1`). The generic half,
+# canonical claims → engine claims, lives in `CanonicalClaims` (lib/contract/canonical_claims.ex)
+# and is shared with the Product API's live path. `build/1` composes both stages and yields the
+# engine's claim log + the `shared` code set, ready for clustering/reconcile (gr-chq:
 # `Cluster.variants(Substrate.current(claims), shared)` then `IdentityLedger.decide`).
 #
-# What it does, per the design (docs/plans/2026-06-05-legacy-history-ingest-design.md):
+# Being a BACKFILL adapter, its canonical claims carry contract-C unix-second temporal fields and
+# `member_of` claims — both deliberately beyond the live wire (see CanonicalClaims' header), so
+# build/1 uses the trusted `CanonicalClaims.to_engine!/1` rather than the validating seam.
+#
+# What the mapping does, per the design (docs/plans/2026-06-05-legacy-history-ingest-design.md):
 #
 #   1. FOLD per listing = (legacy_entity, source). Replay that source's granular identity events
 #      (set/add/remove/delete, in recorded_at order) into a final code-set — a SNAPSHOT (v1).
@@ -17,13 +26,14 @@
 #      (`Codes.restricted?`) and non-bridging schemes (MPN/supplier ref) — are collected into the
 #      `shared` set the clusterer carries but never fuses on.
 #
-#   3. BUILD claims (via `Substrate.claim/5`, which re-canonicalizes idempotently):
-#      * identity  — one per listing: %{ref: "entity:source", codes: <folded set>}.
-#      * grouping  — synthesized, one per (listing, code): %{code, product: legacy_entity}.
+#   3. BUILD canonical claims (wire-shaped maps; `CanonicalClaims.to_engine!/1` then builds the
+#      engine claims via `Substrate.claim/5`, which re-canonicalizes idempotently):
+#      * identity  — one per listing: %{"ref" => "entity:source", "codes" => <folded set>}.
+#      * grouping  — synthesized, one per (listing, code): %{"code", "product" => legacy_entity}.
 #                    Makes the legacy entity a first-class product label for collision reasoning.
 #      * attribute — one per attribute event, anchored to the listing's primary code
 #                    (CNK ▸ canonical GTIN ▸ first). Survivorship is the engine's job, not ours.
-#      * member_of — one per edge add/set, anchored likewise, pointing at the collection code.
+#      * member_of — one per edge add/set, anchored likewise, pointing at the collection.
 #
 # NOT here: media claims (out of scope for gr-beo), survivorship/clustering (the engine owns it),
 # and edge removals (a snapshot-v1 simplification — member_of unions and does not retract).
@@ -43,9 +53,30 @@ defmodule ClaimMapping do
   @doc """
   Map a list of `%HistoryEnvelope{}` to `%{claims: [%Events.ClaimAsserted{}], shared: MapSet}`.
   Claims carry a chronological `order` (later recorded_at ⇒ higher order ⇒ wins survivorship).
+
+  Two stages: `canonical_claims/1` (this adapter) then `CanonicalClaims.to_engine!/1` (the
+  generic contract seam) — `to_engine!` because the backfill flavor deliberately exceeds the
+  live-wire validator (member_of + unix-second temporals; see CanonicalClaims).
   """
   def build(envelopes) when is_list(envelopes) do
     folded = fold_raw(envelopes)
+
+    %{
+      claims: envelopes |> canonical(folded) |> CanonicalClaims.to_engine!() |> stamp(),
+      shared: folded |> listing_codes() |> shared_codes()
+    }
+  end
+
+  @doc """
+  Stage (a) alone: the canonical claims this adapter derives from the envelopes — wire-shaped
+  maps per docs/CLAIMS_CONTRACT.md, in emission order (identity, grouping, attribute,
+  member_of), each carrying contract-C unix-second `"valid_from"`/`"recorded_at"`. This is what
+  a customer's mapping script would produce and submit.
+  """
+  def canonical_claims(envelopes) when is_list(envelopes),
+    do: canonical(envelopes, fold_raw(envelopes))
+
+  defp canonical(envelopes, folded) do
     listing_codes = listing_codes(folded)
     entity_codes = union_by_entity(listing_codes)
 
@@ -66,18 +97,26 @@ defmodule ClaimMapping do
 
     identity =
       for {{e, s} = k, set} <- ordered do
-        Substrate.claim(
-          s,
-          :identity,
-          %{ref: "#{e}:#{s}", codes: Enum.sort(set)},
-          folded[k].last_at,
-          folded[k].last_at
-        )
+        %{
+          "kind" => "identity",
+          "source" => s,
+          "ref" => "#{e}:#{s}",
+          "codes" => set |> Enum.sort() |> Enum.map(&CanonicalClaims.code_string/1),
+          "valid_from" => folded[k].last_at,
+          "recorded_at" => folded[k].last_at
+        }
       end
 
     grouping =
       for {{e, s} = k, set} <- ordered, code <- Enum.sort(set) do
-        Substrate.claim(s, :grouping, %{code: code, product: e}, folded[k].last_at, folded[k].last_at)
+        %{
+          "kind" => "grouping",
+          "source" => s,
+          "code" => CanonicalClaims.code_string(code),
+          "product" => e,
+          "valid_from" => folded[k].last_at,
+          "recorded_at" => folded[k].last_at
+        }
       end
 
     attribute =
@@ -86,13 +125,15 @@ defmodule ClaimMapping do
           ev.kind == :attribute,
           a = anchor.(env.legacy_entity, ev.source),
           a != nil do
-        Substrate.claim(
-          ev.source,
-          :attribute,
-          %{code: a, field: field_dim(ev), value: ev.data.value},
-          ev.valid_from,
-          ev.recorded_at
-        )
+        %{
+          "kind" => "attribute",
+          "source" => ev.source,
+          "code" => CanonicalClaims.code_string(a),
+          "field" => field_dim(ev),
+          "value" => ev.data.value,
+          "valid_from" => ev.valid_from,
+          "recorded_at" => ev.recorded_at
+        }
       end
 
     member_of =
@@ -103,19 +144,18 @@ defmodule ClaimMapping do
           ev.data.value != nil,
           a = anchor.(env.legacy_entity, ev.source),
           a != nil do
-        Substrate.claim(
-          ev.source,
-          :member_of,
-          %{member_code: a, collection: {ev.data.collection, to_string(ev.data.value)}},
-          ev.valid_from,
-          ev.recorded_at
-        )
+        %{
+          "kind" => "member_of",
+          "source" => ev.source,
+          "code" => CanonicalClaims.code_string(a),
+          "collection" => ev.data.collection,
+          "member" => to_string(ev.data.value),
+          "valid_from" => ev.valid_from,
+          "recorded_at" => ev.recorded_at
+        }
       end
 
-    %{
-      claims: stamp(identity ++ grouping ++ attribute ++ member_of),
-      shared: shared_codes(listing_codes)
-    }
+    identity ++ grouping ++ attribute ++ member_of
   end
 
   @doc "Just the folded, canonicalized code-set per listing — `%{{entity, source} => MapSet}`."
