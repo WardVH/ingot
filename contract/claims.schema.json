@@ -1,0 +1,114 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ingot.dev/contract/claims.schema.json",
+  "title": "Ingot canonical claims submission batch",
+  "description": "A batch of canonical claims for POST /v1/claims. Formalizes the wire format accepted by Api.ClaimJson.parse/2 — see docs/CLAIMS_CONTRACT.md. A batch validates whole: one invalid claim rejects everything with per-index reasons ({index, error}); nothing partial enters the log.",
+  "type": "object",
+  "required": ["claims"],
+  "properties": {
+    "claims": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/claim" }
+    }
+  },
+  "$defs": {
+    "claim": {
+      "description": "One canonical claim, discriminated by kind. Unknown extra fields are ignored by the engine today (see open question 6 in the spec).",
+      "oneOf": [
+        { "$ref": "#/$defs/identityClaim" },
+        { "$ref": "#/$defs/attributeClaim" },
+        { "$ref": "#/$defs/mediaClaim" },
+        { "$ref": "#/$defs/groupingClaim" }
+      ]
+    },
+    "code": {
+      "description": "A code as a 'scheme:value' string, split on the FIRST colon; both halves non-empty. Known schemes canonicalize (GTIN family folds to a 14-digit zero-filled GTIN); unknown schemes pass through as opaque, non-bridging strings.",
+      "type": "string",
+      "pattern": "^[^:]+:.+$"
+    },
+    "source": {
+      "description": "Source attribution: who asserts this claim (org id, feed name, system name). Free-form, non-empty; resolution ranks sources.",
+      "type": "string",
+      "minLength": 1
+    },
+    "validFrom": {
+      "description": "Bitemporal valid-time: ISO 8601 date on which the fact became true in the world. Optional; defaults to recorded_at (the server-side submission date). Date precision only.",
+      "type": "string",
+      "format": "date",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+    },
+    "identityClaim": {
+      "description": "Node claim: a source's listing (ref) asserts a set of codes. The clustering input — identity-class codes bridge listings into one identity. Slot: (source, ref), last-wins.",
+      "type": "object",
+      "required": ["kind", "source", "ref", "codes"],
+      "properties": {
+        "kind": { "const": "identity" },
+        "source": { "$ref": "#/$defs/source" },
+        "ref": {
+          "description": "The source's OWN listing id — stable per source. A later identity claim with the same (source, ref) replaces the earlier code-set.",
+          "type": "string",
+          "minLength": 1
+        },
+        "codes": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/code" },
+          "minItems": 1
+        },
+        "valid_from": { "$ref": "#/$defs/validFrom" }
+      }
+    },
+    "attributeClaim": {
+      "description": "Node claim: a fact about a coded thing. Never bridges; survivorship decides the winning value per (code, field). Slot: (source, code, field), last-wins.",
+      "type": "object",
+      "required": ["kind", "source", "code", "field", "value"],
+      "properties": {
+        "kind": { "const": "attribute" },
+        "source": { "$ref": "#/$defs/source" },
+        "code": { "$ref": "#/$defs/code" },
+        "field": {
+          "description": "Free-form field name; localized fields use 'field:locale' (e.g. 'name:fr').",
+          "type": "string",
+          "minLength": 1
+        },
+        "value": { "type": ["string", "number", "boolean"] },
+        "valid_from": { "$ref": "#/$defs/validFrom" }
+      }
+    },
+    "mediaClaim": {
+      "description": "Node claim: an asset attached to a coded thing. Slot: (source, asset, target), last-wins.",
+      "type": "object",
+      "required": ["kind", "source", "asset", "target", "uri"],
+      "properties": {
+        "kind": { "const": "media" },
+        "source": { "$ref": "#/$defs/source" },
+        "asset": {
+          "description": "The asset id in the submitting DAM/source.",
+          "type": "string",
+          "minLength": 1
+        },
+        "target": { "$ref": "#/$defs/code" },
+        "uri": { "type": "string", "minLength": 1 },
+        "role": {
+          "description": "Optional; 'primary' or 'secondary'. Engine behavior today: any value other than 'primary' (or absence) means secondary.",
+          "enum": ["primary", "secondary"]
+        },
+        "valid_from": { "$ref": "#/$defs/validFrom" }
+      }
+    },
+    "groupingClaim": {
+      "description": "Edge claim: this code belonged to legacy product `product` — the continuity edge to a predecessor system; drives legacy-id assignment. Slot: (source, code), last-wins.",
+      "type": "object",
+      "required": ["kind", "source", "code", "product"],
+      "properties": {
+        "kind": { "const": "grouping" },
+        "source": { "$ref": "#/$defs/source" },
+        "code": { "$ref": "#/$defs/code" },
+        "product": {
+          "description": "The legacy system's own product id.",
+          "type": "integer"
+        },
+        "valid_from": { "$ref": "#/$defs/validFrom" }
+      }
+    }
+  }
+}

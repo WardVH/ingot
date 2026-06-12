@@ -1,0 +1,89 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ingot.dev/contract/scheme_registry.schema.json",
+  "title": "Ingot scheme-registry declarations",
+  "description": "Declares the code schemes a deployment speaks: class (identity vs attribute), bridge grade, normalizer, checksum rule, equivalence family. Derived from CodeRegistry's table semantics and Codes' canonicalization — see docs/CLAIMS_CONTRACT.md. Unknown schemes on the wire are still accepted (opaque, non-bridging); a registry extends coverage, it never gates submission.",
+  "type": "object",
+  "required": ["schema_version", "schemes"],
+  "properties": {
+    "schema_version": {
+      "description": "Registry document version. Currently '1'.",
+      "const": "1"
+    },
+    "schemes": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/scheme" },
+      "minItems": 1
+    }
+  },
+  "$defs": {
+    "schemeName": {
+      "description": "Canonical engine-native scheme name — the string before the colon in 'scheme:value'. Lowercase snake_case (cnk, gtin, cip_acl7, …).",
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_]*$"
+    },
+    "scheme": {
+      "type": "object",
+      "required": ["name", "class"],
+      "properties": {
+        "name": { "$ref": "#/$defs/schemeName" },
+        "class": {
+          "description": "How clustering uses the code: 'identity' bridges listings; 'external_ref' identifies the thing in another system and NEVER bridges; 'attribute' is a non-identifying classification; 'entity_id' is the source system's own record id — not a code claim at all.",
+          "enum": ["identity", "external_ref", "attribute", "entity_id"]
+        },
+        "bridge_grade": {
+          "description": "The over-merge guard's axis, orthogonal to class: a merge bridged by a 'national' code is trusted; one bridged solely by a 'barcode'-grade code (reusable/reassignable GS1 codes) is suspect and gated; 'none' (default) is not a bridge.",
+          "enum": ["national", "barcode", "none"],
+          "default": "none"
+        },
+        "normalizer": {
+          "description": "Canonicalization rule applied to every ingested value. Default when absent: trim.",
+          "oneOf": [
+            {
+              "type": "object",
+              "required": ["kind"],
+              "properties": { "kind": { "const": "trim" } }
+            },
+            {
+              "type": "object",
+              "required": ["kind", "width"],
+              "properties": {
+                "kind": { "const": "pad_left" },
+                "width": {
+                  "description": "All-digit values shorter than this left-pad with zeros (e.g. cip_acl7: 7, pzn: 8, cn: 6).",
+                  "type": "integer",
+                  "minimum": 1
+                }
+              }
+            },
+            {
+              "type": "object",
+              "required": ["kind"],
+              "properties": {
+                "kind": {
+                  "description": "GTIN-family canonicalization: 8/12/13/14-digit values zero-fill to GTIN-14; non-GTIN-shaped values pass through untouched.",
+                  "const": "gtin"
+                }
+              }
+            }
+          ]
+        },
+        "checksum": {
+          "description": "Validity rule for validators: 'gtin_mod10' is the GS1 mod-10 check digit. The engine does not enforce checksums at the submission boundary today.",
+          "enum": ["none", "gtin_mod10"],
+          "default": "none"
+        },
+        "equivalence_family": {
+          "description": "Schemes sharing a family denote the same code space at different widths/spellings; after normalization their values compare equal. Precedent: the GTIN family (ean/upc/eanGtin8-14 fold to gtin).",
+          "$ref": "#/$defs/schemeName"
+        },
+        "aliases": {
+          "description": "Alternative scheme spellings accepted on the wire that fold to `name` (e.g. 'ean' and 'upc' for gtin).",
+          "type": "array",
+          "items": { "$ref": "#/$defs/schemeName" },
+          "uniqueItems": true
+        }
+      }
+    }
+  }
+}
