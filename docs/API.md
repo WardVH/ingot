@@ -50,6 +50,18 @@ Same response shape as backfill. Reconciliation is fold-forward against the live
 stay stable, and a claim bridging two **established** keys produces a flagged proposal — never an
 automatic merge.
 
+### `POST /v1/cutover`
+
+Commit a **migration batch** — the explicit cutover of the dry-run → fix mapping → cutover loop.
+Same body as `/v1/claims`, but with migration semantics: the batch is the source's **current
+truth**, so only the last claim per slot counts (non-final slot history is compacted, counted in
+`counts.compacted`), which makes re-runs **convergent** — an identical re-run appends zero events
+and churns zero keys; a changed re-run supersedes only its own slots. `200` → the committed
+migration report (the dry-run's sections — mints, merge candidates, conflicts, collisions, the
+seeded steward queue — now describing the committed world) plus `lineage`: the legacy-id
+assignments this commit recorded. `422` → the whole batch rejects; a cutover commits whole or
+not at all. Decision rationale in `Api.Cutover`'s moduledoc.
+
 ### `GET /v1/products/{legacy_id}`
 
 The backwards-compatible primary read — every golden record answers to a legacy medipim ID

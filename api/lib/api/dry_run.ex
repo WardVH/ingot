@@ -33,8 +33,17 @@ defmodule Api.DryRun do
     state = Api.Store.state()
 
     case Api.Writes.simulate(state, claim_maps) do
-      {:error, errors} -> rejected(errors)
-      {:ok, outcome} -> accepted(state, outcome)
+      {:error, errors} ->
+        rejected(errors)
+
+      {:ok, outcome} ->
+        sections = sections(state, outcome)
+
+        Map.merge(sections, %{
+          dry_run: true,
+          would_commit: true,
+          summary: funnel_line(sections.counts)
+        })
     end
   end
 
@@ -56,7 +65,14 @@ defmodule Api.DryRun do
     }
   end
 
-  defp accepted(state, %{summary: submission, identity_events: ievents, would_state: would}) do
+  @doc """
+  The report sections shared by both flavors — the dry-run (`report/1`) and the committed cutover
+  (`Api.Cutover`): counts + mints / merge_candidates / conflicts / code_collisions /
+  steward_queue, computed from `outcome.would_state`. For the cutover, `would_state` IS the
+  committed state (same events, same offsets, same writer lock), so the sections describe exactly
+  what the commit did. Framing keys (`dry_run`/`committed`/`summary`/…) are the caller's.
+  """
+  def sections(state, %{summary: submission, identity_events: ievents, would_state: would}) do
     today = Date.utc_today()
     claims = Api.State.current_claims(would)
     members = would.ledger.members
@@ -123,9 +139,6 @@ defmodule Api.DryRun do
       })
 
     %{
-      dry_run: true,
-      would_commit: true,
-      summary: funnel_line(counts),
       counts: counts,
       validation: %{errors: []},
       submission: submission,
