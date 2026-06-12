@@ -82,7 +82,7 @@ Everywhere a claim carries a code, it is a single string: the scheme name, a col
 Split on the **first** colon — the value may itself contain colons. Both halves must be
 non-empty.
 
-```
+```text
 "cnk:1000001"   "gtin:05012345678900"   "ean:5012345678900"   "mpn:AB-1234"
 ```
 
