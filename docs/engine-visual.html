@@ -1,0 +1,382 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Golden-Record Engine — how it works</title>
+<style>
+  :root {
+    --bg: #0d1117;
+    --panel: #161b22;
+    --panel-2: #1c2330;
+    --line: #2d3748;
+    --ink: #e6edf3;
+    --muted: #8b949e;
+    --accent: #d4a843;      /* gold — it is a golden record, after all */
+    --accent-dim: #8a6d2f;
+    --blue: #58a6ff;
+    --green: #3fb950;
+    --red: #f47067;
+    --purple: #bc8cff;
+    --mono: "SF Mono", ui-monospace, Menlo, Consolas, monospace;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font: 15px/1.55 -apple-system, "Segoe UI", Helvetica, Arial, sans-serif;
+    padding: 48px 24px 96px;
+  }
+  .wrap { max-width: 980px; margin: 0 auto; }
+
+  header { text-align: center; margin-bottom: 14px; }
+  header h1 { font-size: 26px; margin: 0 0 6px; letter-spacing: -0.3px; }
+  header h1 em { color: var(--accent); font-style: normal; }
+  header p { color: var(--muted); margin: 0 auto; max-width: 640px; }
+  header p code { font-family: var(--mono); font-size: 13px; color: var(--ink); }
+
+  .stage {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 20px 22px;
+    margin-top: 28px;
+    position: relative;
+  }
+  .stage > .tag {
+    position: absolute; top: -11px; left: 18px;
+    background: var(--bg);
+    border: 1px solid var(--line);
+    border-radius: 99px;
+    padding: 1px 12px;
+    font-size: 11px; font-weight: 700; letter-spacing: 1.4px;
+    text-transform: uppercase; color: var(--muted);
+  }
+  .stage h2 { margin: 2px 0 4px; font-size: 18px; }
+  .stage h2 code, .stage h3 code { font-family: var(--mono); font-size: 0.85em; color: var(--accent); }
+  .stage > p.lead { color: var(--muted); margin: 0 0 14px; }
+  .stage p.lead strong { color: var(--ink); }
+
+  .flow-arrow {
+    text-align: center; margin: 2px 0 -22px;
+    position: relative; z-index: 1;
+  }
+  .flow-arrow .lbl {
+    display: inline-block;
+    font-family: var(--mono); font-size: 12px; color: var(--muted);
+    background: var(--bg); padding: 0 10px;
+  }
+  .flow-arrow::after {
+    content: "";
+    display: block; margin: 2px auto 0;
+    width: 0; height: 26px;
+    border-left: 2px solid var(--line);
+  }
+  .flow-arrow .head { color: var(--line); font-size: 14px; line-height: 0; display: block; margin-top: -2px; }
+
+  .row { display: flex; gap: 12px; flex-wrap: wrap; }
+  .row > * { flex: 1 1 0; min-width: 180px; }
+
+  .card {
+    background: var(--panel-2);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 14px 16px;
+  }
+  .card h3 { margin: 0 0 6px; font-size: 14.5px; }
+  .card h3 .mod { font-family: var(--mono); font-size: 12px; color: var(--accent); }
+  .card p { margin: 0; font-size: 13.5px; color: var(--muted); }
+  .card p b, .card li b { color: var(--ink); font-weight: 600; }
+  .card ul { margin: 6px 0 0; padding-left: 18px; font-size: 13.5px; color: var(--muted); }
+  .card li { margin: 3px 0; }
+  .card code, .legend code { font-family: var(--mono); font-size: 12px; color: var(--ink); background: #0d1117; border: 1px solid var(--line); border-radius: 4px; padding: 0 5px; }
+
+  .chips { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+  .chip {
+    font-family: var(--mono); font-size: 12.5px;
+    border: 1px solid var(--line); border-radius: 99px;
+    padding: 3px 12px; color: var(--ink); background: var(--panel-2);
+  }
+  .chip small { color: var(--muted); font-family: inherit; }
+
+  /* sources */
+  .sources { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+  .source {
+    border: 1px dashed var(--line); border-radius: 10px;
+    padding: 10px 18px; text-align: center; background: transparent;
+  }
+  .source b { font-size: 14px; }
+  .source span { display: block; font-size: 12px; color: var(--muted); }
+
+  /* the log */
+  .log { border-color: var(--accent-dim); box-shadow: 0 0 0 1px rgba(212,168,67,.12), 0 0 32px rgba(212,168,67,.05); }
+  .log .tag { color: var(--accent); border-color: var(--accent-dim); }
+  .logtape {
+    display: flex; gap: 6px; flex-wrap: wrap; margin-top: 12px;
+    font-family: var(--mono); font-size: 12px;
+  }
+  .ev { border-radius: 6px; padding: 3px 9px; border: 1px solid var(--line); background: #0d1117; }
+  .ev.claim   { color: var(--blue);   border-color: #2a4663; }
+  .ev.ident   { color: var(--accent); border-color: var(--accent-dim); }
+  .ev.steward { color: var(--purple); border-color: #4d3a6b; }
+  .legend { font-size: 12px; color: var(--muted); margin-top: 10px; }
+  .legend i { font-style: normal; padding: 0 7px; border-radius: 4px; margin-right: 4px; }
+  .legend .b { color: var(--blue); } .legend .g { color: var(--accent); } .legend .p { color: var(--purple); }
+
+  /* cluster mini-viz */
+  .clusterviz { margin: 12px 0 4px; display: flex; justify-content: center; }
+  .clusterviz svg { max-width: 100%; height: auto; }
+  .clusterviz text { font-family: var(--mono); font-size: 11px; fill: var(--ink); }
+  .clusterviz .dim { fill: var(--muted); }
+
+  /* reconcile branches */
+  .branches { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 12px; }
+  .branch {
+    flex: 1 1 0; min-width: 200px;
+    border-radius: 10px; padding: 12px 14px;
+    border: 1px solid var(--line); background: var(--panel-2);
+  }
+  .branch .cond { font-family: var(--mono); font-size: 12px; color: var(--muted); display: block; margin-bottom: 4px; }
+  .branch .out { font-weight: 600; font-size: 14px; }
+  .branch p { font-size: 13px; color: var(--muted); margin: 4px 0 0; }
+  .branch.mint  { border-left: 3px solid var(--green); }
+  .branch.grow  { border-left: 3px solid var(--blue); }
+  .branch.gate  { border-left: 3px solid var(--red); }
+  .branch.split { border-left: 3px solid var(--purple); }
+  .branch .out code { font-family: var(--mono); font-size: 12.5px; }
+
+  /* steward loop */
+  .loop { border-color: #4d3a6b; }
+  .loop .tag { color: var(--purple); border-color: #4d3a6b; }
+  .loopback {
+    margin-top: 14px; text-align: center;
+    font-family: var(--mono); font-size: 12.5px; color: var(--purple);
+    border-top: 1px dashed #4d3a6b; padding-top: 10px;
+  }
+
+  /* read side */
+  .reads .card { border-top: 3px solid var(--line); }
+  .reads .card.catalog { border-top-color: var(--green); }
+  .reads .card.history { border-top-color: var(--blue); }
+  .reads .card.api     { border-top-color: var(--accent); }
+  .reads .card.pubid   { border-top-color: var(--purple); }
+
+  footer { text-align: center; color: var(--muted); font-size: 12.5px; margin-top: 36px; }
+  footer code { font-family: var(--mono); }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <h1>The <em>Golden-Record</em> Engine</h1>
+  <p>One append-only event log is the system of record. Everything else — identity, catalog,
+     history, the customer API — is a <b>pure fold</b> over it. No GenServers, no runtime state.
+     (<code>lib/golden_record_core.ex</code>)</p>
+</header>
+
+<!-- ───────────────────────── sources ───────────────────────── -->
+<section class="stage">
+  <span class="tag">Sources</span>
+  <div class="sources">
+    <div class="source"><b>medipim</b><span>legacy feed (delta history)</span></div>
+    <div class="source"><b>ERP / internal</b><span>master data</span></div>
+    <div class="source"><b>supplier feeds</b><span>attributes &amp; media</span></div>
+    <div class="source"><b>stewards</b><span>human verdicts</span></div>
+  </div>
+</section>
+
+<div class="flow-arrow"><span class="lbl">raw facts, per source</span><span class="head">▼</span></div>
+
+<!-- ───────────────────────── ingestion ───────────────────────── -->
+<section class="stage">
+  <span class="tag">1 · Ingestion</span>
+  <h2><code>Substrate</code> + <code>Codes</code> — claims, not truths</h2>
+  <p class="lead">Sources never write the golden record. They <strong>assert claims</strong>, and every
+     code is canonicalized on the way in: the GTIN family (EAN-8 / UPC-12 / EAN-13 / GTIN-14) collapses
+     to one 14-digit form, national short codes are zero-padded — so equal trade items compare equal.</p>
+  <div class="row">
+    <div class="card">
+      <h3>Canonicalization <span class="mod">Codes</span></h3>
+      <p><code>{:ean, "5410013112345"}</code> → <code>{:gtin, "05410013112345"}</code><br>
+         Plus mod-10 validity, packaging-level indicator digit, and restricted-prefix detection.</p>
+    </div>
+    <div class="card">
+      <h3>Five kinds of claim <span class="mod">Substrate.claim/5</span></h3>
+      <div class="chips">
+        <span class="chip">identity <small>codes that co-name a variant</small></span>
+        <span class="chip">grouping <small>code → product</small></span>
+        <span class="chip">attribute <small>code · field · value</small></span>
+        <span class="chip">media <small>asset → target code</small></span>
+        <span class="chip">member_of <small>code → collection</small></span>
+      </div>
+      <p style="margin-top:8px">Each claim has <b>two clocks</b>: <code>valid_from</code> (true in the world)
+         and <code>recorded_at</code> (learned by us). Per (source, slot) only the <b>latest</b> claim is live.</p>
+    </div>
+  </div>
+</section>
+
+<div class="flow-arrow"><span class="lbl">ClaimAsserted, appended</span><span class="head">▼</span></div>
+
+<!-- ───────────────────────── event log ───────────────────────── -->
+<section class="stage log">
+  <span class="tag">The Event Log</span>
+  <h2>The system of record — append-only, replayable</h2>
+  <p class="lead">Every fact, identity decision, and steward verdict is an event. Nothing is ever
+     updated in place; projections re-derive state by folding.</p>
+  <div class="logtape">
+    <span class="ev claim">ClaimAsserted</span>
+    <span class="ev ident">IdentityMinted</span>
+    <span class="ev ident">IdentityMembersChanged</span>
+    <span class="ev ident">IdentitiesMerged</span>
+    <span class="ev ident">IdentitySplit</span>
+    <span class="ev ident">LegacyIdAssigned</span>
+    <span class="ev steward">ConflictFlagged</span>
+    <span class="ev steward">ConflictResolved</span>
+  </div>
+  <p class="legend">
+    <i class="b">■</i>facts from sources &nbsp;
+    <i class="g">■</i>identity lifecycle &nbsp;
+    <i class="p">■</i>stewardship — flags &amp; verdicts
+  </p>
+</section>
+
+<div class="flow-arrow"><span class="lbl">live identity claims</span><span class="head">▼</span></div>
+
+<!-- ───────────────────────── identity resolution ───────────────────────── -->
+<section class="stage">
+  <span class="tag">2 · Identity Resolution</span>
+  <h2><code>Cluster</code> → <code>IdentityLedger</code> — who is the same thing?</h2>
+  <p class="lead"><strong>Clustering:</strong> connected components over each source's identity-code sets —
+     two sets that share a code are the same variant. Except <strong>shared codes</strong>
+     (steward-declared, e.g. one GTIN on a bundle <em>and</em> its unit): they ride along on every
+     variant that bears them but <strong>never bridge</strong> clusters.</p>
+
+  <div class="clusterviz">
+    <svg width="640" height="120" viewBox="0 0 640 120">
+      <!-- cluster A -->
+      <rect x="10"  y="22" width="250" height="76" rx="10" fill="none" stroke="#3fb950" stroke-opacity=".5"/>
+      <text x="22" y="14" class="dim">cluster → SK_1</text>
+      <rect x="24"  y="36" width="106" height="22" rx="11" fill="#1c2330" stroke="#2d3748"/>
+      <text x="34" y="51">gtin …45</text>
+      <rect x="142" y="36" width="100" height="22" rx="11" fill="#1c2330" stroke="#2d3748"/>
+      <text x="152" y="51">cnk 44813</text>
+      <line x1="130" y1="47" x2="142" y2="47" stroke="#8b949e"/>
+      <rect x="80"  y="68" width="110" height="22" rx="11" fill="#1c2330" stroke="#2d3748"/>
+      <text x="90" y="83">pzn 0834…</text>
+      <line x1="100" y1="58" x2="110" y2="68" stroke="#8b949e"/>
+
+      <!-- shared code between -->
+      <rect x="288" y="48" width="118" height="24" rx="12" fill="none" stroke="#d4a843" stroke-dasharray="4 3"/>
+      <text x="300" y="64" fill="#d4a843">shared gtin</text>
+      <line x1="260" y1="60" x2="288" y2="60" stroke="#d4a843" stroke-dasharray="3 3"/>
+      <line x1="406" y1="60" x2="434" y2="60" stroke="#d4a843" stroke-dasharray="3 3"/>
+      <text x="282" y="100" class="dim">member of both — bridges neither</text>
+
+      <!-- cluster B -->
+      <rect x="434" y="22" width="196" height="76" rx="10" fill="none" stroke="#58a6ff" stroke-opacity=".5"/>
+      <text x="446" y="14" class="dim">cluster → SK_2</text>
+      <rect x="448" y="36" width="100" height="22" rx="11" fill="#1c2330" stroke="#2d3748"/>
+      <text x="458" y="51">cnk 90021</text>
+      <rect x="470" y="68" width="118" height="22" rx="11" fill="#1c2330" stroke="#2d3748"/>
+      <text x="480" y="83">acl13 312…</text>
+      <line x1="500" y1="58" x2="512" y2="68" stroke="#8b949e"/>
+    </svg>
+  </div>
+
+  <p class="lead" style="margin-top:8px"><strong>Reconciliation</strong> (<code>IdentityLedger.decide</code>):
+     each new cluster is matched against established surrogate keys —</p>
+  <div class="branches">
+    <div class="branch mint">
+      <span class="cond">overlaps 0 keys</span>
+      <span class="out">mint <code>SK_n</code></span>
+      <p>→ <code>IdentityMinted</code></p>
+    </div>
+    <div class="branch grow">
+      <span class="cond">overlaps 1 key</span>
+      <span class="out">extend it</span>
+      <p>→ <code>IdentityMembersChanged</code></p>
+    </div>
+    <div class="branch gate">
+      <span class="cond">overlaps ≥ 2 keys</span>
+      <span class="out">⛔ gated — propose, never auto-merge</span>
+      <p>→ <code>ConflictFlagged {:merge, keys}</code> for a steward</p>
+    </div>
+    <div class="branch split">
+      <span class="cond">1 key, ≥ 2 clusters</span>
+      <span class="out">split it</span>
+      <p>The GTIN-bearing / most-overlapping cluster keeps the key; the rest get fresh keys.
+         → <code>IdentitySplit</code></p>
+    </div>
+  </div>
+</section>
+
+<div class="flow-arrow"><span class="lbl">conflicts surface…</span><span class="head">▼</span></div>
+
+<!-- ───────────────────────── stewardship ───────────────────────── -->
+<section class="stage loop">
+  <span class="tag">3 · Stewardship — the human loop</span>
+  <h2><code>Stewardship</code> — flag what the machine can't settle</h2>
+  <div class="row">
+    <div class="card">
+      <h3>Detected automatically</h3>
+      <ul>
+        <li><b>Attribute ties</b> — top-priority sources disagree on a field → <code>{:attr, key, field}</code></li>
+        <li><b>Code collisions</b> — one variant's codes point at &gt;1 product → <code>{:collision, key}</code></li>
+        <li><b>Merge proposals</b> — from the gated reconcile branch → <code>{:merge, keys}</code></li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>Steward verdicts</h3>
+      <ul>
+        <li><b>pick</b> a value · <b>approve / reject</b> a merge · <b>resolve</b> a collision</li>
+        <li><b>mark shared</b> — "two products legitimately use this code" → clean end-state, no more bridging</li>
+        <li><b>split</b> — carve codes out of a key into fresh keys</li>
+      </ul>
+    </div>
+  </div>
+  <div class="loopback">every verdict is a <b>ConflictResolved</b> event, appended back to the log&nbsp; ↺
+    &nbsp;— so the next fold (and the next reconcile) honors it</div>
+</section>
+
+<div class="flow-arrow"><span class="lbl">fold the log — pure projections</span><span class="head">▼</span></div>
+
+<!-- ───────────────────────── read side ───────────────────────── -->
+<section class="stage reads">
+  <span class="tag">4 · Read Side — every projection is a fold</span>
+  <h2>Four views, one log</h2>
+  <div class="row">
+    <div class="card catalog">
+      <h3>Catalog <span class="mod">Catalog · Survivorship · Priority</span></h3>
+      <p>The golden record now: per key, fields decided by <b>source-priority tiers per dimension</b>;
+         steward picks override. Media and categories attach <b>by code</b>, so they re-home
+         automatically across splits and merges.</p>
+    </div>
+    <div class="card history">
+      <h3>History <span class="mod">History</span></h3>
+      <p><b>Bitemporal time travel</b>: project as-known-on × effective-on by filtering the two clocks
+         before folding. Plus <b>lineage</b> — the full identity story of any key.</p>
+    </div>
+    <div class="card api">
+      <h3>Customer API <span class="mod">Api</span></h3>
+      <p>Customers address <b>by code, not key</b>. A stale key still answers — with
+         <code>:merged → survivor</code> or <code>:split → parts</code> redirects — and a
+         <b>change feed</b> of identity events repairs local copies.</p>
+    </div>
+    <div class="card pubid">
+      <h3>Public IDs <span class="mod">PublicId</span></h3>
+      <p>Identity-grade schemes like <b>CNK</b>: one canonical value per key (chosen by priority),
+         the rest become aliases; an invariant check guarantees no code ever owns two keys.</p>
+    </div>
+  </div>
+</section>
+
+<footer>
+  Pure functions, stdlib only, no runtime state — the log <em>is</em> the database.
+  &nbsp;·&nbsp; <code>mix test</code> · 72 tests
+</footer>
+
+</div>
+</body>
+</html>
