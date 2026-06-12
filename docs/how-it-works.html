@@ -62,6 +62,8 @@
   .act h2 { margin: 4px 0 6px; font-size: 20px; }
   .act > p.say { color: var(--muted); margin: 0 0 14px; max-width: 700px; }
   .act > p.say b, .act > p.say strong { color: var(--ink); }
+  .act h3 { font-size: 15px; margin: 20px 0 2px; }
+  .act h3 .n { color: var(--accent); font-family: var(--mono); font-size: 13px; margin-right: 6px; }
   .viz { display: flex; justify-content: center; margin: 6px 0 2px; }
   .viz svg { max-width: 100%; height: auto; }
   .caption { color: var(--muted); font-size: 13.5px; margin-top: 12px; text-align: center; }
@@ -331,6 +333,72 @@
       <text x="300" y="196" fill="#f47067">✋</text>
       <text x="340" y="186" class="dim">two long-established products suddenly look connected?</text>
       <text x="340" y="202" class="dim">Ingot never merges them on its own — it asks a person.</text>
+    </svg>
+  </div>
+</section>
+
+<div class="between"><span class="lbl">but codes aren't always one-to-one</span></div>
+
+<!-- ─────────────── act 4b: tricky cases ─────────────── -->
+<section class="act">
+  <span class="tag">The tricky cases</span>
+  <h2>When codes play tricks</h2>
+  <p class="say">Two patterns show up constantly in real product data — both would silently corrupt a
+     naive system. Ingot has a precise answer for each.</p>
+
+  <h3><span class="n">A</span> Two codes, one product</h3>
+  <p class="say">Our sunscreen gets <strong>re-registered</strong> (new label text, same tube) and receives a
+     <em>second</em> national code — but half the feeds still use the old one. Both codes land on the
+     <strong>same record</strong>: one becomes the main public number, the other stays as a findable alias.</p>
+  <div class="viz">
+    <svg width="740" height="180" viewBox="0 0 740 180">
+      <!-- the two CNKs -->
+      <rect x="20" y="26" width="186" height="34" rx="17" fill="#1c2330" stroke="#2d3748"/>
+      <text x="36" y="47">cnk 4481838</text>
+      <text x="142" y="47" class="dim">old</text>
+      <rect x="20" y="112" width="186" height="34" rx="17" fill="#1c2330" stroke="#2d3748"/>
+      <text x="36" y="133">cnk 4530117</text>
+      <text x="142" y="133" class="dim">new</text>
+      <line x1="206" y1="43"  x2="290" y2="78" stroke="#8b949e"/>
+      <line x1="206" y1="129" x2="290" y2="94" stroke="#8b949e"/>
+      <!-- one product -->
+      <circle cx="330" cy="86" r="38" fill="none" stroke="#3fb950" stroke-opacity=".8"/>
+      <text x="310" y="82" class="lbl">one</text>
+      <text x="300" y="98" class="lbl">product</text>
+      <line x1="368" y1="86" x2="420" y2="86" stroke="#8b949e"/>
+      <path d="M 414 81 L 422 86 L 414 91" fill="none" stroke="#8b949e"/>
+      <!-- main + alias -->
+      <rect x="424" y="38" width="244" height="36" rx="18" fill="none" stroke="#d4a843"/>
+      <text x="440" y="60" fill="#d4a843">main number: cnk 4530117 ✓</text>
+      <rect x="424" y="106" width="244" height="36" rx="18" fill="none" stroke="#2d3748"/>
+      <text x="440" y="128" class="dim">alias: cnk 4481838 — still findable</text>
+      <text x="424" y="166" class="dim">old links, old orders and old feeds keep working — they all land on the same record</text>
+    </svg>
+  </div>
+  <p class="caption">And the hard guarantee underneath: <b>a code can never belong to two records at
+     once</b> — the engine checks that invariant on every change.</p>
+
+  <h3><span class="n">B</span> One code, two products</h3>
+  <p class="say">The mirror image: the <strong>duo-pack</strong> ships with the <em>same barcode</em>
+     printed on it as the single tube (it happens more than you'd think). A steward marks the code
+     as <strong>shared</strong>: it stays attached to both products, but it can never glue them into one.</p>
+  <div class="viz">
+    <svg width="740" height="150" viewBox="0 0 740 150">
+      <!-- left product -->
+      <circle cx="120" cy="70" r="34" fill="none" stroke="#58a6ff" stroke-opacity=".8"/>
+      <text x="98" y="66" class="lbl">single</text>
+      <text x="102" y="82" class="lbl">tube</text>
+      <!-- right product -->
+      <circle cx="620" cy="70" r="34" fill="none" stroke="#bc8cff" stroke-opacity=".8"/>
+      <text x="596" y="66" class="lbl">duo-pack</text>
+      <text x="606" y="82" class="lbl">of 2</text>
+      <!-- the shared code in the middle -->
+      <rect x="266" y="52" width="208" height="36" rx="18" fill="none" stroke="#d4a843" stroke-dasharray="5 4"/>
+      <text x="282" y="74" fill="#d4a843">gtin …112345</text>
+      <text x="404" y="74" class="dim">shared</text>
+      <line x1="154" y1="70" x2="266" y2="70" stroke="#d4a843" stroke-dasharray="4 3"/>
+      <line x1="474" y1="70" x2="586" y2="70" stroke="#d4a843" stroke-dasharray="4 3"/>
+      <text x="226" y="124" class="dim">rides along on both records — but never bridges them into one product</text>
     </svg>
   </div>
 </section>
