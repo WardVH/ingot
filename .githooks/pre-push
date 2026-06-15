@@ -1,0 +1,37 @@
+#!/bin/sh
+# Shared pre-push hook (version-controlled). Block pushes that would fail CI's
+# formatting gate.
+#
+# Enable it once per clone:
+#   git config core.hooksPath .githooks
+#
+# Mirrors .github/workflows/ci.yml: `mix format --check-formatted` is run in
+# every Mix project (the engine at the repo root and the api/ app). This is a
+# check, not an auto-fix — a fix here would only touch the working tree and
+# still leave the *committed* code unformatted, so the push would fail CI
+# anyway. Blocking lets you `mix format`, commit, and push clean.
+#
+# Runs from the repo root (git invokes hooks there). To skip in a pinch:
+#   git push --no-verify
+
+set -eu
+
+projects="api ."   # api/ first so its slower deps surface early; "." always exists
+failed=""
+
+for dir in $projects; do
+	[ -f "$dir/mix.exs" ] || continue
+	printf '[pre-push] mix format --check-formatted (%s)\n' "$dir"
+	if ! (cd "$dir" && mix format --check-formatted); then
+		failed="$failed $dir"
+	fi
+done
+
+if [ -n "$failed" ]; then
+	echo
+	echo "[pre-push] ✗ unformatted code in:$failed"
+	echo "[pre-push]   run 'mix format' there, commit, then push again (or 'git push --no-verify' to bypass)."
+	exit 1
+fi
+
+echo "[pre-push] ✓ formatting OK"

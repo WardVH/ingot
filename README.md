@@ -38,6 +38,16 @@ mix run golden_record_api.exs       # collections, CNK, the read API
 elixir golden_record.exs            # the standalone pre-DDD version
 ```
 
+## Git hooks
+
+A version-controlled `pre-push` hook (`.githooks/pre-push`) refuses to push unformatted code: it
+runs `mix format --check-formatted` in both Mix projects (repo root and `api/`), exactly as CI
+does. Enable it once per clone:
+
+```sh
+git config core.hooksPath .githooks
+```
+
 ## The model in one paragraph
 
 Everything is a **graph of code-identified nodes** (products, variants, media, categories)

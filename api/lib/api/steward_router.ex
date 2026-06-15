@@ -87,6 +87,12 @@ defmodule Api.StewardRouter do
     |> send_resp(status, JSON.encode!(body))
   end
 
+  # HTML-escape every interpolated value before it lands in the page. The notice query param is
+  # attacker-controllable and proposal by/reason are steward free text; source/ref/value/code/key
+  # all originate in ingested third-party data. Coerce to string first so keys/atoms/ints escape
+  # uniformly (the same String.Chars contract the default EEx output already required).
+  defp h(value), do: value |> to_string() |> Plug.HTML.html_escape()
+
   # ── EEx template (compiled) ─────────────────────────────────────────────────
   EEx.function_from_string(
     :defp,
@@ -129,60 +135,60 @@ defmodule Api.StewardRouter do
     </head>
     <body>
       <h1>Steward queue <span class="muted">(<%= queue.open %> open)</span></h1>
-      <%= if notice do %><p class="notice"><%= notice %></p><% end %>
+      <%= if notice do %><p class="notice"><%= h(notice) %></p><% end %>
       <%= if queue.open == 0 do %><p class="muted">Nothing needs a human right now — the engine resolved everything it was allowed to.</p><% end %>
 
       <%= if queue.merges != [] do %><h2>Merge proposals — gated, never automatic</h2><% end %>
       <%= for m <- queue.merges do %>
         <div class="item flag">
-          <div><b><%= Enum.join(m.keys, " + ") %></b> <span class="muted">— proposed merge</span></div>
+          <div><b><%= h(Enum.join(m.keys, " + ")) %></b> <span class="muted">— proposed merge</span></div>
           <%= if m.bridges == [] do %>
             <p class="why">These keys now <b>directly share</b> a code that each carries as its own —
             same dilemma: one product, or a reused code. The engine won't guess.</p>
           <% else %>
             <% b = hd(m.bridges) %>
             <% extra = length(m.bridges) - 1 %>
-            <p class="why">Until <b><%= b.date %></b>, <%= Enum.join(m.keys, " and ") %> were
+            <p class="why">Until <b><%= h(b.date) %></b>, <%= h(Enum.join(m.keys, " and ")) %> were
             <b>separate products</b>, each backed by its own sources (shown per code below). Then
-            <b class="bridge-src"><%= b.source %></b>'s listing <code><%= b.ref %></code> claimed a code
+            <b class="bridge-src"><%= h(b.source) %></b>'s listing <code><%= h(b.ref) %></code> claimed a code
             from <b>both</b><%= if extra > 0, do: " (and " <> Integer.to_string(extra) <> " more listings do the same)" %>.
             That can mean one product listed twice — or a mislabeled listing. The engine never merges
             established identities on its own; it stopped here and is asking you.</p>
           <% end %>
           <%= for {key, codes} <- m.members do %>
-            <div class="members-row"><b><%= key %></b>:
+            <div class="members-row"><b><%= h(key) %></b>:
               <%= for c <- codes do %>
-                <span class="codecell"><code><%= c.code %></code><span class="srcs">by
-                  <%= for s <- c.sources do %><span class="<%= if s in m.bridge_sources, do: "bridge-src", else: "src" %>"><%= s %></span><% end %>
+                <span class="codecell"><code><%= h(c.code) %></code><span class="srcs">by
+                  <%= for s <- c.sources do %><span class="<%= if s in m.bridge_sources, do: "bridge-src", else: "src" %>"><%= h(s) %></span><% end %>
                 </span></span>
               <% end %>
             </div>
           <% end %>
           <%= if m.shared != [] do %>
-            <div class="members-row"><span class="muted">directly shared:</span> <%= for c <- m.shared do %><code><%= c %></code><% end %></div>
+            <div class="members-row"><span class="muted">directly shared:</span> <%= for c <- m.shared do %><code><%= h(c) %></code><% end %></div>
           <% end %>
           <%= for b <- m.bridges do %>
             <div class="bridge-row">
-              <span class="muted">the new evidence (<%= b.date %>):</span> <b class="bridge-src"><%= b.source %></b> <span class="muted">listing</span> <code><%= b.ref %></code>
+              <span class="muted">the new evidence (<%= h(b.date) %>):</span> <b class="bridge-src"><%= h(b.source) %></b> <span class="muted">listing</span> <code><%= h(b.ref) %></code>
               <span class="muted">claiming</span>
               <%= for c <- b.codes do %>
-                <code><%= c.code %></code><span class="owner<%= if c.owner == nil, do: " none" %>"><%= c.owner || "new" %></span>
+                <code><%= h(c.code) %></code><span class="owner<%= if c.owner == nil, do: " none" %>"><%= h(c.owner || "new") %></span>
               <% end %>
             </div>
           <% end %>
           <%= if m.proposal do %>
-            <div class="muted">endorsed by <b><%= m.proposal.by %></b><%= if m.proposal.reason do %> — “<%= m.proposal.reason %>”<% end %> · awaiting a second steward</div>
+            <div class="muted">endorsed by <b><%= h(m.proposal.by) %></b><%= if m.proposal.reason do %> — “<%= h(m.proposal.reason) %>”<% end %> · awaiting a second steward</div>
           <% end %>
           <form method="post" action="<%= base %>/decide" class="inline">
             <input type="hidden" name="kind" value="approve_merge"/>
-            <input type="hidden" name="keys" value="<%= Enum.join(m.keys, "+") %>"/>
+            <input type="hidden" name="keys" value="<%= h(Enum.join(m.keys, "+")) %>"/>
             <input type="text" name="by" placeholder="your name" required/>
             <input type="text" name="reason" placeholder="reason (optional)"/>
             <button class="go"><%= if m.proposal, do: "approve merge (2nd steward)", else: "propose — same product" %></button>
           </form>
           <form method="post" action="<%= base %>/decide" class="inline">
             <input type="hidden" name="kind" value="reject_merge"/>
-            <input type="hidden" name="keys" value="<%= Enum.join(m.keys, "+") %>"/>
+            <input type="hidden" name="keys" value="<%= h(Enum.join(m.keys, "+")) %>"/>
             <input type="text" name="by" placeholder="your name" required/>
             <input type="text" name="reason" placeholder="reason (optional)"/>
             <button class="danger">reject — two products</button>
@@ -193,13 +199,13 @@ defmodule Api.StewardRouter do
       <%= if queue.attributes != [] do %><h2>Attribute ties — the engine won't guess</h2><% end %>
       <%= for a <- queue.attributes do %>
         <div class="item">
-          <div><b><%= a.field %></b> on <b><%= a.key %></b>:
-            <%= for c <- a.candidates do %><code><%= c.source %> says <%= c.value %></code><% end %>
+          <div><b><%= h(a.field) %></b> on <b><%= h(a.key) %></b>:
+            <%= for c <- a.candidates do %><code><%= h(c.source) %> says <%= h(c.value) %></code><% end %>
           </div>
           <form method="post" action="<%= base %>/decide">
             <input type="hidden" name="kind" value="resolve_attribute"/>
-            <input type="hidden" name="key" value="<%= a.key %>"/>
-            <input type="hidden" name="field" value="<%= a.field %>"/>
+            <input type="hidden" name="key" value="<%= h(a.key) %>"/>
+            <input type="hidden" name="field" value="<%= h(a.field) %>"/>
             <input type="text" name="value" placeholder="the correct value" required/>
             <input type="text" name="by" placeholder="your name" required/>
             <input type="text" name="reason" placeholder="reason (optional)"/>
@@ -215,13 +221,13 @@ defmodule Api.StewardRouter do
       <% end %>
       <%= for r <- queue.repairs do %>
         <div class="item">
-          <div><b><%= r.key %></b> <span class="muted">absorbed <%= Enum.join(r.merged_from, ", ") %></span></div>
+          <div><b><%= h(r.key) %></b> <span class="muted">absorbed <%= h(Enum.join(r.merged_from, ", ")) %></span></div>
           <form method="post" action="<%= base %>/decide">
             <input type="hidden" name="kind" value="split"/>
-            <input type="hidden" name="key" value="<%= r.key %>"/>
+            <input type="hidden" name="key" value="<%= h(r.key) %>"/>
             <%= for c <- r.codes do %>
-              <label class="pick"><input type="checkbox" name="codes[]" value="<%= c.code %>"/><code><%= c.code %></code>
-                <span class="muted">claimed by <%= Enum.join(c.sources, ", ") %></span></label>
+              <label class="pick"><input type="checkbox" name="codes[]" value="<%= h(c.code) %>"/><code><%= h(c.code) %></code>
+                <span class="muted">claimed by <%= h(Enum.join(c.sources, ", ")) %></span></label>
             <% end %>
             <input type="text" name="by" placeholder="your name" required/>
             <input type="text" name="reason" placeholder="reason (optional)"/>
@@ -234,14 +240,14 @@ defmodule Api.StewardRouter do
         <summary>Manual repairs — split any key</summary>
         <%= for k <- queue.manual do %>
           <details>
-            <summary><b><%= k.key %></b> <span class="muted">(<%= length(k.codes) %> codes)</span></summary>
+            <summary><b><%= h(k.key) %></b> <span class="muted">(<%= length(k.codes) %> codes)</span></summary>
             <div class="item">
               <form method="post" action="<%= base %>/decide">
                 <input type="hidden" name="kind" value="split"/>
-                <input type="hidden" name="key" value="<%= k.key %>"/>
+                <input type="hidden" name="key" value="<%= h(k.key) %>"/>
                 <%= for c <- k.codes do %>
-                  <label class="pick"><input type="checkbox" name="codes[]" value="<%= c.code %>"/><code><%= c.code %></code>
-                    <span class="muted">claimed by <%= Enum.join(c.sources, ", ") %></span></label>
+                  <label class="pick"><input type="checkbox" name="codes[]" value="<%= h(c.code) %>"/><code><%= h(c.code) %></code>
+                    <span class="muted">claimed by <%= h(Enum.join(c.sources, ", ")) %></span></label>
                 <% end %>
                 <input type="text" name="by" placeholder="your name" required/>
                 <input type="text" name="reason" placeholder="reason (optional)"/>
