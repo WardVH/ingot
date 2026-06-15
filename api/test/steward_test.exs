@@ -486,5 +486,59 @@ defmodule Api.StewardTest do
       assert conn.status == 303
       assert map_size(Api.Store.state().ledger.members) == 1
     end
+
+    # gr-cky: every dynamic value on the page is HTML-escaped. The notice query param is fully
+    # attacker-controllable (reflected), proposal by/reason are steward free text (stored), and
+    # attribute values arrive verbatim from ingested third-party claims.
+    test "escapes the notice query param — no reflected XSS" do
+      conn =
+        conn(:get, "/steward/?notice=" <> URI.encode_www_form("<script>alert(1)</script>"))
+        |> basic()
+        |> then(&Api.Router.call(&1, Api.Router.init([])))
+
+      assert conn.status == 200
+      refute conn.resp_body =~ "<script>alert(1)</script>"
+      assert conn.resp_body =~ "&lt;script&gt;alert(1)&lt;/script&gt;"
+    end
+
+    test "escapes steward-supplied proposal by/reason — no stored XSS" do
+      [k1, k2] = seed_bridged()
+
+      # a single endorse leaves a pending proposal the page renders (by + reason)
+      assert steward!(:post, "/steward/v1/decisions", %{
+               kind: "approve_merge",
+               keys: [k1, k2],
+               by: "<b>mallory</b>",
+               reason: "<script>alert('xss')</script>"
+             }).status == 200
+
+      page = conn(:get, "/steward/") |> basic() |> then(&Api.Router.call(&1, Api.Router.init([])))
+
+      refute page.resp_body =~ "<script>alert('xss')</script>"
+      refute page.resp_body =~ "<b>mallory</b>"
+      assert page.resp_body =~ "&lt;script&gt;alert(&#39;xss&#39;)&lt;/script&gt;"
+      assert page.resp_body =~ "&lt;b&gt;mallory&lt;/b&gt;"
+    end
+
+    test "escapes ingested attribute values rendered on the page" do
+      product!(:post, "/v1/claims", %{
+        claims: [
+          %{kind: "identity", source: "a", ref: "X", codes: ["cnk:1000001"]},
+          %{
+            kind: "attribute",
+            source: "a",
+            code: "cnk:1000001",
+            field: "color",
+            value: "<script>pwn()</script>"
+          },
+          %{kind: "attribute", source: "b", code: "cnk:1000001", field: "color", value: "ivory"}
+        ]
+      })
+
+      page = conn(:get, "/steward/") |> basic() |> then(&Api.Router.call(&1, Api.Router.init([])))
+
+      refute page.resp_body =~ "<script>pwn()</script>"
+      assert page.resp_body =~ "&lt;script&gt;pwn()&lt;/script&gt;"
+    end
   end
 end
