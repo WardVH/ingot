@@ -39,6 +39,13 @@
 # and edge removals (a snapshot-v1 simplification — member_of unions and does not retract).
 
 defmodule ClaimMapping do
+  @moduledoc """
+  The medipim reference adapter: folds contract-C `HistoryEnvelope`s into canonical claims
+  (`canonical_claims/1`) and composes them into engine claims plus the `shared` code set
+  (`build/1`) — the backfill seam every future source adapter copies. See the header for the
+  per-listing identity fold, canonicalize/partition, and the synthesized grouping/member_of claims.
+  """
+
   # medipim field → engine scheme atom is owned by CodeRegistry (the single source of medipim code
   # knowledge): the GTIN family all canonicalize to :gtin; each national code keeps its own atom.
 

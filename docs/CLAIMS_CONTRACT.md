@@ -203,9 +203,12 @@ description↔product pairing with a four-eyes-gated `suppress` edge, leaving th
 intact. Visibility is **derived, never stored**: a product newly claiming a substance instantly
 shows that substance's descriptions, because the page is a fold over the edges, not a copy.
 
-> The engine internally also has a legacy `member_of` claim kind (code → collection
-> membership); the constructor still accepts it but lowers it to an `edge` with relation
-> `member_of`. The wire shape for collection membership remains open question 1.
+> Collection membership rides the standard `edge` claim — submit
+> `{"kind":"edge","relation":"member_of","from":"<product code>","to":"<collection code>"}`,
+> and the engine derives categories from it. The engine also still accepts the legacy
+> `member_of` claim kind and lowers it to exactly this edge, so backfill logs keep working.
+> What remains open is only how a collection namespace is spelled as a `to` code (open
+> question 1).
 
 ---
 
@@ -290,9 +293,13 @@ speaks; `contract/scheme_registry.schema.json` is its schema.
 
 ## Open questions (underspecified in the current format)
 
-1. **`member_of` edge claims are not on the wire.** The engine produces them internally
-   (medipim adapter: categories, brands, labos); the live contract has no JSON shape for them
-   yet. Candidate shape: `{"kind": "member_of", "source", "code", "collection", "member"}`.
+1. **The `member_of` `to`-side collection identifier is unstandardized.** Collection
+   membership now rides a standard `edge` claim (`relation: "member_of"`, `from` a product code,
+   `to` a collection code) and the engine derives categories from it — so `member_of` *is* on
+   the wire. What is still open is the *scheme* for the `to` code: how a category/brand/labo
+   namespace is spelled as `scheme:value` (its lane is unchecked today). The medipim backfill
+   adapter still emits the legacy `{"kind": "member_of", "source", "code", "collection",
+   "member"}` claim, which the constructor lowers to this edge.
 2. **Checksums are advisory.** `gtin_mod10` is implemented (`Codes.valid_gtin?/1`) but not
    called at the submission boundary — a syntactically valid GTIN with a bad check digit is
    accepted. Should the MIT validator warn, and should the engine optionally reject?

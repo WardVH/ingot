@@ -253,6 +253,8 @@ defmodule EntityLanesTest do
       golden = project(scenario() ++ [suppress_edge], @d2)
 
       assert find_variant(golden, {:cnk, "0111"}).descriptions == []
+      # The suppress hides only the description↔product pairing; the substance tag is untouched.
+      assert [%{key: "SUB_1"}] = find_variant(golden, {:cnk, "0111"}).substances
       assert [%{key: "DSC_1"}] = find_variant(golden, {:cnk, "0222"}).descriptions
     end
 

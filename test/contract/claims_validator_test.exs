@@ -148,6 +148,32 @@ defmodule ClaimsValidatorTest do
                  %{"kind" => "identity", "source" => "m", "ref" => "P", "codes" => ["mpn:AB:12"]}
                ])
     end
+
+    test "an all-uuid identity claim must name its lane via entity (else it silently defaults to product)" do
+      assert {:error, [%{index: 0, field: "entity", error: error}]} =
+               ClaimsValidator.validate([
+                 %{"kind" => "identity", "source" => "m", "ref" => "P", "codes" => ["uuid:0d6f8a3e"]}
+               ])
+
+      assert error =~ "lane-neutral uuid"
+
+      # A lane-bearing code alongside the uuid satisfies the rule — entity is then optional.
+      assert {:ok, []} =
+               ClaimsValidator.validate([
+                 %{"kind" => "identity", "source" => "m", "ref" => "P", "codes" => ["uuid:0d6f8a3e", "cnk:1"]}
+               ])
+
+      assert {:ok, []} =
+               ClaimsValidator.validate([
+                 %{
+                   "kind" => "identity",
+                   "source" => "m",
+                   "ref" => "P",
+                   "codes" => ["uuid:0d6f8a3e"],
+                   "entity" => "description"
+                 }
+               ])
+    end
   end
 
   describe "date fields" do

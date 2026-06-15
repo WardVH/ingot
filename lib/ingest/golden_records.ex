@@ -36,6 +36,13 @@
 # legacy⟷SK map (gr-0c2), nor the demo script / synthetic fixtures (gr-bxf).
 
 defmodule GoldenRecords do
+  @moduledoc """
+  Projects the re-derived ingest log into customer-facing golden records — products ▸ variants ▸
+  {codes, survivorship-resolved attributes, CNK canonical+aliases, categories, media, substances,
+  derived descriptions} — via the Date-free `Catalog.project` path (see the header for why, and
+  for the media/description lanes promoted to first-class records by `ClaimMapping`).
+  """
+
   # No steward overrides in the PoC — the ingest mints fresh keys and has no human-resolved
   # conflicts to replay, so both override maps are empty.
   @no_overrides %{attr: %{}, product: %{}}

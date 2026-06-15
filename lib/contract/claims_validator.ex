@@ -143,9 +143,30 @@ defmodule ClaimsValidator do
       %{"entity" => value} ->
         [error(index, "entity", "entity must be a lane name string, got #{inspect(value)}")]
 
+      # No entity, but every code is the lane-neutral uuid scheme — the claim carries no lane of
+      # its own, so it MUST name one. Without this, Lanes.of_claim/1 silently defaults it to
+      # :product (the contract makes entity required exactly here).
+      %{"codes" => [_ | _] = list} ->
+        if lane_neutral_codes?(list) do
+          [error(index, "entity", "entity is required when every code is the lane-neutral uuid scheme")]
+        else
+          []
+        end
+
       _ ->
         []
     end
+  end
+
+  # True only when every code parses AND every code's scheme is lane-neutral (`:uuid` today —
+  # Lanes.lane_of_scheme/1 returns nil). Malformed codes are already reported by codes/2.
+  defp lane_neutral_codes?(list) do
+    Enum.all?(list, fn raw ->
+      case CanonicalClaims.parse_code(raw) do
+        {:ok, {scheme, _}} -> Lanes.lane_of_scheme(scheme) == nil
+        _ -> false
+      end
+    end)
   end
 
   # The relation must exist in the registry AND its lane signature must hold (the design's
