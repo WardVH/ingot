@@ -12,7 +12,9 @@ defmodule Api.Writes do
   field, value, valid_from); `data` carries codes already canonicalized by `Substrate.claim/5`,
   so equivalent spellings (`"ean:…"` vs its GTIN-14) share one identity. `recorded_at` (the
   server clock) and `order` are deliberately excluded, so resubmitting the same claim on a later
-  day is still the same claim. Inside the writer transaction a claim whose slot
+  day is still the same claim — but ONLY when `valid_from` is explicit; with `valid_from` omitted
+  it defaults to that day's `recorded_at` (`CanonicalClaims.to_engine/2`), so an otherwise
+  identical resubmission on a later day is a DIFFERENT identity. Inside the writer transaction a claim whose slot
   (`Substrate.slot/1`) currently holds identical content is SKIPPED — resubmitting a batch
   appends nothing and churns nothing (mirrors the backfill no-op branch), while a changed
   payload still updates its slot (last-wins per the contract).
@@ -64,21 +66,10 @@ defmodule Api.Writes do
     case CanonicalClaims.to_engine(claim_maps, recorded_at: Date.utc_today()) do
       {:ok, new_claims} ->
         Api.Store.append(fn state, _conn ->
-          fresh =
-            new_claims
-            |> Enum.uniq_by(&claim_identity/1)
-            |> Enum.reject(&asserted?(state, &1))
+          {fresh, events, identity_events} = resolve(state, new_claims)
 
-          case fresh do
-            [] ->
-              {:ok, [], summary(0, length(new_claims), [], [])}
-
-            fresh ->
-              {events, identity_events} = pipeline(state, fresh, MapSet.new())
-
-              {:ok, events,
-               summary(length(fresh), length(new_claims) - length(fresh), fresh, identity_events)}
-          end
+          {:ok, events,
+           summary(length(fresh), length(new_claims) - length(fresh), fresh, identity_events)}
         end)
 
       {:error, errors} ->
@@ -115,16 +106,7 @@ defmodule Api.Writes do
       {:ok, new_claims} ->
         batch = if opts[:compact], do: compact(new_claims), else: new_claims
 
-        fresh =
-          batch
-          |> Enum.uniq_by(&claim_identity/1)
-          |> Enum.reject(&asserted?(state, &1))
-
-        {events, identity_events} =
-          case fresh do
-            [] -> {[], []}
-            fresh -> pipeline(state, fresh, MapSet.new())
-          end
+        {fresh, events, identity_events} = resolve(state, batch)
 
         stamped =
           events
@@ -150,17 +132,46 @@ defmodule Api.Writes do
   defp compact(claims),
     do: claims |> Enum.reverse() |> Enum.uniq_by(&Substrate.slot/1) |> Enum.reverse()
 
+  # The shared resolve body for `claims/1` and `simulate/3` (gr-rlq/gr-dfp): winnow the batch
+  # against the threaded slot view, then run the reconcile pipeline over what's left (or nothing).
+  defp resolve(state, batch) do
+    fresh = winnow(state, batch)
+
+    {events, identity_events} =
+      case fresh do
+        [] -> {[], []}
+        fresh -> pipeline(state, fresh, MapSet.new())
+      end
+
+    {fresh, events, identity_events}
+  end
+
+  # Drop the no-ops, keep the real assertions — checking each entry against the slot view it
+  # BUILDS UP (gr-cih), not the stale transaction-start state. An entry whose slot already holds
+  # identical content (in-batch OR pre-batch) is a pure no-op under last-wins and is dropped;
+  # changed content in the same slot is kept. Threading the view is what makes a batch that
+  # asserts one slot twice settle last-wins, rather than mis-skipping a later entry that happens
+  # to equal the pre-batch value. Exact-duplicate entries collapse first via `claim_identity`.
+  defp winnow(state, batch) do
+    {kept, _view} =
+      batch
+      |> Enum.uniq_by(&claim_identity/1)
+      |> Enum.reduce({[], state.current}, fn claim, {kept, view} ->
+        slot = Substrate.slot(claim)
+        current = Map.get(view, slot)
+
+        if current && claim_identity(current) == claim_identity(claim) do
+          {kept, view}
+        else
+          {[claim | kept], Map.put(view, slot, claim)}
+        end
+      end)
+
+    Enum.reverse(kept)
+  end
+
   # ── deterministic claim identity (idempotent resubmission — see the moduledoc) ─
   defp claim_identity(c), do: {c.source, c.kind, c.data, c.valid_from}
-
-  # Already asserted: the claim's slot currently holds identical content, so appending it would
-  # be a pure no-op under last-wins. Changed content in the same slot is NOT a duplicate.
-  defp asserted?(state, claim) do
-    case Map.get(state.current, Substrate.slot(claim)) do
-      nil -> false
-      current -> claim_identity(current) == claim_identity(claim)
-    end
-  end
 
   # ── the shared reconcile pipeline ───────────────────────────────────────────
   defp pipeline(state, new_claims, extra_shared) do

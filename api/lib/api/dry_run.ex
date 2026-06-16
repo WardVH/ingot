@@ -26,13 +26,16 @@ defmodule Api.DryRun do
                            already resolved).
   """
 
-  @priority Priority.new(%{}, [])
+  @priority Api.Priority.empty()
 
   @doc "Build the dry-run migration report for a decoded claims batch. Commits nothing."
   def report(claim_maps) do
     state = Api.Store.state()
 
-    case Api.Writes.simulate(state, claim_maps) do
+    # compact: true matches the cutover this dry-run predicts (gr-dfp) — a slot's non-final
+    # history must not survive into the accepted count, or a dry-run AFTER a cutover of the same
+    # batch would report accepted > 0 where the cutover compacted to a no-op.
+    case Api.Writes.simulate(state, claim_maps, compact: true) do
       {:error, errors} ->
         rejected(errors)
 

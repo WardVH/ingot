@@ -171,6 +171,36 @@ defmodule Api.WritesTest do
       assert map_size(Api.Store.state().ledger.members) == 2
     end
 
+    test "same slot twice in one batch resolves last-wins, even when the last value equals pre-batch state" do
+      # establish the slot at value X
+      post!("/v1/claims", %{
+        claims: [
+          %{kind: "identity", source: "m", ref: "X", codes: ["cnk:1000001"]},
+          %{kind: "attribute", source: "m", code: "cnk:1000001", field: "name", value: "X"}
+        ]
+      })
+
+      # a batch that asserts the SAME slot twice: Y, then X (X equals the pre-batch state).
+      # asserted? against transaction-start state would mis-skip the trailing X and let Y win;
+      # threading the in-batch view keeps both, so last-wins settles on X.
+      conn =
+        post!("/v1/claims", %{
+          claims: [
+            %{kind: "attribute", source: "m", code: "cnk:1000001", field: "name", value: "Y"},
+            %{kind: "attribute", source: "m", code: "cnk:1000001", field: "name", value: "X"}
+          ]
+        })
+
+      assert conn.status == 200
+
+      # exactly one live name claim, and last-wins settled it on X (not the mis-skipped Y)
+      name_claims =
+        for {_slot, %{kind: :attribute, data: %{field: "name"}} = c} <- Api.Store.state().current,
+            do: c.data.value
+
+      assert name_claims == ["X"]
+    end
+
     test "a live bridge between two ESTABLISHED keys is flagged, never merged" do
       post!("/v1/claims", %{
         claims: [

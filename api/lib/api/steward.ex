@@ -11,7 +11,7 @@ defmodule Api.Steward do
   (`Stewardship.endorse_merge/6`), not by this module or any UI.
   """
 
-  @priority Priority.new(%{}, [])
+  @priority Api.Priority.empty()
 
   # ── the queue ───────────────────────────────────────────────────────────────
   def queue do
