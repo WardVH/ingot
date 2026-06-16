@@ -127,7 +127,12 @@ defmodule FinerClaims do
           |> Enum.filter(&(Date.compare(&1.recorded_at, d) != :gt))
           |> Substrate.current()
 
-        events = IdentityLedger.decide(prev, {:reconcile, Cluster.variants(live, shared), shared, d})
+        # PRODUCT-lane fold: this threaded single ledger is the live-append contract (the
+        # Product API passes it back in), so non-product lanes stay out — their identity claims
+        # reconcile in the batch paths (Rederivation/Temporal via Lanes.reconcile); unreconciled
+        # lane endpoints still resolve in Catalog by code (owner/2's code-as-key fallback).
+        product = Lanes.identity_claims(live, :product)
+        events = IdentityLedger.decide(prev, {:reconcile, Cluster.variants(product, shared), shared, d})
         {Enum.reverse(events, acc), Enum.reduce(events, prev, &IdentityLedger.evolve(&2, &1))}
       end)
 

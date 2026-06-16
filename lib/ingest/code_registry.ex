@@ -101,8 +101,22 @@ defmodule CodeRegistry do
   # non-bridging schemes ClaimMapping knows), so it cannot drift. Unknown names stay strings —
   # conservative pass-through, never String.to_atom/1 on input.
   # :ean / :upc are accepted spellings of the GTIN family (Codes.canonicalize folds them to
-  # :gtin); :mpn / :supplier_ref are the non-bridging schemes ClaimMapping knows.
-  @engine_schemes %{"mpn" => :mpn, "supplier_ref" => :supplier_ref, "ean" => :ean, "upc" => :upc}
+  # :gtin); :mpn / :supplier_ref are the non-bridging schemes ClaimMapping knows. The lane
+  # schemes (gr-dig) identify NON-PRODUCT entities — substances (:cas/:unii/:substance_id),
+  # descriptions (:text_id), media (:asset_id) — plus :uuid, the engine-minted shared scheme;
+  # Lanes.lane_of_scheme/1 routes each to its entity lane.
+  @engine_schemes %{
+                    "mpn" => :mpn,
+                    "supplier_ref" => :supplier_ref,
+                    "ean" => :ean,
+                    "upc" => :upc,
+                    "cas" => :cas,
+                    "unii" => :unii,
+                    "substance_id" => :substance_id,
+                    "text_id" => :text_id,
+                    "asset_id" => :asset_id,
+                    "uuid" => :uuid
+                  }
                   |> Map.merge(
                     for {_field, {scheme, _class}} <- @registry, into: %{} do
                       {Atom.to_string(scheme), scheme}

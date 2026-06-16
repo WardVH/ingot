@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://ingot.dev/contract/scheme_registry.schema.json",
   "title": "Ingot scheme-registry declarations",
-  "description": "Declares the code schemes a deployment speaks: class (identity vs attribute), bridge grade, normalizer, checksum rule, equivalence family. Derived from CodeRegistry's table semantics and Codes' canonicalization — see docs/CLAIMS_CONTRACT.md. Unknown schemes on the wire are still accepted (opaque, non-bridging); a registry extends coverage, it never gates submission.",
+  "description": "Declares the code schemes a deployment speaks: class (identity vs attribute), entity lane, bridge grade, normalizer, checksum rule, equivalence family — plus the edge relations between lanes. Derived from CodeRegistry's table semantics and Codes' canonicalization — see docs/CLAIMS_CONTRACT.md. Unknown schemes on the wire are still accepted (opaque, non-bridging); a registry extends coverage, it never gates submission.",
   "type": "object",
   "required": ["schema_version", "schemes"],
   "properties": {
@@ -14,6 +14,11 @@
       "type": "array",
       "items": { "$ref": "#/$defs/scheme" },
       "minItems": 1
+    },
+    "relations": {
+      "description": "Typed edge relations between entity lanes. Each declares a lane signature (which lanes its endpoints may live in) and, optionally, named traversal rules — adding a relation is a registry change, never an engine change.",
+      "type": "array",
+      "items": { "$ref": "#/$defs/relation" }
     }
   },
   "$defs": {
@@ -22,11 +27,43 @@
       "type": "string",
       "pattern": "^[a-z][a-z0-9_]*$"
     },
+    "lane": {
+      "description": "Entity lane: which kind of golden record a scheme's codes identify. Each scheme belongs to exactly one lane; identity claims route to their lane's own ledger, so cross-lane bridging is structurally impossible. The engine-minted 'uuid' scheme is shared across lanes.",
+      "enum": ["product", "substance", "description", "media"]
+    },
+    "relation": {
+      "type": "object",
+      "required": ["name", "from", "to"],
+      "properties": {
+        "name": {
+          "description": "Relation name as it appears in edge claims (contains, describes, depicts, member_of, suppress).",
+          "$ref": "#/$defs/schemeName"
+        },
+        "from": {
+          "description": "Lanes the edge's from-endpoint may live in.",
+          "type": "array",
+          "items": { "$ref": "#/$defs/lane" },
+          "minItems": 1
+        },
+        "to": {
+          "description": "Lanes the to-endpoint may live in. Null = unchecked (member_of targets a collection namespace, not a coded entity).",
+          "oneOf": [
+            { "type": "array", "items": { "$ref": "#/$defs/lane" }, "minItems": 1 },
+            { "type": "null" }
+          ]
+        }
+      }
+    },
     "scheme": {
       "type": "object",
       "required": ["name", "class"],
       "properties": {
         "name": { "$ref": "#/$defs/schemeName" },
+        "entity_type": {
+          "description": "The scheme's entity lane. Default when absent: 'product' (every pre-lane scheme identified a product).",
+          "$ref": "#/$defs/lane",
+          "default": "product"
+        },
         "class": {
           "description": "How clustering uses the code: 'identity' bridges listings; 'external_ref' identifies the thing in another system and NEVER bridges; 'attribute' is a non-identifying classification; 'entity_id' is the source system's own record id — not a code claim at all.",
           "enum": ["identity", "external_ref", "attribute", "entity_id"]

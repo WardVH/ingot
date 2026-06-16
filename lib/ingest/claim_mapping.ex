@@ -39,6 +39,13 @@
 # and edge removals (a snapshot-v1 simplification — member_of unions and does not retract).
 
 defmodule ClaimMapping do
+  @moduledoc """
+  The medipim reference adapter: folds contract-C `HistoryEnvelope`s into canonical claims
+  (`canonical_claims/1`) and composes them into engine claims plus the `shared` code set
+  (`build/1`) — the backfill seam every future source adapter copies. See the header for the
+  per-listing identity fold, canonicalize/partition, and the synthesized grouping/member_of claims.
+  """
+
   # medipim field → engine scheme atom is owned by CodeRegistry (the single source of medipim code
   # knowledge): the GTIN family all canonicalize to :gtin; each national code keeps its own atom.
 
@@ -49,6 +56,16 @@ defmodule ClaimMapping do
 
   # schemes that identify a *supplier's* reference, not a globally-unique product — never bridge.
   @non_bridging_schemes MapSet.new([:mpn, :supplier_ref])
+
+  # medipim edge collections that reference FIRST-CLASS entities, not collection membership
+  # (gr-kek): each referenced id becomes an identity claim in its own lane plus a typed edge
+  # back to the listing's anchor code. collection => {code scheme, lane, relation}. Everything
+  # else ("brands", "organizations", ATC, …) stays :member_of. Snapshot-v1 semantics, like
+  # member_of: edges union and do not retract.
+  @lane_collections %{
+    "descriptions" => {"text_id", "description", "describes"},
+    "media" => {"asset_id", "media", "depicts"}
+  }
 
   @doc """
   Map a list of `%HistoryEnvelope{}` to `%{claims: [%Events.ClaimAsserted{}], shared: MapSet}`.
@@ -142,6 +159,7 @@ defmodule ClaimMapping do
           ev.kind == :edge,
           ev.op in [:set, :add],
           ev.data.value != nil,
+          not Map.has_key?(@lane_collections, ev.data.collection),
           a = anchor.(env.legacy_entity, ev.source),
           a != nil do
         %{
@@ -155,7 +173,68 @@ defmodule ClaimMapping do
         }
       end
 
-    identity ++ grouping ++ attribute ++ member_of
+    lane_entities =
+      envelopes
+      |> lane_refs()
+      |> Enum.sort_by(fn {key, _} -> key end)
+      |> Enum.flat_map(fn {{entity, source, collection}, %{ids: ids, last: last}} ->
+        {scheme, lane, relation} = Map.fetch!(@lane_collections, collection)
+
+        case anchor.(entity, nil) do
+          nil ->
+            []
+
+          a ->
+            for id <- Enum.sort(ids) do
+              {vf, at} = Map.fetch!(last, id)
+
+              [
+                %{
+                  "kind" => "identity",
+                  "source" => source,
+                  "ref" => "#{collection}:#{id}",
+                  "codes" => ["#{scheme}:#{id}"],
+                  "entity" => lane,
+                  "valid_from" => vf || at,
+                  "recorded_at" => at
+                },
+                %{
+                  "kind" => "edge",
+                  "source" => source,
+                  "from" => "#{scheme}:#{id}",
+                  "relation" => relation,
+                  "to" => CanonicalClaims.code_string(a),
+                  "valid_from" => vf || at,
+                  "recorded_at" => at
+                }
+              ]
+            end
+        end
+      end)
+
+    identity ++ grouping ++ attribute ++ member_of ++ List.flatten(lane_entities)
+  end
+
+  # medipim :media events reference FIRST-CLASS entities by asset id (collection "descriptions"
+  # or "media"), with real add/remove churn — fold them per (entity, source, collection) exactly
+  # like identity codes, so only SURVIVING references become lane records + edges (snapshot-v1;
+  # a removed asset simply does not survive the fold). Source falls back to the envelope's
+  # source_system — these events carry source: nil in real dumps.
+  defp lane_refs(envelopes) do
+    for env <- envelopes,
+        ev <- env.events,
+        ev.kind == :media,
+        Map.has_key?(@lane_collections, ev.data.collection),
+        reduce: %{} do
+      acc ->
+        key = {env.legacy_entity, ev.source || env.source_system, ev.data.collection}
+        id = to_string(ev.data.asset)
+        cur = Map.get(acc, key, %{ids: MapSet.new(), last: %{}})
+
+        ids = if ev.op == :remove, do: MapSet.delete(cur.ids, id), else: MapSet.put(cur.ids, id)
+
+        Map.put(acc, key, %{ids: ids, last: Map.put(cur.last, id, {ev.valid_from, ev.recorded_at})})
+    end
   end
 
   @doc "Just the folded, canonicalized code-set per listing — `%{{entity, source} => MapSet}`."

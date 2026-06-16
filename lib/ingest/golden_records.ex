@@ -27,13 +27,22 @@
 # as `status: :needs_review` rather than silently picking a winner. Callers that DO have a ranking
 # pass their own `%Priority{}`.
 #
-# MEDIA is EMPTY by design: claim_mapping (gr-beo) does not emit media claims yet (a documented
-# gap), so `resolve_media` yields `[]` for every variant. That is expected, not a bug.
+# MEDIA arrives via the media LANE (gr-kek): claim_mapping promotes the envelope's "media" and
+# "descriptions" references to first-class records in their own lanes, tied to the product by
+# :depicts/:describes edges — so `media` carries MED_* records and `descriptions` carries DSC_*
+# records with traversal provenance. The legacy :media claim kind still resolves if present.
 #
 # SCOPE BOUNDARY: this bead produces ONLY the projection. It does NOT build the LegacyXref /
 # legacy⟷SK map (gr-0c2), nor the demo script / synthetic fixtures (gr-bxf).
 
 defmodule GoldenRecords do
+  @moduledoc """
+  Projects the re-derived ingest log into customer-facing golden records — products ▸ variants ▸
+  {codes, survivorship-resolved attributes, CNK canonical+aliases, categories, media, substances,
+  derived descriptions} — via the Date-free `Catalog.project` path (see the header for why, and
+  for the media/description lanes promoted to first-class records by `ClaimMapping`).
+  """
+
   # No steward overrides in the PoC — the ingest mints fresh keys and has no human-resolved
   # conflicts to replay, so both override maps are empty.
   @no_overrides %{attr: %{}, product: %{}}
@@ -52,7 +61,9 @@ defmodule GoldenRecords do
         attributes: [{field, %{value, winner, status, candidates}}, ...],  # survivorship-resolved
         product: %{value, winner, status, candidates},
         categories: [{collection, value}, ...],
-        media: []                            # always [] — see moduledoc
+        media: [%{asset: "MED_n", role, source, uri}, ...],       # via :depicts edges
+        substances: [%{key, codes, sources}, ...],                # via :contains edges
+        descriptions: [%{key: "DSC_n", via, asserted_by, attributes}, ...]  # derived (gr-sw0)
       }
 
   `log` is passed through unchanged so downstream callers keep the engine's read layer

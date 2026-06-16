@@ -61,8 +61,16 @@ defmodule CanonicalClaims do
 
   # ── one claim map → one engine claim ────────────────────────────────────────
   defp build(%{"kind" => "identity", "source" => s, "ref" => ref, "codes" => codes} = m, at) do
-    data = %{ref: ref, codes: Enum.map(codes, &code!/1)}
+    data = %{ref: ref, codes: Enum.map(codes, &code!/1)} |> put_entity(m)
     Substrate.claim(s, :identity, data, valid_from(m, at), recorded_at(m, at))
+  end
+
+  # An edge claim (gr-xde): both endpoints are "scheme:value" codes; the relation must be one
+  # the registry declares (Relations.parse/1 — a whitelist, never String.to_atom on input).
+  defp build(%{"kind" => "edge", "source" => s, "from" => f, "relation" => r, "to" => t} = m, at) do
+    {:ok, relation} = Relations.parse(r)
+    data = %{from: code!(f), relation: relation, to: code!(t)}
+    Substrate.claim(s, :edge, data, valid_from(m, at), recorded_at(m, at))
   end
 
   defp build(
@@ -133,4 +141,13 @@ defmodule CanonicalClaims do
     {:ok, code} = parse_code(raw)
     code
   end
+
+  # Optional "entity" on identity claims (gr-2a8): the lane, needed only when every code is
+  # lane-neutral (engine-minted uuid). Whitelisted via Lanes.parse/1 — never an atom leak.
+  defp put_entity(data, %{"entity" => name}) do
+    {:ok, lane} = Lanes.parse(name)
+    Map.put(data, :entity, lane)
+  end
+
+  defp put_entity(data, _m), do: data
 end

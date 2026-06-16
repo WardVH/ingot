@@ -329,6 +329,7 @@ components:
         - $ref: "#/components/schemas/AttributeClaim"
         - $ref: "#/components/schemas/MediaClaim"
         - $ref: "#/components/schemas/GroupingClaim"
+        - $ref: "#/components/schemas/EdgeClaim"
       discriminator:
         propertyName: kind
 
@@ -343,6 +344,28 @@ components:
           type: array
           minItems: 1
           items: { $ref: "#/components/schemas/CodeString" }
+        entity:
+          type: string
+          enum: [product, substance, description, media]
+          description: >-
+            entity lane — usually derived from the codes' schemes (mixing lanes rejects);
+            required only when every code is the lane-neutral, engine-minted `uuid` scheme
+        valid_from: { type: string, format: date }
+
+    EdgeClaim:
+      type: object
+      description: >-
+        a typed relationship between two coded records; both endpoints resolve to their current
+        owner key at read time, so the edge survives merge/split on either side. The relation's
+        lane signature (contains product→substance, describes description→product|substance,
+        depicts media→product|substance) is enforced — a mismatched endpoint rejects.
+      required: [kind, source, from, relation, to]
+      properties:
+        kind: { const: edge }
+        source: { type: string }
+        from: { $ref: "#/components/schemas/CodeString" }
+        relation: { type: string, example: describes }
+        to: { $ref: "#/components/schemas/CodeString" }
         valid_from: { type: string, format: date }
 
     AttributeClaim:

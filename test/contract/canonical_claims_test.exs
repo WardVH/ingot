@@ -64,9 +64,11 @@ defmodule CanonicalClaimsTest do
         }
       ]
 
+      # member_of is the legacy spelling of an :edge (gr-xde): the wire shape is unchanged,
+      # but the log holds the generalized edge — one relationship representation.
       assert [claim] = CanonicalClaims.to_engine!(batch)
-      assert claim.kind == :member_of
-      assert claim.data == %{member_code: {:cnk, "3612173"}, collection: {"brands", "211"}}
+      assert claim.kind == :edge
+      assert claim.data == %{from: {:cnk, "3612173"}, relation: :member_of, to: {"brands", "211"}}
       assert claim.valid_from == 1_535_726_805
       assert claim.recorded_at == 1_535_726_805
     end

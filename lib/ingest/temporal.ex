@@ -94,31 +94,52 @@ defmodule Temporal do
 
     dates = claims |> Enum.map(& &1.recorded_at) |> Enum.uniq() |> Enum.sort(Date)
 
-    {raw_identity_events_rev, ledger} =
-      Enum.reduce(dates, {[], IdentityLedger.new()}, fn d, {events_acc, ledger_prev} ->
+    {raw_identity_events_rev, _ledgers} =
+      Enum.reduce(dates, {[], Lanes.new_ledgers()}, fn d, {events_acc, ledgers_prev} ->
         live_d =
           claims
           |> Enum.filter(&(Date.compare(&1.recorded_at, d) != :gt))
           |> Substrate.current()
 
-        clusters_d = Cluster.variants(live_d, shared)
-        events_d = IdentityLedger.decide(ledger_prev, {:reconcile, clusters_d, shared, d})
-        ledger_d = Enum.reduce(events_d, ledger_prev, &IdentityLedger.evolve(&2, &1))
+        # Per-lane reconcile (gr-2a8): description/media identity claims fold against their own
+        # ledgers, so the temporal product timeline never mints product keys for them.
+        {events_d, ledgers_d} = Lanes.reconcile(live_d, shared, ledgers_prev, d)
 
         # Prepend (reverse onto the acc), then reverse once after the fold — avoids O(n²) `++` growth.
-        {Enum.reverse(events_d, events_acc), ledger_d}
+        {Enum.reverse(events_d, events_acc), ledgers_d}
       end)
 
     raw_identity_events = Enum.reverse(raw_identity_events_rev)
+    ledger = Enum.reduce(raw_identity_events, IdentityLedger.new(), &IdentityLedger.evolve(&2, &1))
 
     # `decide` leaves identity events with `order: nil`; stamp them monotonic, continuing after the
     # max claim order (mirrors Rederivation.stamp/2). Stamp ONCE here so the timeline and the log
     # carry the SAME orders — the timeline is just these stamped events, re-sorted by {date, order}.
     identity_events = stamp(raw_identity_events, claims)
     log = claims ++ identity_events
-    timeline = Enum.sort_by(identity_events, &{&1.recorded_at, &1.order}, &date_order/2)
+
+    # The timeline narrates the PRODUCT lane (the time machine's subject); other lanes' identity
+    # events stay in the log, where the read layer and Catalog's edge traversal find them.
+    timeline =
+      identity_events
+      |> Enum.filter(&product_lane_event?/1)
+      |> Enum.sort_by(&{&1.recorded_at, &1.order}, &date_order/2)
 
     %{log: log, timeline: timeline, ledger: ledger}
+  end
+
+  # Merges/splits never cross lanes (disjoint folds), so the anchor key's lane is the event's.
+  defp product_lane_event?(event) do
+    key =
+      case event do
+        %Events.IdentityMinted{key: k} -> k
+        %Events.IdentityMembersChanged{key: k} -> k
+        %Events.IdentitiesMerged{into: k} -> k
+        %Events.IdentitySplit{key: k} -> k
+        _ -> nil
+      end
+
+    key == nil or Lanes.lane_of_key(key) == :product
   end
 
   @doc """

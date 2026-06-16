@@ -60,7 +60,7 @@ Every claim is an object with a `kind` discriminator. Fields common to all kinds
 
 | field        | type   | notes |
 |--------------|--------|-------|
-| `kind`       | string | `identity` \| `attribute` \| `media` \| `grouping`. Anything else rejects. |
+| `kind`       | string | `identity` \| `attribute` \| `media` \| `grouping` \| `edge`. Anything else rejects. |
 | `source`     | string | **source attribution** — who asserts this claim (e.g. `"medipim"`, an org id, a feed name). Resolution ranks sources; the contract just records them. Free-form, non-empty. |
 | `valid_from` | string, optional | ISO 8601 **date** (`"2024-03-01"`). See bitemporal fields below. |
 
@@ -115,6 +115,22 @@ listings into one identity (subject to each scheme's class and bridge grade).
 `ref` is the claim's anchor within the source: a later `identity` claim with the same
 `(source, ref)` **replaces** the earlier code-set (last-wins per slot — see idempotency).
 
+**Entity lanes.** Every scheme belongs to one entity lane (`product` | `substance` |
+`description` | `media`, declared in the scheme registry; unlisted schemes are `product`).
+An identity claim routes to its codes' lane and clusters only there — codes mixing two lanes
+**reject**. The optional `"entity"` field names the lane explicitly; it is required only when
+every code is lane-neutral (the engine-minted `uuid` scheme):
+
+```jsonc
+{
+  "kind": "identity",
+  "source": "steward",
+  "ref": "draft-desc-1",
+  "codes": ["uuid:0d6f8a3e-..."],   // minted by the engine — carries no lane of its own
+  "entity": "description"
+}
+```
+
 ### `attribute` — a fact about a coded thing
 
 ```jsonc
@@ -158,9 +174,41 @@ Drives legacy-id assignment (a minted key inherits the legacy id its codes group
 }
 ```
 
-> The engine internally also has a `member_of` claim kind (code → collection membership:
-> categories, brands, …), produced by the medipim reference adapter. It is **not yet accepted
-> on this wire contract** — see open question 1.
+### `edge` — a typed relationship between two coded records
+
+Both endpoints are codes, resolved to their **current owner key at read time** — so the edge
+survives merge/split on either side with zero rewrites. The relation must be declared in the
+scheme registry with a lane signature; a mismatched endpoint **rejects**:
+
+| relation    | from        | to                      | feeds |
+|-------------|-------------|-------------------------|-------|
+| `contains`  | product     | substance               | the product's substances |
+| `describes` | description | product \| substance    | derived product-page descriptions (direct, or via every product containing the substance) |
+| `depicts`   | media       | product \| substance    | the product's media |
+| `member_of` | product     | collection (unchecked)  | categories |
+
+```jsonc
+{
+  "kind": "edge",
+  "source": "vidal",
+  "from": "text_id:D-1042",          // the asserting entity, by code
+  "relation": "describes",
+  "to": "substance_id:PARA",          // the target entity, by code
+  "valid_from": "2024-03-01"          // optional
+}
+```
+
+Edges **union across sources** (any live source ⇒ the edge holds); a steward hides one derived
+description↔product pairing with a four-eyes-gated `suppress` edge, leaving the substance tag
+intact. Visibility is **derived, never stored**: a product newly claiming a substance instantly
+shows that substance's descriptions, because the page is a fold over the edges, not a copy.
+
+> Collection membership rides the standard `edge` claim — submit
+> `{"kind":"edge","relation":"member_of","from":"<product code>","to":"<collection code>"}`,
+> and the engine derives categories from it. The engine also still accepts the legacy
+> `member_of` claim kind and lowers it to exactly this edge, so backfill logs keep working.
+> What remains open is only how a collection namespace is spelled as a `to` code (open
+> question 1).
 
 ---
 
@@ -245,9 +293,13 @@ speaks; `contract/scheme_registry.schema.json` is its schema.
 
 ## Open questions (underspecified in the current format)
 
-1. **`member_of` edge claims are not on the wire.** The engine produces them internally
-   (medipim adapter: categories, brands, labos); the live contract has no JSON shape for them
-   yet. Candidate shape: `{"kind": "member_of", "source", "code", "collection", "member"}`.
+1. **The `member_of` `to`-side collection identifier is unstandardized.** Collection
+   membership now rides a standard `edge` claim (`relation: "member_of"`, `from` a product code,
+   `to` a collection code) and the engine derives categories from it — so `member_of` *is* on
+   the wire. What is still open is the *scheme* for the `to` code: how a category/brand/labo
+   namespace is spelled as `scheme:value` (its lane is unchecked today). The medipim backfill
+   adapter still emits the legacy `{"kind": "member_of", "source", "code", "collection",
+   "member"}` claim, which the constructor lowers to this edge.
 2. **Checksums are advisory.** `gtin_mod10` is implemented (`Codes.valid_gtin?/1`) but not
    called at the submission boundary — a syntactically valid GTIN with a bad check digit is
    accepted. Should the MIT validator warn, and should the engine optionally reject?

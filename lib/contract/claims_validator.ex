@@ -29,7 +29,7 @@ defmodule ClaimsValidator do
   failures, non-enum media roles.
   """
 
-  @kinds ~w(identity attribute media grouping)
+  @kinds ~w(identity attribute media grouping edge)
   @gtin_family [:gtin, :ean, :upc]
 
   @doc """
@@ -68,7 +68,9 @@ defmodule ClaimsValidator do
   defp fields("identity", claim, index) do
     non_empty_string(claim, "source", index) ++
       non_empty_string(claim, "ref", index) ++
-      codes(claim, index)
+      codes(claim, index) ++
+      entity(claim, index) ++
+      lane_findings(claim, index)
   end
 
   defp fields("attribute", claim, index) do
@@ -90,6 +92,114 @@ defmodule ClaimsValidator do
     non_empty_string(claim, "source", index) ++
       code(claim, "code", index) ++
       integer(claim, "product", index)
+  end
+
+  defp fields("edge", claim, index) do
+    non_empty_string(claim, "source", index) ++
+      code(claim, "from", index) ++
+      code(claim, "to", index) ++
+      relation(claim, index)
+  end
+
+  # ── lane & relation rules (gr-dig) ──────────────────────────────────────────
+  # Identity codes mixing two lanes reject — a claim cannot be a product AND a substance. The
+  # check runs only when every code parses (code findings already cover malformed ones).
+  defp lane_findings(%{"codes" => [_ | _] = list}, index) do
+    parsed = Enum.map(list, &CanonicalClaims.parse_code/1)
+
+    with true <- Enum.all?(parsed, &match?({:ok, _}, &1)) do
+      parsed
+      |> Enum.map(fn {:ok, {scheme, _}} -> Lanes.lane_of_scheme(scheme) end)
+      |> Enum.reject(&is_nil/1)
+      |> Enum.uniq()
+      |> case do
+        [_, _ | _] = lanes ->
+          [
+            error(
+              index,
+              "codes",
+              "codes mix entity lanes #{inspect(Enum.sort(lanes))} — one record, one lane"
+            )
+          ]
+
+        _ ->
+          []
+      end
+    else
+      _ -> []
+    end
+  end
+
+  defp lane_findings(_claim, _index), do: []
+
+  defp entity(claim, index) do
+    case claim do
+      %{"entity" => name} when is_binary(name) ->
+        case Lanes.parse(name) do
+          {:ok, _lane} -> []
+          :error -> [error(index, "entity", "unknown entity lane #{inspect(name)}")]
+        end
+
+      %{"entity" => value} ->
+        [error(index, "entity", "entity must be a lane name string, got #{inspect(value)}")]
+
+      # No entity, but every code is the lane-neutral uuid scheme — the claim carries no lane of
+      # its own, so it MUST name one. Without this, Lanes.of_claim/1 silently defaults it to
+      # :product (the contract makes entity required exactly here).
+      %{"codes" => [_ | _] = list} ->
+        if lane_neutral_codes?(list) do
+          [error(index, "entity", "entity is required when every code is the lane-neutral uuid scheme")]
+        else
+          []
+        end
+
+      _ ->
+        []
+    end
+  end
+
+  # True only when every code parses AND every code's scheme is lane-neutral (`:uuid` today —
+  # Lanes.lane_of_scheme/1 returns nil). Malformed codes are already reported by codes/2.
+  defp lane_neutral_codes?(list) do
+    Enum.all?(list, fn raw ->
+      case CanonicalClaims.parse_code(raw) do
+        {:ok, {scheme, _}} -> Lanes.lane_of_scheme(scheme) == nil
+        _ -> false
+      end
+    end)
+  end
+
+  # The relation must exist in the registry AND its lane signature must hold (the design's
+  # contract rule: a mismatched endpoint is an error, not a warning).
+  defp relation(claim, index) do
+    with %{"relation" => name} when is_binary(name) <- claim,
+         {:ok, rel} <- Relations.parse(name) do
+      signature(claim, rel, index)
+    else
+      %{"relation" => value} -> [error(index, "relation", "unknown relation #{inspect(value)}")]
+      :error -> [error(index, "relation", "unknown relation #{inspect(claim["relation"])}")]
+      _ -> [error(index, "relation", "relation is required")]
+    end
+  end
+
+  defp signature(claim, rel, index) do
+    with {:ok, from} <- CanonicalClaims.parse_code(Map.get(claim, "from", "")),
+         {:ok, to} <- CanonicalClaims.parse_code(Map.get(claim, "to", "")) do
+      if Relations.valid_signature?(rel, from, to) do
+        []
+      else
+        [
+          error(
+            index,
+            "relation",
+            "edge endpoints do not satisfy #{inspect(rel)}'s lane signature #{inspect(Relations.signatures()[rel])}"
+          )
+        ]
+      end
+    else
+      # malformed endpoint codes already reject via code/3
+      _ -> []
+    end
   end
 
   # ── field rules ─────────────────────────────────────────────────────────────
