@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://ingot.dev/contract/claims.schema.json",
   "title": "Ingot canonical claims submission batch",
-  "description": "A batch of canonical claims for POST /v1/claims. Formalizes the wire format accepted by Api.ClaimJson.parse/2 — see docs/CLAIMS_CONTRACT.md. A batch validates whole: one invalid claim rejects everything with per-index reasons ({index, error}); nothing partial enters the log.",
+  "description": "A batch of canonical claims for POST /v1/claims. Formalizes the wire format accepted by CanonicalClaims.to_engine/2 — see docs/CLAIMS_CONTRACT.md. A batch validates whole: one invalid claim rejects everything with per-index reasons ({index, error}); nothing partial enters the log.",
   "type": "object",
   "required": ["claims"],
   "properties": {
