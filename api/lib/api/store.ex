@@ -162,10 +162,15 @@ defmodule Api.Store do
 
   defp stored_snapshot(conn) do
     case Postgrex.query!(conn, "SELECT state FROM snapshots WHERE id = 1", []) do
-      %{rows: [[bin]]} -> Api.Codec.decode!(bin)
+      %{rows: [[bin]]} -> upgrade(Api.Codec.decode!(bin))
       %{rows: []} -> nil
     end
   end
+
+  # Snapshot upgrade path: a snapshot persisted before Api.State gained :proposals decodes
+  # without that key, so any read of state.proposals would raise KeyError until rebuild!
+  # re-folds. Backfill the field's default so an old snapshot decodes cleanly.
+  defp upgrade(%Api.State{} = state), do: Map.put_new(state, :proposals, %{})
 
   defp insert_and_fold(conn, state, events) do
     Enum.reduce(events, state, fn event, s ->
