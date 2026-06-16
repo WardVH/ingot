@@ -105,4 +105,20 @@ defmodule Api.StoreTest do
     assert [%Events.ClaimAsserted{order: 2}] = Api.Store.events_since(1)
     assert Api.Store.events_since(2) == []
   end
+
+  test "a snapshot persisted before :proposals existed decodes cleanly with the default" do
+    append!([identity(:a, "A", [{:cnk, "111"}])])
+
+    # simulate an OLD snapshot: a state serialized before Api.State gained :proposals — the
+    # decoded struct lacks the key, so any read of state.proposals would raise KeyError.
+    old = Map.delete(Api.Store.state(), :proposals)
+    refute Map.has_key?(old, :proposals)
+
+    Postgrex.query!(Api.DB, ~s(UPDATE snapshots SET state = $1 WHERE id = 1), [
+      Api.Codec.encode!(old)
+    ])
+
+    state = Api.Store.state()
+    assert state.proposals == %{}
+  end
 end
