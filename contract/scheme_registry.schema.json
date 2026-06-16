@@ -106,8 +106,8 @@
           ]
         },
         "checksum": {
-          "description": "Validity rule for validators: 'gtin_mod10' is the GS1 mod-10 check digit. The engine does not enforce checksums at the submission boundary today.",
-          "enum": ["none", "gtin_mod10"],
+          "description": "Validity rule for validators: 'gtin_mod10' is the GS1 mod-10 check digit; 'mod-11' is the ISBN-10 check digit (final position may be X). The engine does not enforce checksums at the submission boundary today. ponytail: skipped the ISBN-10->13 normalizer-vocabulary entry — the `normalizer` is a oneOf of object shapes, not a flat enum, so a new kind is a whole new branch, not a trivial sibling edit (a 'consider', not required).",
+          "enum": ["none", "gtin_mod10", "mod-11"],
           "default": "none"
         },
         "equivalence_family": {

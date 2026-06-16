@@ -2,7 +2,7 @@
 # sources — migrate with ZERO engine changes. Everything book-specific is config + adapter:
 # CodeRegistry isbn data rows, the Isbn module (10 → 13 canonicalization, checksums), the
 # BooksAdapter mapping, and fixtures. lib/golden_record_core.ex must be byte-identical to the
-# base branch (`git diff origin/bd-gr-bb7...HEAD -- lib/golden_record_core.ex` is the gate).
+# base branch (`git diff origin/main...HEAD -- lib/golden_record_core.ex` is the gate).
 # The API-level loop (dry-run → cutover → reads) lives in api/test/books_e2e_test.exs;
 # this suite proves the same claims resolve correctly in the bare engine.
 
