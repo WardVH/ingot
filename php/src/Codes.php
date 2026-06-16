@@ -98,6 +98,17 @@ final class Codes
         return false;
     }
 
+    /**
+     * The set key for a code: "scheme\x1fvalue". A MapSet of codes is an assoc array keyed by this.
+     * The 0x1f unit separator can never appear in a scheme or value, so the join is unambiguous.
+     *
+     * @param array{0: string, 1: string} $code
+     */
+    public static function key(array $code): string
+    {
+        return $code[0]."\x1f".$code[1];
+    }
+
     private static function gtinish(string $v): bool
     {
         return preg_match('/^\d+$/', $v) === 1 && in_array(strlen($v), [8, 12, 13, 14], true);
