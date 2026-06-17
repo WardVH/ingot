@@ -1,24 +1,27 @@
 {
-    "name": "ingot/golden-record-php",
+    "name": "ingot/ingot",
     "description": "PHP port of the golden-record engine (422156 fold path) — TDD parity port + Elixir/PHP benchmark",
     "type": "project",
     "require": {
-        "php": ">=8.3"
+        "php": ">=8.2"
     },
     "require-dev": {
         "phpunit/phpunit": "^11.5 || ^12.0"
     },
     "autoload": {
         "psr-4": {
-            "GoldenRecord\\": "src/"
+            "Ingot\\": "src/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "GoldenRecord\\Tests\\": "tests/"
+            "Ingot\\Tests\\": "tests/"
         }
     },
     "config": {
         "sort-packages": true
+    },
+    "scripts": {
+        "test": "phpunit"
     }
 }

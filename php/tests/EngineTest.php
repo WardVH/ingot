@@ -2,18 +2,18 @@
 
 declare(strict_types=1);
 
-namespace GoldenRecord\Tests;
+namespace Ingot\Tests;
 
-use GoldenRecord\Catalog;
-use GoldenRecord\Cluster;
-use GoldenRecord\Events;
-use GoldenRecord\IdentityLedger;
-use GoldenRecord\LedgerState;
-use GoldenRecord\Priority;
-use GoldenRecord\PublicId;
-use GoldenRecord\Substrate;
-use GoldenRecord\Survivorship;
-use GoldenRecord\Sets;
+use Ingot\Catalog;
+use Ingot\Cluster;
+use Ingot\Events;
+use Ingot\IdentityLedger;
+use Ingot\LedgerState;
+use Ingot\Priority;
+use Ingot\PublicId;
+use Ingot\Substrate;
+use Ingot\Survivorship;
+use Ingot\Sets;
 use PHPUnit\Framework\TestCase;
 
 /**

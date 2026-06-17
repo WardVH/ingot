@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace GoldenRecord;
+namespace Ingot;
 
 /**
  * The single entry point the consuming application (medipim) calls. Collapses the five-module fold

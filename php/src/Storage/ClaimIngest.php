@@ -1,0 +1,483 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Ingot\Storage;
+
+use Ingot\ClaimMapping;
+use Ingot\Codes;
+use Ingot\EnvelopeLoader;
+use Ingot\Events;
+use Ingot\IdentityLedger;
+use Ingot\Lanes;
+use Ingot\LedgerState;
+use Ingot\Substrate;
+
+/**
+ * The persistent writer — the PHP counterpart of the Elixir `Api.Writes` + `Api.Store`, over a
+ * {@see ClaimStore} port. Two paths share ONE reconcile pipeline:
+ *
+ *   - {@see backfill} — contract-C envelopes (full delta history), idempotent per envelope via a
+ *     content fingerprint in `backfill_seen`. ClaimMapping folds each envelope to its CURRENT
+ *     code-set, so a backfilled entity is correct on its own.
+ *   - {@see live} — current-truth envelopes (from the snapshot translator), idempotent per slot:
+ *     a claim whose slot already holds identical content is skipped, so an unchanged write is a
+ *     no-op.
+ *
+ * Per write it loads ONLY the keys whose codes the batch touches (not a global snapshot), reconciles
+ * the batch against that subgraph (mint / extend / split / GATED merge proposal — established keys
+ * are never auto-merged), appends claims + identity events, and re-projects the touched keys'
+ * per-key snapshots. Each key's code-set is derived from its CURRENT identity claims, so a retracted
+ * code is dropped from the read truth.
+ */
+final class ClaimIngest
+{
+    /**
+     * Backfill full-history envelopes (idempotent per envelope).
+     *
+     * @param list<array<string,mixed>> $envelopeMaps decoded envelope maps (see {@see \Ingot\EnvelopeDecoder})
+     * @return array<string,mixed> a summary, or ['errors' => ...] on invalid input
+     */
+    public static function backfill(ClaimStore $store, array $envelopeMaps, mixed $at = null): array
+    {
+        [$ok, $envelopes, $errors] = self::decodeEnvelopes($envelopeMaps);
+        if (!$ok) {
+            return ['errors' => $errors];
+        }
+
+        return $store->transactionally(static function () use ($store, $envelopes, $at): array {
+            $fresh = [];
+            foreach ($envelopes as $env) {
+                $fp = self::fingerprint($env);
+                $entity = (string) ($env['legacy_entity'] ?? '');
+                if ($store->backfillSeen($entity, $fp)) {
+                    continue;
+                }
+                $fresh[] = [$env, $fp, $entity];
+            }
+
+            if ($fresh === []) {
+                return self::summary(0, count($envelopes), 0, []);
+            }
+
+            $built = ClaimMapping::build(array_map(static fn (array $f): array => $f[0], $fresh));
+            $result = self::pipeline($store, $built['claims'], $built['shared'], $at, false);
+
+            foreach ($fresh as [$_env, $fp, $entity]) {
+                $store->markBackfillSeen($entity, $fp);
+            }
+
+            return self::summary(count($fresh), count($envelopes) - count($fresh), $result['appended'], $result['identity']);
+        });
+    }
+
+    /**
+     * Ingest current-truth envelopes (idempotent per slot) — the live path.
+     *
+     * @param list<array<string,mixed>> $envelopeMaps
+     * @return array<string,mixed>
+     */
+    public static function live(ClaimStore $store, array $envelopeMaps, mixed $at = null): array
+    {
+        [$ok, $envelopes, $errors] = self::decodeEnvelopes($envelopeMaps);
+        if (!$ok) {
+            return ['errors' => $errors];
+        }
+
+        return $store->transactionally(static function () use ($store, $envelopes, $at): array {
+            $built = ClaimMapping::build($envelopes);
+            // The live batch is the source's CURRENT truth, not a replay of its history: keep only
+            // the last claim per slot (the cutover's `compact`), so re-running converges.
+            $compacted = Substrate::current($built['claims']);
+            $result = self::pipeline($store, $compacted, $built['shared'], $at, true);
+
+            return self::summary($result['appended'] > 0 ? 1 : 0, 0, $result['appended'], $result['identity']);
+        });
+    }
+
+    // ── the shared reconcile pipeline ───────────────────────────────────────────
+
+    /**
+     * @param list<array<string,mixed>> $claims canonical engine claims (from ClaimMapping)
+     * @param array<string, array{0:string,1:string}> $shared
+     * @return array{appended: int, identity: list<array<string,mixed>>}
+     */
+    private static function pipeline(ClaimStore $store, array $claims, array $shared, mixed $at, bool $winnow): array
+    {
+        if ($winnow) {
+            $claims = self::winnow($store, $claims);
+        }
+        if ($claims === []) {
+            return ['appended' => 0, 'identity' => []];
+        }
+
+        $base = $store->maxSeq();
+        $prestamped = self::stampFrom($claims, $base + 1);
+
+        // Load the affected subgraph: every key any batch claim anchors on.
+        $loaded = $store->loadKeys(self::affectedKeys($store, $prestamped));
+
+        // The current view of the affected subgraph + the new batch (last-wins per slot reflects
+        // retractions), and the shared codes among all of it.
+        $combined = $prestamped;
+        foreach ($loaded as $info) {
+            foreach ($info['claims'] as $c) {
+                $combined[] = $c;
+            }
+        }
+        $live = Substrate::current($combined);
+        $sharedAll = self::sharedOf($live, $shared);
+
+        $ledgers = self::buildLedgers($store, $loaded);
+        $atResolved = self::reconcileAt($prestamped) ?? $at ?? time();
+        [$identityEvents, $ledgers2] = Lanes::reconcile($live, $sharedAll, $ledgers, $atResolved);
+
+        $identityStamped = self::stampFrom($identityEvents, $base + 1 + count($prestamped));
+        $store->appendEvents(array_merge($prestamped, $identityStamped));
+        $seq = $base + count($prestamped) + count($identityStamped);
+
+        self::persistLedger($store, $ledgers2);
+        self::reproject($store, $ledgers2, $live, $identityStamped, $seq);
+
+        return ['appended' => count($prestamped), 'identity' => $identityStamped];
+    }
+
+    /**
+     * Drop claims whose slot already holds identical content (in-store OR earlier in the batch) —
+     * the live path's per-slot idempotency, mirroring Elixir's `winnow`.
+     *
+     * @param list<array<string,mixed>> $claims
+     * @return list<array<string,mixed>>
+     */
+    private static function winnow(ClaimStore $store, array $claims): array
+    {
+        $loaded = $store->loadKeys(self::affectedKeys($store, $claims));
+
+        $view = [];
+        foreach ($loaded as $info) {
+            foreach ($info['claims'] as $c) {
+                $view[self::slotKey($c)] = self::claimIdentity($c);
+            }
+        }
+
+        $kept = [];
+        foreach ($claims as $c) {
+            $sk = self::slotKey($c);
+            $id = self::claimIdentity($c);
+            if (($view[$sk] ?? null) === $id) {
+                continue;
+            }
+            $view[$sk] = $id;
+            $kept[] = $c;
+        }
+
+        return $kept;
+    }
+
+    /**
+     * Every existing surrogate key any batch claim anchors on (identity codes + grouping/attribute
+     * codes + edge endpoints) — the keys we must load to reconcile and re-project correctly.
+     *
+     * @param list<array<string,mixed>> $claims
+     * @return list<string>
+     */
+    private static function affectedKeys(ClaimStore $store, array $claims): array
+    {
+        $codeKeys = [];
+        foreach ($claims as $c) {
+            foreach (self::loadAnchors($c) as $code) {
+                $codeKeys[Codes::key($code)] = true;
+            }
+        }
+
+        $resolved = $store->resolveKeys(array_keys($codeKeys));
+
+        $keys = [];
+        foreach ($resolved as $key) {
+            $keys[$key] = true;
+        }
+
+        return array_keys($keys);
+    }
+
+    /**
+     * @param array<string, array{lane: string, codes: array<string, array{0:string,1:string}>, claims: list<array<string,mixed>>, last_seq: int}> $loaded
+     * @return array<string, LedgerState>
+     */
+    private static function buildLedgers(ClaimStore $store, array $loaded): array
+    {
+        $byLane = array_fill_keys(Lanes::lanes(), []);
+        foreach ($loaded as $key => $info) {
+            $byLane[$info['lane']][$key] = $info['codes'];
+        }
+
+        $ledgers = [];
+        foreach (Lanes::lanes() as $lane) {
+            $ledgers[$lane] = new LedgerState($byLane[$lane], $store->laneNext($lane), Lanes::prefix($lane));
+        }
+
+        return $ledgers;
+    }
+
+    /** @param array<string, LedgerState> $ledgers */
+    private static function persistLedger(ClaimStore $store, array $ledgers): void
+    {
+        foreach ($ledgers as $lane => $ledger) {
+            $store->setLaneNext($lane, $ledger->next);
+        }
+    }
+
+    /**
+     * Re-home claims to their post-reconcile key and rewrite each touched key's per-key snapshot.
+     * A key's code-set is derived from its CURRENT identity claims, so retractions shrink it.
+     *
+     * @param array<string, LedgerState> $ledgers2
+     * @param list<array<string,mixed>> $live the current view of the affected subgraph + new batch
+     * @param list<array<string,mixed>> $identityEvents
+     */
+    private static function reproject(ClaimStore $store, array $ledgers2, array $live, array $identityEvents, int $seq): void
+    {
+        $flat = self::flatMembers($ledgers2);
+
+        $byKey = [];
+        foreach ($live as $c) {
+            $key = self::claimKey($c, $flat);
+            if ($key !== null) {
+                $byKey[$key][] = $c;
+            }
+        }
+
+        // Merges (defensive — reconcile gates merges, so this is rare): redirect + drop absorbed keys.
+        foreach ($identityEvents as $e) {
+            if (($e['type'] ?? null) === Events::TYPE_IDENTITIES_MERGED) {
+                foreach ($e['from'] as $from) {
+                    if ($from !== $e['into']) {
+                        $store->addRedirect($from, $e['into'], $e['recorded_at'] ?? null);
+                        $store->removeKey($from);
+                        unset($byKey[$from]);
+                    }
+                }
+            }
+        }
+
+        foreach ($byKey as $key => $claims) {
+            $lane = Lanes::laneOfKey($key);
+            $codes = self::codesFromClaims($claims);
+            if ($codes === []) {
+                $store->removeKey($key);
+
+                continue;
+            }
+            $store->saveKey($key, $lane, $codes, Substrate::current($claims), $seq);
+        }
+    }
+
+    // ── anchors / keys ──────────────────────────────────────────────────────────
+
+    /**
+     * Codes to LOAD a claim's keys by: identity codes, grouping/attribute code, BOTH edge endpoints.
+     *
+     * @param array<string,mixed> $c
+     * @return list<array{0:string,1:string}>
+     */
+    private static function loadAnchors(array $c): array
+    {
+        return match ($c['kind']) {
+            'identity' => array_values($c['data']['codes']),
+            'grouping', 'attribute' => [$c['data']['code']],
+            'edge' => array_values(array_filter(
+                [$c['data']['from'] ?? null, $c['data']['to'] ?? null],
+                static fn (mixed $x): bool => is_array($x),
+            )),
+            default => [],
+        };
+    }
+
+    /**
+     * The code a claim HOMES on (which key it belongs to): an edge homes on its `from` endpoint.
+     *
+     * @param array<string,mixed> $c
+     * @return list<array{0:string,1:string}>
+     */
+    private static function homeAnchors(array $c): array
+    {
+        return match ($c['kind']) {
+            'identity' => array_values($c['data']['codes']),
+            'grouping', 'attribute' => [$c['data']['code']],
+            'edge' => isset($c['data']['from']) && is_array($c['data']['from']) ? [$c['data']['from']] : [],
+            default => [],
+        };
+    }
+
+    /**
+     * @param array<string,mixed> $c
+     * @param array<string,string> $flat code key => surrogate key
+     */
+    private static function claimKey(array $c, array $flat): ?string
+    {
+        foreach (self::homeAnchors($c) as $code) {
+            $key = $flat[Codes::key($code)] ?? null;
+            if ($key !== null) {
+                return $key;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * @param array<string, LedgerState> $ledgers
+     * @return array<string,string> code key => surrogate key
+     */
+    private static function flatMembers(array $ledgers): array
+    {
+        $flat = [];
+        foreach ($ledgers as $ledger) {
+            foreach ($ledger->members as $key => $codes) {
+                foreach ($codes as $codeKey => $_code) {
+                    $flat[$codeKey] = $key;
+                }
+            }
+        }
+
+        return $flat;
+    }
+
+    /**
+     * A key's code-set from its current identity claims (the read truth — retractions applied).
+     *
+     * @param list<array<string,mixed>> $claims
+     * @return array<string, array{0:string,1:string}>
+     */
+    private static function codesFromClaims(array $claims): array
+    {
+        $codes = [];
+        foreach ($claims as $c) {
+            if ($c['kind'] === 'identity') {
+                foreach ($c['data']['codes'] as $code) {
+                    $codes[Codes::key($code)] = $code;
+                }
+            }
+        }
+
+        return $codes;
+    }
+
+    // ── helpers ──────────────────────────────────────────────────────────────────
+
+    /**
+     * @param list<array<string,mixed>> $claims
+     * @param array<string, array{0:string,1:string}> $extra
+     * @return array<string, array{0:string,1:string}>
+     */
+    private static function sharedOf(array $claims, array $extra): array
+    {
+        $out = $extra;
+        foreach ($claims as $c) {
+            if ($c['kind'] !== 'identity') {
+                continue;
+            }
+            foreach ($c['data']['codes'] as $code) {
+                if (ClaimMapping::isShared($code)) {
+                    $out[Codes::key($code)] = $code;
+                }
+            }
+        }
+
+        return $out;
+    }
+
+    /**
+     * @param list<array<string,mixed>> $events
+     * @return list<array<string,mixed>>
+     */
+    private static function stampFrom(array $events, int $start): array
+    {
+        $out = [];
+        $i = $start;
+        foreach ($events as $e) {
+            $e['order'] = $i;
+            $out[] = $e;
+            ++$i;
+        }
+
+        return $out;
+    }
+
+    /** @param list<array<string,mixed>> $claims */
+    private static function reconcileAt(array $claims): mixed
+    {
+        $at = null;
+        foreach ($claims as $c) {
+            if ($c['kind'] === 'identity') {
+                $at = $at === null ? $c['recorded_at'] : max($at, $c['recorded_at']);
+            }
+        }
+
+        return $at;
+    }
+
+    /** @param array<string,mixed> $claim */
+    private static function slotKey(array $claim): string
+    {
+        return json_encode(Substrate::slot($claim), JSON_THROW_ON_ERROR);
+    }
+
+    /** The deterministic claim identity (idempotent resubmission): {source, kind, data, valid_from}. */
+    private static function claimIdentity(array $claim): string
+    {
+        return json_encode([$claim['source'], $claim['kind'], $claim['data'], $claim['valid_from']], JSON_THROW_ON_ERROR);
+    }
+
+    /**
+     * @param list<array<string,mixed>> $envelopeMaps
+     * @return array{0: bool, 1: list<array<string,mixed>>, 2: list<array<string,mixed>>}
+     */
+    private static function decodeEnvelopes(array $envelopeMaps): array
+    {
+        $envelopes = [];
+        $errors = [];
+        foreach ($envelopeMaps as $i => $map) {
+            // Already-built envelopes (with an 'events' list of decoded events) pass straight through;
+            // raw maps are validated by the loader.
+            [$ok, $env] = EnvelopeLoader::fromMap($map);
+            if ($ok === 'ok') {
+                $envelopes[] = $env;
+            } else {
+                $errors[] = ['index' => $i, 'error' => $env];
+            }
+        }
+
+        return [$errors === [], $envelopes, $errors];
+    }
+
+    /** Content fingerprint for replay-is-a-no-op (stable for identical content). */
+    private static function fingerprint(array $env): string
+    {
+        return hash('sha256', json_encode($env, JSON_THROW_ON_ERROR));
+    }
+
+    /**
+     * @param list<array<string,mixed>> $identityEvents
+     * @return array<string,mixed>
+     */
+    private static function summary(int $accepted, int $skipped, int $appended, array $identityEvents): array
+    {
+        $flagged = [];
+        foreach ($identityEvents as $e) {
+            if (($e['type'] ?? null) === Events::TYPE_CONFLICT_FLAGGED
+                && is_array($e['subject'] ?? null) && ($e['subject'][0] ?? null) === 'merge'
+            ) {
+                $flagged[] = ['type' => 'merge_proposal', 'keys' => $e['subject'][1]];
+            }
+        }
+
+        return [
+            'accepted' => $accepted,
+            'skipped' => $skipped,
+            'appended' => $appended,
+            'identity' => array_map(static fn (array $e): array => ['type' => $e['type'], 'key' => $e['key'] ?? null], $identityEvents),
+            'flagged' => $flagged,
+        ];
+    }
+}

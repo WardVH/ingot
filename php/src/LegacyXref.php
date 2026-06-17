@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace GoldenRecord;
+namespace Ingot;
 
 /**
  * The durable legacy → new cross-reference — ported from `LegacyXref` (lib/ingest/legacy_xref.ex).

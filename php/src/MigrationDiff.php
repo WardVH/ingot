@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace GoldenRecord;
+namespace Ingot;
 
 /**
  * The migration-validation diff view — ported from `MigrationDiff` (lib/ingest/migration_diff.ex).

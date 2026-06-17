@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace GoldenRecord\Tests;
+namespace Ingot\Tests;
 
-use GoldenRecord\Lanes;
+use Ingot\Lanes;
 use PHPUnit\Framework\TestCase;
 
 /**

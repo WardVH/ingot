@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace GoldenRecord;
+namespace Ingot;
 
 /**
  * Canonical-document projection for the 422156 parity oracle — the PHP twin of the canonicalizers

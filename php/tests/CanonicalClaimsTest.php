@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace GoldenRecord\Tests;
+namespace Ingot\Tests;
 
-use GoldenRecord\CanonicalClaims;
+use Ingot\CanonicalClaims;
 use PHPUnit\Framework\TestCase;
 
 /**

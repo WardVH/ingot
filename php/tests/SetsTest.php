@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace GoldenRecord\Tests;
+namespace Ingot\Tests;
 
-use GoldenRecord\Codes;
-use GoldenRecord\Sets;
+use Ingot\Codes;
+use Ingot\Sets;
 use PHPUnit\Framework\TestCase;
 
 /**

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace GoldenRecord;
+namespace Ingot;
 
 /**
  * HistoryEnvelope loader — ported from `HistoryEnvelope` (lib/ingest/envelope_loader.ex).

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace GoldenRecord;
+namespace Ingot;
 
 /**
  * Field survivorship — ported from `Survivorship` in lib/golden_record_core.ex.

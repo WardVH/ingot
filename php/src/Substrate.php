@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace GoldenRecord;
+namespace Ingot;
 
 /**
  * Claim construction + the current-view fold — ported from `Substrate` in lib/golden_record_core.ex.

@@ -20,8 +20,8 @@ declare(strict_types=1);
 
 require __DIR__.'/../vendor/autoload.php';
 
-use GoldenRecord\EnvelopeLoader;
-use GoldenRecord\GoldenRecords;
+use Ingot\EnvelopeLoader;
+use Ingot\GoldenRecords;
 
 $fixture = __DIR__.'/../../test/ingest/fixtures/medipim_be_422156.json';
 

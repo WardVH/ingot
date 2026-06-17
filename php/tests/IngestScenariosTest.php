@@ -2,18 +2,18 @@
 
 declare(strict_types=1);
 
-namespace GoldenRecord\Tests;
+namespace Ingot\Tests;
 
-use GoldenRecord\Api;
-use GoldenRecord\ClaimMapping;
-use GoldenRecord\EnvelopeLoader;
-use GoldenRecord\Events;
-use GoldenRecord\Lanes;
-use GoldenRecord\LegacyXref;
-use GoldenRecord\MigrationDiff;
-use GoldenRecord\PublicId;
-use GoldenRecord\Rederivation;
-use GoldenRecord\Sets;
+use Ingot\Api;
+use Ingot\ClaimMapping;
+use Ingot\EnvelopeLoader;
+use Ingot\Events;
+use Ingot\Lanes;
+use Ingot\LegacyXref;
+use Ingot\MigrationDiff;
+use Ingot\PublicId;
+use Ingot\Rederivation;
+use Ingot\Sets;
 use PHPUnit\Framework\TestCase;
 
 /**

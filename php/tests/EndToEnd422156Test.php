@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace GoldenRecord\Tests;
+namespace Ingot\Tests;
 
-use GoldenRecord\Canonical422156;
-use GoldenRecord\EnvelopeLoader;
-use GoldenRecord\GoldenRecords;
-use GoldenRecord\LegacyXref;
-use GoldenRecord\MigrationDiff;
-use GoldenRecord\Rederivation;
+use Ingot\Canonical422156;
+use Ingot\EnvelopeLoader;
+use Ingot\GoldenRecords;
+use Ingot\LegacyXref;
+use Ingot\MigrationDiff;
+use Ingot\Rederivation;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -62,8 +62,8 @@ final class EndToEnd422156Test extends TestCase
         $result = Rederivation::run([$env], 1);
 
         self::assertCount(1, $result['clusters']);
-        $product = \GoldenRecord\Lanes::partitionMembers($result['ledger']->members)['product'];
+        $product = \Ingot\Lanes::partitionMembers($result['ledger']->members)['product'];
         self::assertSame(['SK_1'], array_keys($product));
-        self::assertTrue(\GoldenRecord\Sets::member($product['SK_1'], ['cnk', '3612173']));
+        self::assertTrue(\Ingot\Sets::member($product['SK_1'], ['cnk', '3612173']));
     }
 }

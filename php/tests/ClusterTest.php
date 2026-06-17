@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace GoldenRecord\Tests;
+namespace Ingot\Tests;
 
-use GoldenRecord\Cluster;
-use GoldenRecord\Sets;
-use GoldenRecord\Substrate;
+use Ingot\Cluster;
+use Ingot\Sets;
+use Ingot\Substrate;
 use PHPUnit\Framework\TestCase;
 
 /**

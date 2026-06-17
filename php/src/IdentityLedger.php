@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace GoldenRecord;
+namespace Ingot;
 
 /**
  * Surrogate-key minting + identity reconciliation — ported from `IdentityLedger` in

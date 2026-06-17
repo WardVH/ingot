@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace GoldenRecord;
+namespace Ingot;
 
 /**
  * Variant clustering — ported from `Cluster` in lib/golden_record_core.ex.

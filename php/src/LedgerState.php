@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace GoldenRecord;
+namespace Ingot;
 
 /**
  * The IdentityLedger's state — ported from the `%IdentityLedger{}` struct.

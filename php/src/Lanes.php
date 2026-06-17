@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace GoldenRecord;
+namespace Ingot;
 
 /**
  * Typed entity lanes — ported from `Lanes` in lib/golden_record_core.ex.

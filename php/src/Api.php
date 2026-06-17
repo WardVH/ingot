@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace GoldenRecord;
+namespace Ingot;
 
 /**
  * The customer read layer — a MINIMAL port of `Api` (lib/golden_record_core.ex), limited to the

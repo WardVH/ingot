@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace GoldenRecord;
+namespace Ingot;
 
 /**
  * The read projection — ported from `Catalog` in lib/golden_record_core.ex.

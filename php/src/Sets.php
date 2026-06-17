@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace GoldenRecord;
+namespace Ingot;
 
 /**
  * A set of codes — the PHP analogue of an Elixir `MapSet` of `{scheme, value}` tuples.

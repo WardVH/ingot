@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace GoldenRecord\Tests;
+namespace Ingot\Tests;
 
-use GoldenRecord\ClaimMapping;
-use GoldenRecord\Cluster;
-use GoldenRecord\EnvelopeLoader;
-use GoldenRecord\Lanes;
-use GoldenRecord\Sets;
-use GoldenRecord\Substrate;
+use Ingot\ClaimMapping;
+use Ingot\Cluster;
+use Ingot\EnvelopeLoader;
+use Ingot\Lanes;
+use Ingot\Sets;
+use Ingot\Substrate;
 use PHPUnit\Framework\TestCase;
 
 /**

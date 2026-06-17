@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace GoldenRecord;
+namespace Ingot;
 
 /**
  * Source-priority ranking — ported from the `Priority` struct in lib/golden_record_core.ex.

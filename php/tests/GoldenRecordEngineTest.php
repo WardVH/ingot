@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace GoldenRecord\Tests;
+namespace Ingot\Tests;
 
-use GoldenRecord\Canonical422156;
-use GoldenRecord\EnvelopeLoader;
-use GoldenRecord\GoldenRecordEngine;
+use Ingot\Canonical422156;
+use Ingot\EnvelopeLoader;
+use Ingot\GoldenRecordEngine;
 use PHPUnit\Framework\TestCase;
 
 /**

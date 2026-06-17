@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace GoldenRecord;
+namespace Ingot;
 
 /**
  * The single source of medipim product-code knowledge — ported from `CodeRegistry`
@@ -101,6 +101,31 @@ final class CodeRegistry
     public static function classification(string $field): string
     {
         return self::REGISTRY[$field][1] ?? self::DEFAULT_CLASSIFICATION;
+    }
+
+    /** Does this medipim field carry a bridging identity code? */
+    public static function identityField(string $field): bool
+    {
+        return self::classification($field) === 'identity';
+    }
+
+    /**
+     * The set of medipim field names classified 'identity' — the single source of truth the decoder
+     * ({@see EnvelopeDecoder}) uses to tell an identity code from an attribute (mirrors the Elixir
+     * `CodeRegistry.identity_fields/0`). Returned as a set (field => true) for O(1) membership.
+     *
+     * @return array<string,true>
+     */
+    public static function identityFields(): array
+    {
+        $out = [];
+        foreach (self::REGISTRY as $field => [$_scheme, $class]) {
+            if ($class === 'identity') {
+                $out[$field] = true;
+            }
+        }
+
+        return $out;
     }
 
     /** Bridge grade of an engine scheme: 'national' | 'barcode' | 'none'. */

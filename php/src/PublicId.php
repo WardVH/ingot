@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace GoldenRecord;
+namespace Ingot;
 
 /**
  * Identity-grade public ids (CNK) — ported from `PublicId` in lib/golden_record_core.ex.

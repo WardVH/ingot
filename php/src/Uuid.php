@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace GoldenRecord;
+namespace Ingot;
 
 /**
  * Engine-minted identity — ported from `Uuid` in lib/golden_record_core.ex.

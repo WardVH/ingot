@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace GoldenRecord;
+namespace Ingot;
 
 /**
  * Domain / identity events — ported from the `Events.*` structs in lib/golden_record_core.ex.

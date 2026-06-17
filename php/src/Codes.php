@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace GoldenRecord;
+namespace Ingot;
 
 /**
  * Code normalization & validation. Ported from `Codes` in lib/golden_record_core.ex.

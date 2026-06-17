@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace GoldenRecord;
+namespace Ingot;
 
 /**
  * The relation registry — ported from `Relations` in lib/golden_record_core.ex.

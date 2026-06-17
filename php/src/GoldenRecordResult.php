@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace GoldenRecord;
+namespace Ingot;
 
 /**
  * The outcome of one fold (see {@see GoldenRecordEngine::ingest}). Holds the three projections off

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace GoldenRecord;
+namespace Ingot;
 
 /**
  * Canonical claims (the wire shape) → engine claims — ported from `CanonicalClaims`

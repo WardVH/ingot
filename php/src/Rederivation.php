@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace GoldenRecord;
+namespace Ingot;
 
 /**
  * Cluster + reconcile into surrogate keys — ported from `Rederivation` (lib/ingest/rederive.ex).

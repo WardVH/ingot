@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace GoldenRecord;
+namespace Ingot;
 
 /**
  * The medipim reference adapter — ported from `ClaimMapping` (lib/ingest/claim_mapping.ex).
