@@ -75,3 +75,36 @@ jobs:
 
       - name: Test
         run: mix test
+
+  php:
+    name: PHP tests (${{ matrix.php }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        php:
+          - "8.3" # supported floor (php/composer.json: "php": ">=8.3")
+          - "8.4"
+    defaults:
+      run:
+        working-directory: php
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          extensions: mbstring # Codes::toStringValue uses mb_chr; JSON/PCRE are built in
+          coverage: none
+
+      # composer.lock is committed, so this is deterministic. The parity gate's oracle output
+      # (php/bench/golden_422156.expected.json) and the 422156 fixture are committed too, so the
+      # PHP suite runs standalone — no Elixir needed in this job.
+      - name: Install dependencies
+        run: composer install --no-interaction --no-progress --prefer-dist
+
+      - name: Test
+        run: ./vendor/bin/phpunit --no-coverage
