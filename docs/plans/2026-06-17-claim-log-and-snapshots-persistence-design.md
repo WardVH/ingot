@@ -27,9 +27,10 @@ replaces `products_deltas`); it lands phases P0–P4 in *shadow* (writes mirrore
    takes current-truth envelopes (idempotent per slot). One decoder serves both and every lane.
 5. **The live shadow is a secondary projection, exactly like the Elasticsearch reindex.** It runs
    **after** the delta is durably committed (never inside the delta transaction), in its own
-   transaction, fully guarded (failures logged, never thrown) and behind a feature flag
-   (`INGOT_SHADOW_ENABLED`, off by default). This mirrors `MysqlEsProductRepository`'s
-   `reindexInElasticsearch` self-healing pattern — the established medipim shape for derived state.
+   transaction, fully guarded (failures logged, never thrown). It runs unconditionally — safe
+   without a feature flag because every call is guarded and `ClaimIngest::live` is idempotent per
+   slot. This mirrors `MysqlEsProductRepository`'s `reindexInElasticsearch` self-healing pattern —
+   the established medipim shape for derived state.
 6. **The repository is the seam, not the writer.** The three `MysqlEs*Repository::save()` methods
    already reload the resulting snapshot for the ES projection (or can, for products). Hooking there
    gives uniform, post-commit access to the resulting `Snapshot` for all three lanes and reuses the
@@ -66,7 +67,7 @@ replaces `products_deltas`); it lands phases P0–P4 in *shadow* (writes mirrore
 - **`Infrastructure\DbalClaimStore`** — the `ClaimStore` adapter (single-writer lock, JSON columns,
   epoch coercion, redirect-follow). Wired to the port via a `services.yml` alias.
 - **`Infrastructure\SnapshotClaimMapper`** — `Snapshot` → `perSource` (pure, meta-driven).
-- **`Application\ClaimShadowWriter`** — guarded, flag-gated live bridge: `Snapshot` → envelope
+- **`Application\ClaimShadowWriter`** — guarded live bridge: `Snapshot` → envelope
   (`SnapshotTranslator`) → `ClaimIngest::live`. Hooked into product/description/media
   `MysqlEs*Repository::save()` post-commit.
 - **`Application\ClaimParity`** — pure comparator: engine claims vs `perSource` → attribute &
@@ -83,7 +84,7 @@ replaces `products_deltas`); it lands phases P0–P4 in *shadow* (writes mirrore
 |---|---|---|
 | P0 | persisted ledger/catalog state (store + adapter + migration) | gr-h4k |
 | P1 | claim-mapping spec / delta→claim translator | gr-thr |
-| shadow | live shadow ingest wired, flag off → on per env | *gr-h4k / this doc* |
+| shadow | live shadow ingest wired (always-on, guarded) | *gr-h4k / this doc* |
 | backfill | run `backfill-claims` at scale, verify counts | gr-afy (P4) |
 | P2/P3 | parity harness at scale, close gaps to zero-or-explained | gr-yfh, gr-be3, gr-536 |
 | P5/P6 | cutover reads, then writes; retire delta machinery | gr-xhd, gr-aw5 |
@@ -100,4 +101,4 @@ replaces `products_deltas`); it lands phases P0–P4 in *shadow* (writes mirrore
 
 Reads from the engine, lookup-adapter cutover, retiring `*_deltas` (P5/P6 — gr-xhd/gr-aw5). Leaflets
 and other lanes (the decoder already serves them; wire when a parity need appears). Async/queued
-shadow ingest (the guarded inline reload behind the flag is enough until parity says otherwise).
+shadow ingest (the guarded inline reload is enough until parity says otherwise).
