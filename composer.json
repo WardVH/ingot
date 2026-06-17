@@ -1,0 +1,17 @@
+{
+    "name": "ingot/ingot",
+    "description": "PHP port of the golden-record engine — claim ingest, snapshots, and storage ports",
+    "type": "library",
+    "license": "proprietary",
+    "require": {
+        "php": ">=8.2"
+    },
+    "autoload": {
+        "psr-4": {
+            "Ingot\\": "php/src/"
+        }
+    },
+    "config": {
+        "sort-packages": true
+    }
+}
