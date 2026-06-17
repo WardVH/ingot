@@ -1,0 +1,144 @@
+<?php
+
+declare(strict_types=1);
+
+namespace GoldenRecord;
+
+/**
+ * Claim construction + the current-view fold — ported from `Substrate` in lib/golden_record_core.ex.
+ *
+ * Every ingested code is canonicalized here so equivalent representations collapse. `member_of` is
+ * the legacy spelling of an `edge`: the constructor lowers it, so the log holds the generalized
+ * edge. `current/1` keeps only the latest claim per slot (a slot = the dimension a claim addresses).
+ */
+final class Substrate
+{
+    /**
+     * Build a ClaimAsserted. `member_of` data ({member_code, collection}) lowers to an `edge`.
+     *
+     * @param array<string,mixed> $data
+     * @return array<string,mixed>
+     */
+    public static function claim(?string $source, string $kind, array $data, mixed $validFrom, mixed $recordedAt): array
+    {
+        if ($kind === 'member_of' && isset($data['member_code'], $data['collection'])) {
+            return self::claim(
+                $source,
+                'edge',
+                ['from' => $data['member_code'], 'relation' => 'member_of', 'to' => $data['collection']],
+                $validFrom,
+                $recordedAt
+            );
+        }
+
+        return Events::claimAsserted($source, $kind, self::normalize($kind, $data), $validFrom, $recordedAt);
+    }
+
+    /**
+     * @param array<string,mixed> $data
+     * @return array<string,mixed>
+     */
+    private static function normalize(string $kind, array $data): array
+    {
+        switch ($kind) {
+            case 'identity':
+                if (isset($data['codes'])) {
+                    $data['codes'] = array_map(Codes::canonicalize(...), $data['codes']);
+                }
+
+                return $data;
+            case 'grouping':
+            case 'attribute':
+                if (isset($data['code'])) {
+                    $data['code'] = Codes::canonicalize($data['code']);
+                }
+
+                return $data;
+            case 'media':
+                if (isset($data['target'])) {
+                    $data['target'] = Codes::canonicalize($data['target']);
+                }
+
+                return $data;
+            case 'edge':
+                if (isset($data['from'], $data['to'])) {
+                    // Elixir canonicalizes BOTH endpoints. For a member_of edge the `to` is a
+                    // {collection, member} tuple — Codes::canonicalize just trims its value (the
+                    // collection scheme is not GTIN/padded), which is exactly what we want: e.g. a
+                    // tab-only member trims to "".
+                    $data['from'] = Codes::canonicalize($data['from']);
+                    $data['to'] = Codes::canonicalize($data['to']);
+                }
+
+                return $data;
+            case 'member_of':
+                if (isset($data['member_code'], $data['collection'])) {
+                    $data['member_code'] = Codes::canonicalize($data['member_code']);
+                    $data['collection'] = Codes::canonicalize($data['collection']);
+                }
+
+                return $data;
+            default:
+                return $data;
+        }
+    }
+
+    /**
+     * The slot a claim addresses — its dedup key in `current/1`. Returned as a flat list whose
+     * first element is the kind tag, mirroring the Elixir tuple shapes.
+     *
+     * @param array<string,mixed> $claim
+     * @return list<mixed>
+     */
+    public static function slot(array $claim): array
+    {
+        $s = $claim['source'];
+        $d = $claim['data'];
+
+        return match ($claim['kind']) {
+            'identity' => [$s, 'identity', $d['ref']],
+            'grouping' => [$s, 'grouping', $d['code']],
+            'attribute' => [$s, 'attr', $d['code'], $d['field']],
+            'media' => [$s, 'media', $d['asset'], $d['target']],
+            'edge' => [$s, 'edge', $d['from'], $d['relation'], $d['to']],
+            'member_of' => [$s, 'member_of', $d['member_code'], $d['collection']],
+            default => [$s, $claim['kind']],
+        };
+    }
+
+    /**
+     * Collapse the claim log to the latest claim per slot (highest `order` wins).
+     *
+     * @param list<array<string,mixed>> $claims
+     * @return list<array<string,mixed>>
+     */
+    public static function current(array $claims): array
+    {
+        /** @var array<string, array<string,mixed>> $bySlot */
+        $bySlot = [];
+        foreach ($claims as $c) {
+            $key = self::slotKey(self::slot($c));
+            if (!isset($bySlot[$key]) || ($c['order'] ?? 0) > ($bySlot[$key]['order'] ?? 0)) {
+                $bySlot[$key] = $c;
+            }
+        }
+
+        return array_values($bySlot);
+    }
+
+    /**
+     * A stable string key for a slot list (codes are [scheme,value] pairs, collections likewise).
+     *
+     * @param list<mixed> $slot
+     */
+    private static function slotKey(array $slot): string
+    {
+        return implode("\x1e", array_map(static function (mixed $part): string {
+            if (is_array($part)) {
+                return implode("\x1f", array_map(static fn ($x): string => (string) $x, $part));
+            }
+
+            return is_bool($part) ? ($part ? '1' : '0') : (string) $part;
+        }, $slot));
+    }
+}

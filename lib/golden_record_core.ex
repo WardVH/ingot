@@ -389,27 +389,38 @@ defmodule Priority do
 end
 
 defmodule Survivorship do
-  def field_decisions(codes, attrs, priority) do
+  @moduledoc """
+  Field survivorship. `policy` is the seam that keeps medipim-specific scoring out of the generic
+  engine — attribute rankings are ALWAYS applied, never switched off:
+
+    * `%Priority{}` — tier ranking (back-compat; behaviour unchanged).
+    * a 2-arity `fun.(dimension, source)` returning a rank (lower wins) — an INJECTED rank function.
+      medipim's per-field/per-org scoring (incl. the off-product penalty, labo/region context) closes
+      over its context inside such a function; the generic engine only consumes the ranks.
+  """
+  def field_decisions(codes, attrs, policy) do
     attrs
     |> Enum.filter(&MapSet.member?(codes, &1.data.code))
     |> Enum.group_by(& &1.data.field)
     |> Enum.map(fn {field, cs} ->
       {field,
-       decide(field, Enum.map(cs, &%{source: &1.source, value: &1.data.value, order: &1.order}), priority)}
+       decide(field, Enum.map(cs, &%{source: &1.source, value: &1.data.value, order: &1.order}), policy)}
     end)
   end
 
-  def decide(dimension, entries, priority) do
+  def decide(dimension, entries, policy) do
+    rank = rank_fun(policy)
+
     latest =
       entries |> Enum.group_by(& &1.source) |> Enum.map(fn {_s, es} -> Enum.max_by(es, & &1.order) end)
 
-    ranked = Enum.sort_by(latest, &Priority.rank(priority, dimension, &1.source))
+    ranked = Enum.sort_by(latest, fn e -> rank.(dimension, e.source) end)
     winner = hd(ranked)
-    top = Priority.rank(priority, dimension, winner.source)
+    top = rank.(dimension, winner.source)
 
     distinct =
       latest
-      |> Enum.filter(&(Priority.rank(priority, dimension, &1.source) == top))
+      |> Enum.filter(fn e -> rank.(dimension, e.source) == top end)
       |> Enum.map(& &1.value)
       |> Enum.uniq()
 
@@ -420,6 +431,9 @@ defmodule Survivorship do
       candidates: Enum.map(ranked, &{&1.source, &1.value})
     }
   end
+
+  defp rank_fun(%Priority{} = priority), do: &Priority.rank(priority, &1, &2)
+  defp rank_fun(fun) when is_function(fun, 2), do: fun
 end
 
 defmodule Cluster do
