@@ -85,6 +85,7 @@ jobs:
         php:
           - "8.3" # supported floor (php/composer.json: "php": ">=8.3")
           - "8.4"
+          - "8.5" # matches local dev (8.5.1, per php/bench/RESULTS.md)
     defaults:
       run:
         working-directory: php
