@@ -1,9 +1,10 @@
-# test/survivorship_policy_test.exs — gr-6y2: Survivorship is policy-driven + toggleable.
+# test/survivorship_policy_test.exs — gr-6y2: Survivorship is policy-driven (rankings always on).
 #
 # Proves the engine seam that keeps medipim-specific scoring OUT of the generic core:
 #   * %Priority{}  -> tier ranking, unchanged (back-compat).
-#   * :last_wins   -> the "off" toggle: most-recent value wins, deterministic.
 #   * injected fn  -> context-aware rank (medipim's off-product penalty lives HERE, not in Priority).
+# Attribute rankings are ALWAYS applied — there is no "off" for attribute survivorship (the toggle
+# we want lives on identity-conflict guarding instead; see test/identity_conflict_explained_test.exs).
 defmodule SurvivorshipPolicyTest do
   use ExUnit.Case, async: true
 
@@ -15,16 +16,6 @@ defmodule SurvivorshipPolicyTest do
     assert d.winner == "orgA"
     assert d.value == "Foo"
     assert d.status == :resolved
-  end
-
-  test ":last_wins (the off toggle) ignores priority — most recent value wins, always resolved" do
-    d = Survivorship.decide("name", [e("orgA", "old", 1), e("orgB", "new", 2)], :last_wins)
-
-    assert d.value == "new"
-    assert d.winner == "orgB"
-    assert d.status == :resolved
-    # candidates are ordered most-recent-first, independent of any source ranking
-    assert d.candidates == [{"orgB", "new"}, {"orgA", "old"}]
   end
 
   test "injected rank fn expresses medipim's off-product penalty (context-aware)" do

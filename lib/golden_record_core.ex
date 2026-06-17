@@ -390,15 +390,13 @@ end
 
 defmodule Survivorship do
   @moduledoc """
-  Field survivorship. `policy` selects how competing per-source values resolve, and is the seam that
-  keeps medipim-specific scoring out of the generic engine:
+  Field survivorship. `policy` is the seam that keeps medipim-specific scoring out of the generic
+  engine — attribute rankings are ALWAYS applied, never switched off:
 
     * `%Priority{}` — tier ranking (back-compat; behaviour unchanged).
     * a 2-arity `fun.(dimension, source)` returning a rank (lower wins) — an INJECTED rank function.
       medipim's per-field/per-org scoring (incl. the off-product penalty, labo/region context) closes
       over its context inside such a function; the generic engine only consumes the ranks.
-    * `:last_wins` — the "off" toggle: ignore source priority entirely, the most recently recorded
-      value wins. Deterministic (`order` is a unique chronological stamp), so always `:resolved`.
   """
   def field_decisions(codes, attrs, policy) do
     attrs
@@ -411,27 +409,11 @@ defmodule Survivorship do
   end
 
   def decide(dimension, entries, policy) do
+    rank = rank_fun(policy)
+
     latest =
       entries |> Enum.group_by(& &1.source) |> Enum.map(fn {_s, es} -> Enum.max_by(es, & &1.order) end)
 
-    resolve(latest, dimension, policy)
-  end
-
-  # "off" toggle — no source scoring; the most recently recorded value wins outright.
-  defp resolve(latest, _dimension, :last_wins) do
-    winner = Enum.max_by(latest, & &1.order)
-
-    %{
-      value: winner.value,
-      winner: winner.source,
-      status: :resolved,
-      candidates: latest |> Enum.sort_by(& &1.order, :desc) |> Enum.map(&{&1.source, &1.value})
-    }
-  end
-
-  # scored — a %Priority{} (back-compat) or an injected (dimension, source) -> rank function.
-  defp resolve(latest, dimension, policy) do
-    rank = rank_fun(policy)
     ranked = Enum.sort_by(latest, fn e -> rank.(dimension, e.source) end)
     winner = hd(ranked)
     top = rank.(dimension, winner.source)

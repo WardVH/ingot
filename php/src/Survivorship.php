@@ -10,10 +10,10 @@ namespace GoldenRecord;
  * For each field, the highest-priority source wins; a tie at the top tier among distinct values is
  * `needs_review`. Within a source, the latest claim (by `order`) is the one that counts.
  *
- * `$policy` selects how competing values resolve, and keeps medipim-specific scoring out of the
- * generic engine: a {@see Priority} ranks by tier (back-compat); a `callable(dimension, source)`
- * is an injected rank function (medipim's per-field/per-org + off-product penalty closes over its
- * context there); the string `'last_wins'` is the "off" toggle — most recent value wins outright.
+ * `$policy` keeps medipim-specific scoring out of the generic engine, but attribute rankings are
+ * ALWAYS applied (no "off" for attributes): a {@see Priority} ranks by tier (back-compat), or a
+ * `callable(dimension, source)` is an injected rank function (medipim's per-field/per-org +
+ * off-product penalty closes over its context there). The generic engine only consumes the ranks.
  */
 final class Survivorship
 {
@@ -24,7 +24,7 @@ final class Survivorship
      * @param list<array<string,mixed>> $attrs attribute ClaimAsserted arrays
      * @return list<array{0: string, 1: array<string,mixed>}> sorted [field, decision] pairs is the caller's job
      */
-    public static function fieldDecisions(array $codes, array $attrs, Priority|string|callable $policy): array
+    public static function fieldDecisions(array $codes, array $attrs, Priority|callable $policy): array
     {
         // Group the matching attribute claims by field, preserving first-seen field order.
         /** @var array<string, list<array<string,mixed>>> $byField */
@@ -55,7 +55,7 @@ final class Survivorship
      * @param list<array{source: string, value: mixed, order: int}> $entries
      * @return array{value: mixed, winner: string, status: string, candidates: list<array{0: string, 1: mixed}>}
      */
-    public static function decide(string $dimension, array $entries, Priority|string|callable $policy): array
+    public static function decide(string $dimension, array $entries, Priority|callable $policy): array
     {
         // Latest entry per source (highest order). A null source keys as "" (PHP arrays cannot key
         // on null); the stored entry keeps its real null `source` for fidelity.
@@ -74,12 +74,7 @@ final class Survivorship
         uksort($latestBySource, self::compareSourceKeys(...));
         $latest = array_values($latestBySource);
 
-        // "off" toggle: ignore source scoring; the most recently recorded value wins.
-        if ($policy === 'last_wins') {
-            return self::resolveLastWins($latest);
-        }
-
-        // scored — a Priority (back-compat) or an injected fn(dimension, source): int|float.
+        // A Priority (back-compat) or an injected fn(dimension, source): int|float.
         $rank = self::rankFn($policy);
 
         // Stable sort by rank — usort is not stable, so carry the original index as a tie-break.
@@ -114,33 +109,6 @@ final class Survivorship
                 static fn (array $e): array => [$e['source'], $e['value']],
                 $ranked
             ),
-        ];
-    }
-
-    /**
-     * The "off" resolution: the most recently recorded value (highest `order`) wins outright.
-     * `order` is a unique chronological stamp, so this is deterministic and always `resolved`.
-     *
-     * @param list<array{source: ?string, value: mixed, order: int}> $latest
-     * @return array{value: mixed, winner: ?string, status: string, candidates: list<array{0: ?string, 1: mixed}>}
-     */
-    private static function resolveLastWins(array $latest): array
-    {
-        $winner = $latest[0];
-        foreach ($latest as $e) {
-            if ($e['order'] > $winner['order']) {
-                $winner = $e;
-            }
-        }
-
-        $byOrderDesc = $latest;
-        usort($byOrderDesc, static fn (array $a, array $b): int => $b['order'] <=> $a['order']);
-
-        return [
-            'value' => $winner['value'],
-            'winner' => $winner['source'],
-            'status' => 'resolved',
-            'candidates' => array_map(static fn (array $e): array => [$e['source'], $e['value']], $byOrderDesc),
         ];
     }
 

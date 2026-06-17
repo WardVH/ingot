@@ -9,9 +9,9 @@ use GoldenRecord\Survivorship;
 use PHPUnit\Framework\TestCase;
 
 /**
- * PHP-parity mirror of test/survivorship_policy_test.exs (gr-6y2): Survivorship is policy-driven +
- * toggleable. A Priority ranks by tier (back-compat); 'last_wins' is the "off" toggle; an injected
- * callable carries context-aware scoring (medipim's off-product penalty) without touching the core.
+ * PHP-parity mirror of test/survivorship_policy_test.exs (gr-6y2): Survivorship is policy-driven.
+ * A Priority ranks by tier (back-compat); an injected callable carries context-aware scoring
+ * (medipim's off-product penalty) without touching the core. Attribute rankings are always applied.
  */
 final class SurvivorshipPolicyTest extends TestCase
 {
@@ -29,16 +29,6 @@ final class SurvivorshipPolicyTest extends TestCase
         self::assertSame('orgA', $d['winner']);
         self::assertSame('Foo', $d['value']);
         self::assertSame('resolved', $d['status']);
-    }
-
-    public function test_last_wins_off_toggle_takes_most_recent_value(): void
-    {
-        $d = Survivorship::decide('name', [self::e('orgA', 'old', 1), self::e('orgB', 'new', 2)], 'last_wins');
-
-        self::assertSame('new', $d['value']);
-        self::assertSame('orgB', $d['winner']);
-        self::assertSame('resolved', $d['status']);
-        self::assertSame([['orgB', 'new'], ['orgA', 'old']], $d['candidates']);
     }
 
     public function test_injected_rank_fn_expresses_off_product_penalty(): void
