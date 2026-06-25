@@ -34,6 +34,14 @@ defmodule Events do
     defstruct [:key, :kept_codes, :into, :recorded_at, :order]
   end
 
+  # The bookend of IdentityMinted: a key whose EVERY contributing listing was retracted (identity
+  # claim with codes: []) vanishes from the members map. `codes` carries the codes the key HELD
+  # before retraction — the notification payload ("SK_3 with cnk:333 was retracted").
+  defmodule IdentityRetracted do
+    @enforce_keys [:key, :codes, :recorded_at]
+    defstruct [:key, :codes, :recorded_at, :order]
+  end
+
   # External-id continuity: `key` answers to `legacy_id` (a consumer-facing id from a system the
   # engine replaces). Assignment is an EVENT so the mapping is auditable and replayable; resolution
   # across merges/splits is a fold (see the ingest's LegacyIds).
@@ -442,6 +450,7 @@ defmodule Cluster do
     live_claims
     |> Enum.filter(&(&1.kind == :identity))
     |> Enum.map(fn c -> MapSet.new(c.data.codes) end)
+    |> Enum.reject(&(MapSet.size(&1) == 0))
     |> connected_components(shared)
     |> Enum.sort_by(&Enum.min/1)
   end
@@ -486,6 +495,9 @@ defmodule IdentityLedger do
     %{s | members: members, next: next}
   end
 
+  def evolve(%__MODULE__{} = s, %Events.IdentityRetracted{key: k}),
+    do: %{s | members: Map.delete(s.members, k)}
+
   def evolve(%__MODULE__{} = s, %Events.ConflictFlagged{}), do: s
   def evolve(%__MODULE__{} = s, %Events.MergeProposed{}), do: s
   def evolve(%__MODULE__{} = s, %Events.ConflictResolved{}), do: s
@@ -503,8 +515,7 @@ defmodule IdentityLedger do
             {[{cluster, key} | assigns], Map.put(m, key, cluster), n + 1, [key | minted], proposals}
 
           [key] ->
-            {[{cluster, key} | assigns], Map.update(m, key, cluster, &MapSet.union(&1, cluster)), n, minted,
-             proposals}
+            {[{cluster, key} | assigns], Map.put(m, key, cluster), n, minted, proposals}
 
           many ->
             # GATED: never auto-merge established keys — propose for steward review.
@@ -536,11 +547,17 @@ defmodule IdentityLedger do
           {Map.put(m, key, keep_cluster), n, [{key, Enum.reverse(into)} | split]}
       end)
 
+    assigned_keys = MapSet.new(assigns, fn {_cluster, key} -> key end)
+    proposed_keys = for {keys, _cluster} <- proposals, key <- keys, into: MapSet.new(), do: key
+    touched = MapSet.union(assigned_keys, proposed_keys)
+    retracted = for {key, _} <- original, not MapSet.member?(touched, key), do: key
+
     %{
       minted: Enum.reverse(minted),
       split: Enum.reverse(split),
       proposals: Enum.reverse(proposals),
-      members: members
+      retracted: Enum.sort(retracted),
+      members: Map.drop(members, retracted)
     }
   end
 
@@ -563,7 +580,12 @@ defmodule IdentityLedger do
         %Events.ConflictFlagged{subject: {:merge, keys}, candidates: cluster, recorded_at: at}
       end)
 
-    mints ++ splits ++ proposals ++ keeps_changed(old_members, outcome, at)
+    retractions =
+      Enum.map(outcome.retracted, fn key ->
+        %Events.IdentityRetracted{key: key, codes: Map.get(old_members, key, MapSet.new()), recorded_at: at}
+      end)
+
+    mints ++ splits ++ proposals ++ retractions ++ keeps_changed(old_members, outcome, at)
   end
 
   defp keeps_changed(old_members, outcome, at) do
@@ -601,6 +623,38 @@ defmodule Stewardship do
         {field, decision} <- Survivorship.field_decisions(codes, attrs, priority),
         decision.status == :needs_review do
       %Events.ConflictFlagged{subject: {:attr, key, field}, candidates: decision.candidates, recorded_at: at}
+    end
+  end
+
+  @doc """
+  Flag a SOURCE WITHDRAWAL: a source retracted its listing (codes: []) but the key survives
+  under other sources. The steward needs visibility — the product lost evidence.
+  """
+  def detect_withdrawals(old_live, new_live, members, at) do
+    old_sources = sources_per_key(old_live, members)
+    new_sources = sources_per_key(new_live, members)
+
+    for {key, _codes} <- members,
+        old = Map.get(old_sources, key, MapSet.new()),
+        new = Map.get(new_sources, key, MapSet.new()),
+        lost = MapSet.difference(old, new),
+        MapSet.size(lost) > 0 do
+      %Events.ConflictFlagged{
+        subject: {:source_withdrew, key},
+        candidates: Enum.map(lost, &%{source: &1}),
+        recorded_at: at
+      }
+    end
+  end
+
+  defp sources_per_key(live_claims, members) do
+    for claim <- live_claims,
+        claim.kind == :identity,
+        claim.data.codes != [],
+        {key, codes} <- members,
+        Enum.any?(claim.data.codes, &MapSet.member?(codes, &1)),
+        reduce: %{} do
+      acc -> Map.update(acc, key, MapSet.new([claim.source]), &MapSet.put(&1, claim.source))
     end
   end
 

@@ -84,6 +84,12 @@ final class IdentityLedger
 
                 return $s->with($members, $next);
 
+            case Events::TYPE_IDENTITY_RETRACTED:
+                $members = $s->members;
+                unset($members[$event['key']]);
+
+                return $s->with($members);
+
             default:
                 // ConflictFlagged / MergeProposed / ConflictResolved / ClaimAsserted / LegacyIdAssigned
                 return $s;
@@ -93,12 +99,12 @@ final class IdentityLedger
     /**
      * The reconcile core. Returns
      * ['minted' => list<string>, 'split' => list<[key, into]>, 'proposals' => list<[keys, cluster]>,
-     *  'members' => members].
+     *  'retracted' => list<string>, 'members' => members].
      *
      * @param array<string, array<string, array{0: string, 1: string}>> $oldMembers
      * @param list<array<string, array{0: string, 1: string}>> $clusters
      * @param array<string, array{0: string, 1: string}> $shared
-     * @return array{minted: list<string>, split: list<array{0: string, 1: list<array{0: string, 1: array<string, array{0: string, 1: string}>}>}>, proposals: list<array{0: list<string>, 1: array<string, array{0: string, 1: string}>}>, members: array<string, array<string, array{0: string, 1: string}>>}
+     * @return array{minted: list<string>, split: list<array{0: string, 1: list<array{0: string, 1: array<string, array{0: string, 1: string}>}>}>, proposals: list<array{0: list<string>, 1: array<string, array{0: string, 1: string}>}>, retracted: list<string>, members: array<string, array<string, array{0: string, 1: string}>>}
      */
     private static function reconcile(array $oldMembers, int $next, string $prefix, array $clusters, array $shared): array
     {
@@ -123,9 +129,7 @@ final class IdentityLedger
             } elseif (count($keys) === 1) {
                 $key = $keys[0];
                 $assigns[] = [$cluster, $key];
-                $members[$key] = isset($members[$key])
-                    ? Sets::union($members[$key], $cluster)
-                    : $cluster;
+                $members[$key] = $cluster;
             } else {
                 // GATED: never auto-merge established keys — propose for steward review.
                 $proposals[] = [$keys, $cluster];
@@ -177,10 +181,31 @@ final class IdentityLedger
             $split[] = [$key, $into];
         }
 
+        $assignedKeys = [];
+        foreach ($assigns as [$_cluster, $key]) {
+            $assignedKeys[$key] = true;
+        }
+        foreach ($proposals as [$keys, $_cluster]) {
+            foreach ($keys as $key) {
+                $assignedKeys[$key] = true;
+            }
+        }
+        $retracted = [];
+        foreach ($original as $key => $_codes) {
+            if (!isset($assignedKeys[$key])) {
+                $retracted[] = $key;
+            }
+        }
+        sort($retracted, SORT_STRING);
+        foreach ($retracted as $key) {
+            unset($members[$key]);
+        }
+
         return [
             'minted' => $minted,
             'split' => $split,
             'proposals' => $proposals,
+            'retracted' => $retracted,
             'members' => $members,
         ];
     }
@@ -190,7 +215,7 @@ final class IdentityLedger
      * mints, then splits, then proposals, then keeps_changed.
      *
      * @param array<string, array<string, array{0: string, 1: string}>> $oldMembers
-     * @param array{minted: list<string>, split: list<array{0: string, 1: list<array{0: string, 1: array<string, array{0: string, 1: string}>}>}>, proposals: list<array{0: list<string>, 1: array<string, array{0: string, 1: string}>}>, members: array<string, array<string, array{0: string, 1: string}>>} $outcome
+     * @param array{minted: list<string>, split: list<array{0: string, 1: list<array{0: string, 1: array<string, array{0: string, 1: string}>}>}>, proposals: list<array{0: list<string>, 1: array<string, array{0: string, 1: string}>}>, retracted: list<string>, members: array<string, array<string, array{0: string, 1: string}>>} $outcome
      * @return list<array<string,mixed>>
      */
     private static function buildEvents(array $oldMembers, array $outcome, mixed $at): array
@@ -211,6 +236,10 @@ final class IdentityLedger
 
         foreach ($outcome['proposals'] as [$keys, $cluster]) {
             $events[] = Events::conflictFlagged(['merge', $keys], $cluster, $at);
+        }
+
+        foreach ($outcome['retracted'] as $key) {
+            $events[] = Events::identityRetracted($key, $oldMembers[$key] ?? [], $at);
         }
 
         foreach (self::keepsChanged($oldMembers, $outcome, $at) as $e) {

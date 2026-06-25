@@ -239,7 +239,7 @@ defmodule ClaimsValidator do
 
   defp codes(claim, index) do
     case claim do
-      %{"codes" => [_ | _] = list} ->
+      %{"codes" => list} when is_list(list) ->
         Enum.flat_map(list, &code_findings(&1, "codes", index))
 
       %{"codes" => value} ->
@@ -247,7 +247,7 @@ defmodule ClaimsValidator do
           error(
             index,
             "codes",
-            ~s(codes must be a non-empty array of "scheme:value" strings, got #{inspect(value)})
+            ~s(codes must be an array of "scheme:value" strings, got #{inspect(value)})
           )
         ]
 
