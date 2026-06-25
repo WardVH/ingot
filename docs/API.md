@@ -50,6 +50,9 @@ Same response shape as backfill. Reconciliation is fold-forward against the live
 stay stable, and a claim bridging two **established** keys produces a flagged proposal — never an
 automatic merge.
 
+Optional `Idempotency-Key` header: replaying the same key with the same claims returns the original
+response without appending; reusing the key with different claims returns `409`.
+
 ### `POST /v1/cutover`
 
 Commit a **migration batch** — the explicit cutover of the dry-run → fix mapping → cutover loop.
@@ -120,7 +123,10 @@ Open it in a browser; HTTP Basic prompts for the steward token.
   Postgres + the API on `:4000`.
 - **Env (prod):** `DATABASE_URL`, `PRODUCT_API_TOKEN`, `STEWARD_API_TOKEN`, `PORT` (4000),
   optional `STEWARD_PORT` — set it and the steward surface binds its own listener while the main
-  port stops serving `/steward` (network-level separation).
+  port stops serving `/steward` (network-level separation). Optional limits:
+  `MAX_CLAIMS_PER_BATCH` (default `10000`) and `MAX_ENVELOPES_PER_BATCH` (default `1000`).
+  Optional survivorship config: `SOURCE_PRIORITY_JSON`, e.g.
+  `{"fields":{"name":[["manufacturer"],["supplier"]]},"default":[["manufacturer"],["supplier"]]}`.
 - **Storage:** append-only `events` (the system of record) + a disposable snapshot. Append and
   snapshot are one transaction under an advisory lock; reads never block.
 - **Integrity:** `Api.Store.rebuild!/0` (iex/release rpc) re-folds the entire log from zero and

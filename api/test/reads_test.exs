@@ -10,7 +10,7 @@ defmodule Api.ReadsTest do
   @fixture Path.expand("../../test/ingest/fixtures/medipim_be_422156.json", __DIR__)
 
   setup do
-    Postgrex.query!(Api.DB, "TRUNCATE events, snapshots, backfill_seen", [])
+    Postgrex.query!(Api.DB, "TRUNCATE events, snapshots, backfill_seen, live_batches", [])
     :ok
   end
 
@@ -50,6 +50,35 @@ defmodule Api.ReadsTest do
         %{kind: "identity", source: "medipim", ref: "P-2", codes: ["cnk:1000002"]}
       ]
     })
+
+    Api.Store.state()
+  end
+
+  defp seed_two_products_on(date) do
+    claims = [
+      Substrate.claim(
+        "medipim",
+        :identity,
+        %{ref: "P-1", codes: [{:cnk, "1000001"}]},
+        date,
+        date
+      ),
+      Substrate.claim("medipim", :identity, %{ref: "P-2", codes: [{:cnk, "1000002"}]}, date, date)
+    ]
+
+    identity_events =
+      IdentityLedger.decide(
+        IdentityLedger.new(),
+        {:reconcile, Cluster.variants(Substrate.current(claims)), MapSet.new(), date}
+      )
+
+    ledger = Enum.reduce(identity_events, IdentityLedger.new(), &IdentityLedger.evolve(&2, &1))
+    assignments = LegacyIds.decide(ledger.members, claims, %{}, date)
+
+    {:ok, :ok} =
+      Api.Store.append(fn _state, _conn ->
+        {:ok, claims ++ identity_events ++ assignments, :ok}
+      end)
 
     Api.Store.state()
   end
@@ -134,11 +163,32 @@ defmodule Api.ReadsTest do
       assert conn.status == 404
       assert %{"as_of" => "2017-01-01"} = decoded(conn)
 
-      conn = request(:get, "/v1/products/422156?as_of=2026-01-01")
+      conn = request(:get, "/v1/products/422156?as_of=2026-05-01")
       assert conn.status == 200
-      assert %{"as_of" => "2026-01-01", "legacy_id" => 422_156} = decoded(conn)
+      assert %{"as_of" => "2026-05-01", "legacy_id" => 422_156} = decoded(conn)
 
       assert request(:get, "/v1/products/422156?as_of=nonsense").status == 422
+    end
+
+    test "an absorbed legacy id follows only after the merge date" do
+      d1 = Date.add(Date.utc_today(), -10)
+      d2 = Date.add(Date.utc_today(), -5)
+      state = seed_two_products_on(d1)
+      [k1, k2] = state.ledger.members |> Map.keys() |> Enum.sort()
+      absorbed_id = state.assigned[k2]
+
+      {:ok, _} =
+        Api.Store.append(fn st, _conn ->
+          {:ok, Stewardship.approve_merge(st.ledger.members, [k1, k2], :sam, d2), :ok}
+        end)
+
+      before = decoded(request(:get, "/v1/products/#{absorbed_id}?as_of=#{Date.to_iso8601(d1)}"))
+      assert before["key"] == k2
+
+      after_merge =
+        decoded(request(:get, "/v1/products/#{absorbed_id}?as_of=#{Date.to_iso8601(d2)}"))
+
+      assert after_merge["key"] == k1
     end
   end
 

@@ -13,7 +13,7 @@ defmodule Api.E2eTruthTest do
   @fixture Path.expand("../../test/ingest/fixtures/medipim_be_422156.json", __DIR__)
 
   setup do
-    Postgrex.query!(Api.DB, "TRUNCATE events, snapshots, backfill_seen", [])
+    Postgrex.query!(Api.DB, "TRUNCATE events, snapshots, backfill_seen, live_batches", [])
     :ok
   end
 
@@ -58,6 +58,8 @@ defmodule Api.E2eTruthTest do
 
       assert api["status"] == to_string(decision.status)
     end
+
+    assert Enum.any?(body["media"], &String.starts_with?(&1["asset"], "MED_"))
 
     # by-code agrees with the ledger: the product's CNK lands on the same key
     cnk = Enum.find(direct_variant.codes, &match?({:cnk, _}, &1))

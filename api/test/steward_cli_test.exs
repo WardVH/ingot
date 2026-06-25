@@ -7,7 +7,7 @@ defmodule Api.StewardCliTest do
   import Plug.Conn
 
   setup do
-    Postgrex.query!(Api.DB, "TRUNCATE events, snapshots, backfill_seen", [])
+    Postgrex.query!(Api.DB, "TRUNCATE events, snapshots, backfill_seen, live_batches", [])
     Mix.shell(Mix.Shell.Process)
     on_exit(fn -> Mix.shell(Mix.Shell.IO) end)
     :ok

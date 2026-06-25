@@ -18,7 +18,7 @@ defmodule Api.ProductRouter do
   post "/backfill/envelopes" do
     case conn.body_params do
       %{"envelopes" => envelopes} ->
-        write(conn, Api.Writes.backfill(envelopes))
+        limited(conn, envelopes, :envelopes, fn -> write(conn, Api.Writes.backfill(envelopes)) end)
 
       _ ->
         json(conn, 422, %{errors: [%{index: nil, error: ~s(body must be {"envelopes": [...]})}]})
@@ -27,8 +27,13 @@ defmodule Api.ProductRouter do
 
   post "/claims" do
     case conn.body_params do
-      %{"claims" => claims} -> write(conn, Api.Writes.claims(claims))
-      _ -> json(conn, 422, %{errors: [%{index: nil, error: ~s(body must be {"claims": [...]})}]})
+      %{"claims" => claims} ->
+        limited(conn, claims, :claims, fn ->
+          write(conn, Api.Writes.claims(claims, idempotency_key(conn)))
+        end)
+
+      _ ->
+        json(conn, 422, %{errors: [%{index: nil, error: ~s(body must be {"claims": [...]})}]})
     end
   end
 
@@ -36,8 +41,11 @@ defmodule Api.ProductRouter do
   # convergent re-runs) — the committed report is the response; a rejected batch is 422.
   post "/cutover" do
     case conn.body_params do
-      %{"claims" => claims} -> write(conn, Api.Cutover.commit(claims))
-      _ -> json(conn, 422, %{errors: [%{index: nil, error: ~s(body must be {"claims": [...]})}]})
+      %{"claims" => claims} ->
+        limited(conn, claims, :claims, fn -> write(conn, Api.Cutover.commit(claims)) end)
+
+      _ ->
+        json(conn, 422, %{errors: [%{index: nil, error: ~s(body must be {"claims": [...]})}]})
     end
   end
 
@@ -45,8 +53,11 @@ defmodule Api.ProductRouter do
   # the response (validation errors included), so the status is 200 either way.
   post "/dry-run" do
     case conn.body_params do
-      %{"claims" => claims} -> json(conn, 200, Api.DryRun.report(claims))
-      _ -> json(conn, 422, %{errors: [%{index: nil, error: ~s(body must be {"claims": [...]})}]})
+      %{"claims" => claims} ->
+        limited(conn, claims, :claims, fn -> json(conn, 200, Api.DryRun.report(claims)) end)
+
+      _ ->
+        json(conn, 422, %{errors: [%{index: nil, error: ~s(body must be {"claims": [...]})}]})
     end
   end
 
@@ -111,6 +122,35 @@ defmodule Api.ProductRouter do
 
   defp write(conn, {:ok, summary}), do: json(conn, 200, summary)
   defp write(conn, {:error, {status, body}}), do: json(conn, status, body)
+
+  defp idempotency_key(conn) do
+    conn
+    |> get_req_header("idempotency-key")
+    |> List.first()
+    |> case do
+      nil -> nil
+      "" -> nil
+      key -> key
+    end
+  end
+
+  defp limited(conn, items, kind, fun) when is_list(items) do
+    max = limit(kind)
+
+    if length(items) > max do
+      json(conn, 413, %{
+        error:
+          "#{kind |> Atom.to_string() |> String.trim_trailing("s")} limit exceeded: #{length(items)} > #{max}"
+      })
+    else
+      fun.()
+    end
+  end
+
+  defp limited(_conn, _items, _kind, fun), do: fun.()
+
+  defp limit(:claims), do: Application.get_env(:golden_record_api, :max_claims, 10_000)
+  defp limit(:envelopes), do: Application.get_env(:golden_record_api, :max_envelopes, 1_000)
 
   defp json(conn, status, body) do
     conn

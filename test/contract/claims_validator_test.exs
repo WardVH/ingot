@@ -12,13 +12,13 @@ defmodule ClaimsValidatorTest do
       "kind" => "identity",
       "source" => "medipim",
       "ref" => "P-1",
-      "codes" => ["cnk:1000001", "gtin:05012345678900"],
+      "codes" => ["cnk:3612173", "gtin:05012345678900"],
       "valid_from" => "2024-03-01"
     },
     %{
       "kind" => "attribute",
       "source" => "medipim",
-      "code" => "cnk:1000001",
+      "code" => "cnk:3612173",
       "field" => "name",
       "value" => "Sunscreen"
     },
@@ -26,11 +26,11 @@ defmodule ClaimsValidatorTest do
       "kind" => "media",
       "source" => "medipim",
       "asset" => "img-001",
-      "target" => "cnk:1000001",
+      "target" => "cnk:3612173",
       "uri" => "https://cdn.example/img-001.jpg",
       "role" => "primary"
     },
-    %{"kind" => "grouping", "source" => "medipim", "code" => "cnk:1000001", "product" => 422_156}
+    %{"kind" => "grouping", "source" => "medipim", "code" => "cnk:3612173", "product" => 422_156}
   ]
 
   describe "valid batches" do
@@ -229,6 +229,29 @@ defmodule ClaimsValidatorTest do
       assert warning =~ "not GTIN-shaped"
     end
 
+    test "a restricted-circulation GTIN warns because it is not globally unique" do
+      assert {:ok, [%{index: 0, field: "codes", error: warning}]} =
+               ClaimsValidator.validate([
+                 %{"kind" => "identity", "source" => "m", "ref" => "P", "codes" => ["gtin:02012345678903"]}
+               ])
+
+      assert warning =~ "restricted circulation"
+    end
+
+    test "a real-shaped CNK with a bad Mod-10 check digit warns" do
+      assert {:ok, []} =
+               ClaimsValidator.validate([
+                 %{"kind" => "identity", "source" => "m", "ref" => "P", "codes" => ["cnk:3612173"]}
+               ])
+
+      assert {:ok, [%{index: 0, field: "codes", error: warning}]} =
+               ClaimsValidator.validate([
+                 %{"kind" => "identity", "source" => "m", "ref" => "P", "codes" => ["cnk:3612174"]}
+               ])
+
+      assert warning =~ "CNK Mod-10"
+    end
+
     test "a non-enum media role warns: the engine treats it as secondary (open question 5)" do
       media = %{
         "kind" => "media",
@@ -246,10 +269,10 @@ defmodule ClaimsValidatorTest do
       assert {:ok, []} = ClaimsValidator.validate([Map.delete(media, "role")])
     end
 
-    test "national-scheme codes never warn on checksum (no checksum declared)" do
+    test "short fake national-scheme codes never warn on checksum" do
       assert {:ok, []} =
                ClaimsValidator.validate([
-                 %{"kind" => "identity", "source" => "m", "ref" => "P", "codes" => ["cnk:1000001"]}
+                 %{"kind" => "identity", "source" => "m", "ref" => "P", "codes" => ["cnk:1"]}
                ])
     end
   end

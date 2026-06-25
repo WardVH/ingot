@@ -62,14 +62,27 @@ defmodule Api.Writes do
   def backfill(_),
     do: {:error, {422, %{errors: [%{index: nil, error: "envelopes must be a list"}]}}}
 
-  def claims(claim_maps) do
-    case CanonicalClaims.to_engine(claim_maps, recorded_at: Date.utc_today()) do
-      {:ok, new_claims} ->
-        Api.Store.append(fn state, _conn ->
-          {fresh, events, identity_events} = resolve(state, new_claims)
+  def claims(claim_maps, idempotency_key \\ nil) do
+    case build_live_claims(claim_maps) do
+      {:ok, new_claims, warnings} ->
+        fp = fingerprint_term(claim_maps)
 
-          {:ok, events,
-           summary(length(fresh), length(new_claims) - length(fresh), fresh, identity_events)}
+        Api.Store.append(fn state, conn ->
+          with :fresh <- live_batch(conn, idempotency_key, fp) do
+            {fresh, events, identity_events} = resolve(state, new_claims)
+
+            response =
+              summary(
+                length(fresh),
+                length(new_claims) - length(fresh),
+                fresh,
+                identity_events,
+                warnings
+              )
+
+            remember_live_batch(conn, idempotency_key, fp, response)
+            {:ok, events, response}
+          end
         end)
 
       {:error, errors} ->
@@ -102,8 +115,8 @@ defmodule Api.Writes do
   `outcome.compacted` counts the claims dropped that way (0 without the option).
   """
   def simulate(state, claim_maps, opts \\ []) do
-    case CanonicalClaims.to_engine(claim_maps, recorded_at: Date.utc_today()) do
-      {:ok, new_claims} ->
+    case build_live_claims(claim_maps) do
+      {:ok, new_claims, warnings} ->
         batch = if opts[:compact], do: compact(new_claims), else: new_claims
 
         {fresh, events, identity_events} = resolve(state, batch)
@@ -115,7 +128,14 @@ defmodule Api.Writes do
 
         {:ok,
          %{
-           summary: summary(length(fresh), length(batch) - length(fresh), fresh, identity_events),
+           summary:
+             summary(
+               length(fresh),
+               length(batch) - length(fresh),
+               fresh,
+               identity_events,
+               warnings
+             ),
            compacted: length(new_claims) - length(batch),
            identity_events: identity_events,
            events: stamped,
@@ -125,6 +145,16 @@ defmodule Api.Writes do
       {:error, errors} ->
         {:error,
          Enum.map(errors, fn %{index: index, error: error} -> %{index: index, error: error} end)}
+    end
+  end
+
+  defp build_live_claims(claim_maps) do
+    case ClaimsValidator.validate(claim_maps) do
+      {:ok, warnings} ->
+        {:ok, CanonicalClaims.to_engine!(claim_maps, recorded_at: Date.utc_today()), warnings}
+
+      {:error, errors} ->
+        {:error, errors}
     end
   end
 
@@ -173,6 +203,12 @@ defmodule Api.Writes do
   # ── deterministic claim identity (idempotent resubmission — see the moduledoc) ─
   defp claim_identity(c), do: {c.source, c.kind, c.data, c.valid_from}
 
+  defp product_members(members) do
+    members
+    |> Enum.filter(fn {key, _codes} -> Lanes.lane_of_key(key) == :product end)
+    |> Map.new()
+  end
+
   # ── the shared reconcile pipeline ───────────────────────────────────────────
   defp pipeline(state, new_claims, extra_shared) do
     prestamped =
@@ -194,7 +230,7 @@ defmodule Api.Writes do
       FinerClaims.fold_forward(all, shared, state.ledger, new_dates)
 
     at = List.last(new_dates) || Date.utc_today()
-    assignments = LegacyIds.decide(ledger.members, all, state.assigned, at)
+    assignments = LegacyIds.decide(product_members(ledger.members), all, state.assigned, at)
 
     # the store stamps real offsets in THIS order — the claims land exactly on their pre-stamps
     {new_claims ++ identity_events ++ assignments, identity_events}
@@ -234,6 +270,41 @@ defmodule Api.Writes do
   # dedupe per slot in the fold).
   defp fingerprint(env), do: :crypto.hash(:sha256, :erlang.term_to_binary(env)) |> Base.encode16()
 
+  defp fingerprint_term(term),
+    do: :crypto.hash(:sha256, :erlang.term_to_binary(term)) |> Base.encode16()
+
+  defp live_batch(_conn, nil, _fp), do: :fresh
+
+  defp live_batch(conn, key, fp) do
+    %{rows: rows} =
+      Postgrex.query!(
+        conn,
+        "SELECT fingerprint, response FROM live_batches WHERE idempotency_key = $1",
+        [key]
+      )
+
+    case rows do
+      [] ->
+        :fresh
+
+      [[^fp, response]] ->
+        {:ok, [], Api.Codec.decode!(response)}
+
+      [[_other, _response]] ->
+        {:error, {409, %{error: "idempotency key was already used with different claims"}}}
+    end
+  end
+
+  defp remember_live_batch(_conn, nil, _fp, _response), do: :ok
+
+  defp remember_live_batch(conn, key, fp, response) do
+    Postgrex.query!(
+      conn,
+      "INSERT INTO live_batches (idempotency_key, fingerprint, response) VALUES ($1, $2, $3)",
+      [key, fp, Api.Codec.encode!(response)]
+    )
+  end
+
   defp seen?(conn, entity, fp) do
     %{rows: rows} =
       Postgrex.query!(
@@ -257,11 +328,12 @@ defmodule Api.Writes do
       )
 
   # ── the response: what identity DID ─────────────────────────────────────────
-  defp summary(accepted, skipped, new_claims, identity_events) do
+  defp summary(accepted, skipped, new_claims, identity_events, warnings \\ []) do
     %{
       accepted: accepted,
       skipped: skipped,
       claims: length(new_claims),
+      warnings: warnings,
       events: Enum.map(identity_events, &event_view/1),
       # the guard RE-proposes at every date after a bridge appears — one entry per subject
       flagged:
@@ -284,6 +356,9 @@ defmodule Api.Writes do
 
   defp event_view(%Events.IdentitySplit{key: k, into: into, recorded_at: at}),
     do: %{type: "split", key: k, into: Enum.map(into, &elem(&1, 0)), date: Date.to_iso8601(at)}
+
+  defp event_view(%Events.IdentityRetracted{key: k, recorded_at: at}),
+    do: %{type: "retracted", key: k, date: Date.to_iso8601(at)}
 
   defp event_view(%Events.ConflictFlagged{subject: {:merge, keys}, recorded_at: at}),
     do: %{type: "merge_proposal", keys: keys, date: Date.to_iso8601(at)}

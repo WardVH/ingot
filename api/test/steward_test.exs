@@ -13,7 +13,7 @@ defmodule Api.StewardTest do
   import Plug.Conn
 
   setup do
-    Postgrex.query!(Api.DB, "TRUNCATE events, snapshots, backfill_seen", [])
+    Postgrex.query!(Api.DB, "TRUNCATE events, snapshots, backfill_seen, live_batches", [])
     :ok
   end
 
@@ -383,6 +383,32 @@ defmodule Api.StewardTest do
 
       assert conn.status == 422
       assert decoded(conn)["error"] =~ "empty"
+    end
+
+    test "selecting no owned codes answers 422 — an empty carved key is never created" do
+      [k1, k2] = seed_bridged()
+
+      steward!(:post, "/steward/v1/decisions", %{kind: "approve_merge", keys: [k1, k2], by: "sam"})
+
+      steward!(:post, "/steward/v1/decisions", %{
+        kind: "approve_merge",
+        keys: [k1, k2],
+        by: "alex"
+      })
+
+      before = Api.Store.state()
+
+      conn =
+        steward!(:post, "/steward/v1/decisions", %{
+          kind: "split",
+          key: k1,
+          codes: ["cnk:9999999"],
+          by: "sam"
+        })
+
+      assert conn.status == 422
+      assert decoded(conn)["error"] =~ "owned"
+      assert Api.Store.state().ledger.members == before.ledger.members
     end
 
     test "the checkbox form posts codes[] and splits — the repair disappears afterwards" do

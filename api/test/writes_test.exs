@@ -11,7 +11,7 @@ defmodule Api.WritesTest do
   @fixture Path.expand("../../test/ingest/fixtures/medipim_be_422156.json", __DIR__)
 
   setup do
-    Postgrex.query!(Api.DB, "TRUNCATE events, snapshots, backfill_seen", [])
+    Postgrex.query!(Api.DB, "TRUNCATE events, snapshots, backfill_seen, live_batches", [])
     :ok
   end
 
@@ -22,9 +22,35 @@ defmodule Api.WritesTest do
     |> then(&Api.Router.call(&1, Api.Router.init([])))
   end
 
+  defp post_with_key!(path, body, key) do
+    conn(:post, path, JSON.encode!(body))
+    |> put_req_header("content-type", "application/json")
+    |> put_req_header("authorization", "Bearer test-product-token")
+    |> put_req_header("idempotency-key", key)
+    |> then(&Api.Router.call(&1, Api.Router.init([])))
+  end
+
   defp decoded(conn), do: JSON.decode!(conn.resp_body)
 
   describe "POST /v1/claims — live claims" do
+    test "batches over the configured claim limit are rejected before writing" do
+      old = Application.get_env(:golden_record_api, :max_claims)
+      Application.put_env(:golden_record_api, :max_claims, 1)
+      on_exit(fn -> Application.put_env(:golden_record_api, :max_claims, old) end)
+
+      conn =
+        post!("/v1/claims", %{
+          claims: [
+            %{kind: "identity", source: "m", ref: "A", codes: ["cnk:1"]},
+            %{kind: "identity", source: "m", ref: "B", codes: ["cnk:2"]}
+          ]
+        })
+
+      assert conn.status == 413
+      assert decoded(conn)["error"] =~ "claim limit"
+      assert Api.Store.log() == []
+    end
+
     test "two new products: minted keys, legacy ids allocated, claims in the log" do
       conn =
         post!("/v1/claims", %{
@@ -85,6 +111,21 @@ defmodule Api.WritesTest do
       assert {"mystery", "42"} in claim.data.codes
     end
 
+    test "accepted claims return validator warnings" do
+      conn =
+        post!("/v1/claims", %{
+          claims: [
+            %{kind: "identity", source: "m", ref: "X", codes: ["cnk:3612174", "mystery:42"]}
+          ]
+        })
+
+      assert conn.status == 200
+      warnings = decoded(conn)["warnings"]
+      assert length(warnings) == 2
+      assert Enum.any?(warnings, &(&1["error"] =~ "CNK Mod-10"))
+      assert Enum.any?(warnings, &(&1["error"] =~ "unknown scheme"))
+    end
+
     test "a later claim re-asserting the same listing GROWS the key (members changed, same key)" do
       post!("/v1/claims", %{
         claims: [%{kind: "identity", source: "m", ref: "X", codes: ["cnk:1000001"]}]
@@ -142,6 +183,33 @@ defmodule Api.WritesTest do
 
       assert Api.Store.log() == log
       assert Api.Store.state() == state
+    end
+
+    test "an Idempotency-Key replays the original response without appending" do
+      batch = %{claims: [%{kind: "identity", source: "m", ref: "A", codes: ["cnk:1"]}]}
+
+      first = post_with_key!("/v1/claims", batch, "batch-1")
+      assert first.status == 200
+      first_body = decoded(first)
+      log = Api.Store.log()
+
+      second = post_with_key!("/v1/claims", batch, "batch-1")
+      assert second.status == 200
+      assert decoded(second) == first_body
+      assert Api.Store.log() == log
+    end
+
+    test "reusing an Idempotency-Key with different claims rejects without appending" do
+      first = %{claims: [%{kind: "identity", source: "m", ref: "A", codes: ["cnk:1"]}]}
+      changed = %{claims: [%{kind: "identity", source: "m", ref: "B", codes: ["cnk:2"]}]}
+
+      assert post_with_key!("/v1/claims", first, "batch-1").status == 200
+      log = Api.Store.log()
+
+      conn = post_with_key!("/v1/claims", changed, "batch-1")
+      assert conn.status == 409
+      assert decoded(conn)["error"] =~ "idempotency"
+      assert Api.Store.log() == log
     end
 
     test "an overlapping batch appends ONLY the new claims" do
@@ -246,7 +314,12 @@ defmodule Api.WritesTest do
       state = Api.Store.state()
       # one key inherited the legacy entity; every key has SOME legacy id
       assert 422_156 in Map.values(state.assigned)
-      assert map_size(state.assigned) == map_size(state.ledger.members)
+
+      product_keys =
+        Enum.count(state.ledger.members, fn {key, _} -> Lanes.lane_of_key(key) == :product end)
+
+      assert map_size(state.assigned) == product_keys
+      assert map_size(state.assigned) < map_size(state.ledger.members)
     end
 
     test "replaying the same envelope is a NO-OP (idempotent)" do

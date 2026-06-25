@@ -7,7 +7,7 @@ defmodule Api.StoreTest do
   @d ~D[2026-03-01]
 
   setup do
-    Postgrex.query!(Api.DB, "TRUNCATE events, snapshots, backfill_seen", [])
+    Postgrex.query!(Api.DB, "TRUNCATE events, snapshots, backfill_seen, live_batches", [])
     :ok
   end
 

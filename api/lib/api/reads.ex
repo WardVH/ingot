@@ -8,8 +8,6 @@ defmodule Api.Reads do
   where it came from) — the backwards-compatibility contract.
   """
 
-  @priority Priority.new(%{}, [])
-
   @doc "The product a legacy medipim id answers to today. `{:ok, view} | :not_found`."
   def product(legacy_id) when is_integer(legacy_id) do
     state = Api.Store.state()
@@ -31,26 +29,22 @@ defmodule Api.Reads do
 
   @doc "The product as it was KNOWN on `date` — folds the log, bounded by date."
   def product_as_of(legacy_id, %Date{} = date) when is_integer(legacy_id) do
-    state = Api.Store.state()
+    log = Api.Store.log()
+    historical = state_as_of(log, date)
 
-    with original when original != nil <- key_for(state, legacy_id) do
-      key = Api.State.follow(state, original)
-      golden = History.project_as_of(Api.Store.log(), date, @priority)
+    with original when original != nil <- key_for(historical, legacy_id) do
+      key = Api.State.follow(historical, original)
 
-      golden
-      |> Enum.flat_map(& &1.variants)
-      |> Enum.find(&(&1.key == key))
-      |> case do
-        # not resolvable yet on that date — honest 404 with the date attached
-        nil ->
-          {:not_found_as_of, key}
-
-        variant ->
-          {:ok,
-           Api.Views.variant(variant) |> Map.put(:legacy_id, legacy_id) |> Map.put(:as_of, date)}
+      case project_one(historical, key) do
+        %{codes: []} -> {:not_found_as_of, key}
+        view -> {:ok, view |> Map.put(:legacy_id, legacy_id) |> Map.put(:as_of, date)}
       end
     else
-      nil -> :not_found
+      nil ->
+        case key_for(Api.Store.state(), legacy_id) do
+          nil -> :not_found
+          future_key -> {:not_found_as_of, future_key}
+        end
     end
   end
 
@@ -60,7 +54,9 @@ defmodule Api.Reads do
     code = Codes.canonicalize({CodeRegistry.engine_scheme(scheme), value})
 
     matches =
-      for {key, codes} <- state.ledger.members, MapSet.member?(codes, code) do
+      for {key, codes} <- state.ledger.members,
+          Lanes.lane_of_key(key) == :product,
+          MapSet.member?(codes, code) do
         state |> project_one(key) |> Map.put(:legacy_id, legacy_of(state, key))
       end
 
@@ -88,11 +84,26 @@ defmodule Api.Reads do
 
   defp legacy_of(state, key), do: Map.get(state.assigned, key)
 
+  defp state_as_of(log, date) do
+    events = Enum.filter(log, &(Date.compare(&1.recorded_at, date) != :gt))
+    Api.State.apply_all(Api.State.new(), events)
+  end
+
   # Project ONE key: Catalog.project over a single-entry members map — snapshot-cheap.
   defp project_one(state, key) do
-    members = Map.take(state.ledger.members, [key])
+    members =
+      state.ledger.members
+      |> Enum.filter(fn {member_key, _codes} ->
+        member_key == key or Lanes.lane_of_key(member_key) != :product
+      end)
+      |> Map.new()
 
-    case Catalog.project(members, Api.State.current_claims(state), @priority, state.overrides) do
+    case Catalog.project(
+           members,
+           Api.State.current_claims(state),
+           Api.Priority.current(),
+           state.overrides
+         ) do
       [] ->
         %{key: key, codes: [], attributes: [], media: [], status: status_of(state, key)}
 

@@ -33,6 +33,7 @@ and **nothing partial enters the log**. There is no partial acceptance.
   "accepted": 3,        // claims accepted (backfill: envelopes accepted)
   "skipped": 0,         // replayed no-ops: backfill envelopes already seen; live claims whose slot already holds identical content
   "claims": 3,          // claim events appended to the log
+  "warnings": [],       // advisory validation findings; accepted, not fatal
   "events": [ /* what identity DID: minted | members_changed | merged | split | merge_proposal */ ],
   "flagged": [ {"type": "merge_proposal", "keys": ["SK_1", "SK_3"]} ]
 }
@@ -40,6 +41,8 @@ and **nothing partial enters the log**. There is no partial acceptance.
 
 `flagged` is the important part: convergences the over-merge guard **gated** for a steward.
 A live claim bridging two **established** keys is flagged, never auto-merged.
+Oversized batches reject with `413`; defaults are 10,000 live claims or 1,000 backfill envelopes,
+configurable per deployment.
 
 ### Error response (`422`)
 
@@ -107,13 +110,15 @@ listings into one identity (subject to each scheme's class and bridge grade).
   "kind": "identity",
   "source": "medipim",
   "ref": "P-1",                                   // the source's OWN listing id — stable per source
-  "codes": ["cnk:1000001", "gtin:05012345678900"], // non-empty array of "scheme:value"
+  "codes": ["cnk:1000001", "gtin:05012345678900"], // array of "scheme:value"
   "valid_from": "2024-03-01"                       // optional
 }
 ```
 
 `ref` is the claim's anchor within the source: a later `identity` claim with the same
 `(source, ref)` **replaces** the earlier code-set (last-wins per slot — see idempotency).
+An empty `codes: []` claim retracts that source/ref listing; if no other live listing still
+supports the key, identity reconciliation emits an `IdentityRetracted` event.
 
 **Entity lanes.** Every scheme belongs to one entity lane (`product` | `substance` |
 `description` | `media`, declared in the scheme registry; unlisted schemes are `product`).
@@ -226,6 +231,9 @@ shows that substance's descriptions, because the page is a fold over the edges, 
   and re-submitting is safe: keys stay stable, replays are no-ops without log growth (backfill:
   per-envelope content fingerprints; live: per-slot claim identity), and the same evidence
   produces the same resolution.
+- **Live batch keys are optional.** Submit `Idempotency-Key` on `/v1/claims` to make a whole
+  batch replay return the original response without appending. Reusing the same key with different
+  claims rejects with `409`.
 - **Established keys never auto-merge.** New evidence bridging two established keys yields a
   `merge_proposal` flag for steward review, regardless of how often it is re-submitted.
 
@@ -284,7 +292,9 @@ speaks; `contract/scheme_registry.schema.json` is its schema.
   `none`. Registries extend coverage; they never gate submission.
 - **Restricted GTINs**: GTIN-family values with GS1 prefix `02` or `20–29` (in-store /
   variable-measure) are not globally unique and are excluded from bridging regardless of the
-  scheme's declared class.
+  scheme's declared class. Live validation also returns an advisory warning.
+- **Checksum advisories**: GTIN-family codes and 7-digit CNKs are accepted but warned when their
+  check digit is invalid. These are quality signals, not hard rejects.
 - **Never-bridging schemes**: `mpn` and `supplier_ref` are accepted identity-claim codes but
   excluded from bridging (manufacturer part numbers and supplier refs are shared across
   distinct trade items).
@@ -300,24 +310,16 @@ speaks; `contract/scheme_registry.schema.json` is its schema.
    namespace is spelled as `scheme:value` (its lane is unchecked today). The medipim backfill
    adapter still emits the legacy `{"kind": "member_of", "source", "code", "collection",
    "member"}` claim, which the constructor lowers to this edge.
-2. **Checksums are advisory.** `gtin_mod10` is implemented (`Codes.valid_gtin?/1`) but not
-   called at the submission boundary — a syntactically valid GTIN with a bad check digit is
-   accepted. Should the MIT validator warn, and should the engine optionally reject?
-3. **`valid_from` is date-only.** No time-of-day, no timezone. Contract C uses unix seconds;
+2. **`valid_from` is date-only.** No time-of-day, no timezone. Contract C uses unix seconds;
    the live contract uses ISO dates. Sub-day validity ordering is unspecified.
-4. **`recorded_at` is not client-suppliable on the live path.** Historical loads must go
+3. **`recorded_at` is not client-suppliable on the live path.** Historical loads must go
    through the backfill envelope. Is that split permanent, or should live claims accept a
    bounded `recorded_at` for near-real-time feeds with delivery lag?
-5. **`media.role` is forgiving.** Any value other than the string `"primary"` — including
+4. **`media.role` is forgiving.** Any value other than the string `"primary"` — including
    typos — silently becomes `secondary`. The schema constrains it to the enum; the engine
    today does not.
-6. **Extra fields are ignored.** The parser pattern-matches required fields and ignores the
+5. **Extra fields are ignored.** The parser pattern-matches required fields and ignores the
    rest, so typoed optional fields (e.g. `"valid_form"`) silently vanish. The schemas mirror
    actual behavior (`additionalProperties` left open); a strict validation mode is a candidate.
-7. **No batch fingerprint on live claims.** Live replays are deduped **per claim** (a claim
-   whose slot already holds identical content is skipped — no log growth), not per batch. Is a
-   client-supplied batch idempotency key (ack/reject a whole batch by key) still wanted?
-8. **No batch size limit is specified.** The whole-batch-validates rule makes very large
-   batches all-or-nothing; a documented maximum (and a recommended chunking size) is open.
-9. **Scheme-name grammar.** The schema requires lowercase snake_case for *declared* names
+6. **Scheme-name grammar.** The schema requires lowercase snake_case for *declared* names
    (matching every existing scheme), but the wire accepts any non-empty scheme string.

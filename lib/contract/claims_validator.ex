@@ -283,6 +283,9 @@ defmodule ClaimsValidator do
       engine when is_atom(engine) and engine in @gtin_family ->
         gtin_advisories(engine, value, raw, field, index)
 
+      :cnk ->
+        cnk_advisories(value, raw, field, index)
+
       engine when is_atom(engine) ->
         []
 
@@ -300,17 +303,33 @@ defmodule ClaimsValidator do
   defp gtin_advisories(engine, value, raw, field, index) do
     case Codes.canonicalize({engine, value}) do
       {:gtin, gtin14} = canonical when byte_size(gtin14) == 14 ->
-        if Codes.valid_gtin?(canonical) do
-          []
-        else
-          [
-            warning(
-              index,
-              field,
-              "#{inspect(raw)} fails the GTIN mod-10 check digit — accepted, but the code is likely mistyped"
-            )
-          ]
-        end
+        checksum =
+          if Codes.valid_gtin?(canonical) do
+            []
+          else
+            [
+              warning(
+                index,
+                field,
+                "#{inspect(raw)} fails the GTIN mod-10 check digit — accepted, but the code is likely mistyped"
+              )
+            ]
+          end
+
+        restricted =
+          if Codes.restricted?(canonical) do
+            [
+              warning(
+                index,
+                field,
+                "#{inspect(raw)} is a restricted circulation GTIN — accepted, but it is not globally unique and will not bridge products"
+              )
+            ]
+          else
+            []
+          end
+
+        checksum ++ restricted
 
       _not_gtin_shaped ->
         [
@@ -321,6 +340,44 @@ defmodule ClaimsValidator do
           )
         ]
     end
+  end
+
+  # Real CNKs are 7 digits: 6 payload digits plus a Mod-10 check digit. Short fake CNKs are common
+  # in tests and demos, so only real-shaped values get the checksum advisory.
+  defp cnk_advisories(value, raw, field, index) do
+    if value =~ ~r/^\d{7}$/ and not valid_cnk?(value) do
+      [
+        warning(
+          index,
+          field,
+          "#{inspect(raw)} fails the CNK Mod-10 check digit — accepted, but the code is likely mistyped"
+        )
+      ]
+    else
+      []
+    end
+  end
+
+  defp valid_cnk?(<<payload::binary-size(6), check::binary-size(1)>>),
+    do: check == Integer.to_string(mod10_check_digit(payload))
+
+  defp mod10_check_digit(payload) do
+    sum =
+      payload
+      |> String.graphemes()
+      |> Enum.map(&String.to_integer/1)
+      |> Enum.reverse()
+      |> Enum.with_index()
+      |> Enum.reduce(0, fn {digit, index}, acc ->
+        if rem(index, 2) == 0 do
+          doubled = digit * 2
+          acc + div(doubled, 10) + rem(doubled, 10)
+        else
+          acc + digit
+        end
+      end)
+
+    rem(10 - rem(sum, 10), 10)
   end
 
   # role is forgiving in the engine: anything other than "primary" silently means secondary

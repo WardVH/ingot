@@ -9,9 +9,12 @@ defmodule Api.Views do
       codes: v.codes |> Enum.sort() |> Enum.map(&code/1),
       attributes: Enum.map(v.attributes, &attribute/1),
       media:
-        Enum.map(v.media, &%{asset: code(&1.asset), source: to_string(&1.source), uri: &1.uri})
+        Enum.map(v.media, &%{asset: asset(&1.asset), source: to_string(&1.source), uri: &1.uri})
     }
   end
+
+  defp asset({_, _} = code), do: code(code)
+  defp asset(key) when is_binary(key), do: key
 
   defp attribute({field, decision}) do
     %{
@@ -56,6 +59,15 @@ defmodule Api.Views do
       type: "split",
       key: e.key,
       into: Enum.map(e.into, &elem(&1, 0)),
+      date: e.recorded_at
+    }
+
+  def feed_event(%Events.IdentityRetracted{} = e),
+    do: %{
+      offset: e.order,
+      type: "retracted",
+      key: e.key,
+      codes: codes(e.codes),
       date: e.recorded_at
     }
 

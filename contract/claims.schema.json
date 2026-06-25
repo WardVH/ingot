@@ -39,7 +39,7 @@
       "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
     },
     "identityClaim": {
-      "description": "Node claim: a source's listing (ref) asserts a set of codes. The clustering input — identity-class codes bridge listings into one identity. Slot: (source, ref), last-wins.",
+      "description": "Node claim: a source's listing (ref) asserts a set of codes. The clustering input — identity-class codes bridge listings into one identity. Slot: (source, ref), last-wins. An empty codes array retracts that source/ref listing.",
       "type": "object",
       "required": ["kind", "source", "ref", "codes"],
       "properties": {
@@ -52,8 +52,7 @@
         },
         "codes": {
           "type": "array",
-          "items": { "$ref": "#/$defs/code" },
-          "minItems": 1
+          "items": { "$ref": "#/$defs/code" }
         },
         "entity": {
           "description": "Entity lane of this record. Usually derived from the codes' schemes (one claim, one lane — mixing lanes rejects); required only when every code is lane-neutral (the engine-minted 'uuid' scheme).",

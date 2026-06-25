@@ -26,8 +26,6 @@ defmodule Api.DryRun do
                            already resolved).
   """
 
-  @priority Api.Priority.empty()
-
   @doc "Build the dry-run migration report for a decoded claims batch. Commits nothing."
   def report(claim_maps) do
     state = Api.Store.state()
@@ -81,7 +79,8 @@ defmodule Api.DryRun do
     members = would.ledger.members
 
     mints =
-      for %Events.IdentityMinted{key: key, codes: c, recorded_at: at} <- ievents do
+      for %Events.IdentityMinted{key: key, codes: c, recorded_at: at} <- ievents,
+          Lanes.lane_of_key(key) == :product do
         %{key: key, codes: codes(c), date: Date.to_iso8601(at)}
       end
 
@@ -101,7 +100,7 @@ defmodule Api.DryRun do
 
     conflicts =
       for %Events.ConflictFlagged{subject: {:attr, key, field} = subject, candidates: cands} <-
-            Stewardship.detect(members, claims, @priority, today),
+            Stewardship.detect(members, claims, Api.Priority.current(), today),
           not MapSet.member?(would.resolved, subject) do
         %{
           key: key,

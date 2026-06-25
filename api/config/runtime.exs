@@ -8,6 +8,12 @@ if config_env() == :prod do
   uri = URI.parse(database_url)
   [username, password] = uri.userinfo |> String.split(":", parts: 2)
 
+  source_priority =
+    case System.get_env("SOURCE_PRIORITY_JSON") do
+      nil -> nil
+      json -> JSON.decode!(json)
+    end
+
   config :golden_record_api,
     db: [
       hostname: uri.host,
@@ -20,5 +26,8 @@ if config_env() == :prod do
     steward_port:
       System.get_env("STEWARD_PORT") && String.to_integer(System.get_env("STEWARD_PORT")),
     product_token: System.fetch_env!("PRODUCT_API_TOKEN"),
-    steward_token: System.fetch_env!("STEWARD_API_TOKEN")
+    steward_token: System.fetch_env!("STEWARD_API_TOKEN"),
+    max_claims: String.to_integer(System.get_env("MAX_CLAIMS_PER_BATCH", "10000")),
+    max_envelopes: String.to_integer(System.get_env("MAX_ENVELOPES_PER_BATCH", "1000")),
+    source_priority: source_priority
 end

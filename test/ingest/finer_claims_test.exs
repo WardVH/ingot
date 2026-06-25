@@ -74,7 +74,7 @@ defmodule FinerClaimsTest do
              ]
     end
 
-    test "a delta that doesn't change the canonical code-set is deduplicated; empties are skipped" do
+    test "a delta that doesn't change the canonical code-set is deduplicated; pre-identity empties are skipped" do
       env =
         envelope(901, [
           # remove before anything exists -> empty -> skipped
@@ -87,6 +87,21 @@ defmodule FinerClaimsTest do
       %{claims: claims} = FinerClaims.build([env])
       assert [snap] = identity_claims(claims, "901:A")
       assert snap.recorded_at == ~D[2020-02-01]
+    end
+
+    test "a full withdrawal emits an empty identity snapshot" do
+      env =
+        envelope(908, [
+          id("A", "cnk", "1000000", epoch(~D[2020-01-01])),
+          id("A", "cnk", "1000000", epoch(~D[2021-01-01]), "remove")
+        ])
+
+      %{claims: claims} = FinerClaims.build([env])
+
+      assert [
+               %Events.ClaimAsserted{data: %{codes: [{:cnk, "1000000"}]}, recorded_at: ~D[2020-01-01]},
+               %Events.ClaimAsserted{data: %{codes: []}, recorded_at: ~D[2021-01-01]}
+             ] = identity_claims(claims, "908:A")
     end
 
     test "claims are Date-typed throughout and order-stamped chronologically" do
@@ -189,6 +204,31 @@ defmodule FinerClaimsTest do
       refute Enum.any?(events, &match?(%Events.IdentitiesMerged{}, &1))
       assert map_size(ledger.members) == 2
     end
+
+    test "a listing withdrawn to empty retracts its key" do
+      env =
+        envelope(909, [
+          id("A", "cnk", "1000000", epoch(~D[2020-01-01])),
+          id("A", "cnk", "1000000", epoch(~D[2021-01-01]), "remove")
+        ])
+
+      %{claims: claims, shared: shared} = FinerClaims.build([env])
+      %{events: events, ledger: ledger} = FinerClaims.fold_forward(claims, shared)
+
+      assert [
+               %Events.IdentityMinted{key: key, codes: codes, recorded_at: ~D[2020-01-01]},
+               %Events.IdentityRetracted{
+                 key: retracted_key,
+                 codes: retracted_codes,
+                 recorded_at: ~D[2021-01-01]
+               }
+             ] = events
+
+      assert retracted_key == key
+      assert retracted_codes == codes
+
+      assert ledger.members == %{}
+    end
   end
 
   # ── the real 422156 fixture: the arc the listing-collapse loses ──────────────
@@ -230,6 +270,17 @@ defmodule FinerClaimsTest do
       keys = golden |> Enum.flat_map(& &1.variants) |> Enum.map(& &1.key)
       assert first_mint.key in keys
     end
+
+    test "preserves media and description lane records from the backfill", %{env: env} do
+      %{log: log, ledger: ledger} = FinerClaims.run([env])
+      lanes = Lanes.partition_members(ledger.members)
+
+      assert map_size(lanes.description) > 0
+      assert map_size(lanes.media) > 0
+
+      assert Enum.any?(log, &match?(%Events.ClaimAsserted{kind: :edge, data: %{relation: :describes}}, &1))
+      assert Enum.any?(log, &match?(%Events.ClaimAsserted{kind: :edge, data: %{relation: :depicts}}, &1))
+    end
   end
 
   # Keys whose membership still overlaps a code some source CURRENTLY claims — the live keys
@@ -244,6 +295,9 @@ defmodule FinerClaimsTest do
       |> Enum.flat_map(& &1.data.codes)
       |> MapSet.new()
 
-    for {key, codes} <- ledger.members, not MapSet.disjoint?(codes, live_codes), do: key
+    for {key, codes} <- ledger.members,
+        Lanes.lane_of_key(key) == :product,
+        not MapSet.disjoint?(codes, live_codes),
+        do: key
   end
 end

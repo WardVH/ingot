@@ -55,6 +55,19 @@ defmodule Api.Store do
       []
     )
 
+    Postgrex.query!(
+      conn,
+      """
+      CREATE TABLE IF NOT EXISTS live_batches (
+        idempotency_key text PRIMARY KEY,
+        fingerprint     text  NOT NULL,
+        response        bytea NOT NULL,
+        inserted_at     timestamptz NOT NULL DEFAULT now()
+      )
+      """,
+      []
+    )
+
     :ok
   end
 

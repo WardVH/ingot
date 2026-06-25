@@ -12,7 +12,7 @@ docker compose -f api/docker-compose.yml up --build     # API on :4000, Postgres
 
 # development
 docker run -d --name gr-api-test-pg -e POSTGRES_PASSWORD=postgres -p 55432:5432 postgres:16-alpine
-cd api && mix deps.get && mix test                      # 52 tests, incl. the E2E truth suite
+cd api && mix deps.get && mix test                      # incl. the E2E truth suite
 iex -S mix                                              # dev server on :4000
 ```
 
@@ -20,5 +20,8 @@ Layout: `lib/api/` — `store` (append-only events + disposable snapshot, adviso
 writer) · `state` (the incremental fold) · `writes` (backfill + live claims → fold-forward
 reconcile) · `reads` (products, by-code, as-of, changes) · `steward` (+ the EEx queue page) ·
 `auth` (two tokens, basic-auth for the browser) · `router` (single- and split-port modes).
+
+Runtime knobs are documented in `../docs/API.md`: batch limits, `Idempotency-Key` behavior for
+live claims, and optional source-priority JSON for survivorship.
 
 The engine stays dependency-free; bandit/plug/postgrex live here, deliberately.

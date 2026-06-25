@@ -35,13 +35,18 @@ defmodule FinerClaims do
   the increment the Product API uses for both backfill and live claims.
   """
 
+  @lane_collections %{
+    "descriptions" => {:text_id, :description, :describes},
+    "media" => {:asset_id, :media, :depicts}
+  }
+
   @doc """
   Map envelopes to `%{claims: [%Events.ClaimAsserted{}], shared: MapSet}` — like
   `ClaimMapping.build/1` but with per-event identity granularity and `Date`-typed stamps.
 
-  Identity snapshots that fold to an empty code-set are skipped (a fully delisted listing simply
-  stops re-asserting); consecutive identical snapshots are deduplicated (a raw delta that does not
-  change the canonical code-set adds no information).
+  Identity snapshots that transition to an empty code-set are kept as withdrawals; empty deltas
+  before a listing ever had codes are skipped. Consecutive identical snapshots are deduplicated
+  (a raw delta that does not change the canonical code-set adds no information).
   """
   def build(envelopes) when is_list(envelopes) do
     per_listing = listing_folds(envelopes)
@@ -81,6 +86,7 @@ defmodule FinerClaims do
           ev.kind == :edge,
           ev.op in [:set, :add],
           ev.data.value != nil,
+          not Map.has_key?(@lane_collections, ev.data.collection),
           a = anchors.(env.legacy_entity, ev.source, ev.recorded_at),
           a != nil do
         Substrate.claim(
@@ -92,11 +98,40 @@ defmodule FinerClaims do
         )
       end
 
+    lane_entities =
+      envelopes
+      |> lane_refs()
+      |> Enum.sort_by(fn {key, _} -> key end)
+      |> Enum.flat_map(fn {{entity, source, collection}, %{ids: ids, last: last}} ->
+        {scheme, lane, relation} = Map.fetch!(@lane_collections, collection)
+
+        for id <- Enum.sort(ids),
+            {vf, at} = Map.fetch!(last, id),
+            a = anchors.(entity, nil, at),
+            a != nil do
+          date = to_date(vf || at)
+          recorded_at = to_date(at)
+          code = {scheme, id}
+
+          [
+            Substrate.claim(
+              source,
+              :identity,
+              %{ref: "#{collection}:#{id}", codes: [code], entity: lane},
+              date,
+              recorded_at
+            ),
+            Substrate.claim(source, :edge, %{from: code, relation: relation, to: a}, date, recorded_at)
+          ]
+        end
+      end)
+      |> List.flatten()
+
     all_codes =
       for %{snapshots: snaps} <- per_listing, {codes, _} <- snaps, c <- codes, into: MapSet.new(), do: c
 
     %{
-      claims: stamp(identity ++ grouping ++ attribute ++ member_of),
+      claims: stamp(identity ++ grouping ++ attribute ++ member_of ++ lane_entities),
       shared: MapSet.filter(all_codes, &ClaimMapping.shared?/1)
     }
   end
@@ -127,12 +162,7 @@ defmodule FinerClaims do
           |> Enum.filter(&(Date.compare(&1.recorded_at, d) != :gt))
           |> Substrate.current()
 
-        # PRODUCT-lane fold: this threaded single ledger is the live-append contract (the
-        # Product API passes it back in), so non-product lanes stay out — their identity claims
-        # reconcile in the batch paths (Rederivation/Temporal via Lanes.reconcile); unreconciled
-        # lane endpoints still resolve in Catalog by code (owner/2's code-as-key fallback).
-        product = Lanes.identity_claims(live, :product)
-        events = IdentityLedger.decide(prev, {:reconcile, Cluster.variants(product, shared), shared, d})
+        {events, _ledgers} = Lanes.reconcile(live, shared, ledgers_from(prev), d)
         {Enum.reverse(events, acc), Enum.reduce(events, prev, &IdentityLedger.evolve(&2, &1))}
       end)
 
@@ -170,14 +200,39 @@ defmodule FinerClaims do
           raw = ClaimMapping.apply_identity(raw, ev)
           codes = ClaimMapping.engine_codes(raw)
 
+          previous =
+            case snaps do
+              [{prev_codes, _date} | _] -> prev_codes
+              [] -> MapSet.new()
+            end
+
           cond do
-            MapSet.size(codes) == 0 -> {snaps, raw}
+            MapSet.size(codes) == 0 and MapSet.size(previous) == 0 -> {snaps, raw}
             match?([{^codes, _} | _], snaps) -> {snaps, raw}
             true -> {[{codes, to_date(ev.recorded_at)} | snaps], raw}
           end
         end)
 
       %{entity: e, source: s, snapshots: Enum.reverse(snaps_rev)}
+    end
+  end
+
+  # medipim media events can point at first-class lane records ("descriptions" and "media").
+  # Snapshot-v1 semantics match ClaimMapping: add/set survives, remove drops the asset.
+  defp lane_refs(envelopes) do
+    for env <- envelopes,
+        ev <- env.events,
+        ev.kind == :media,
+        Map.has_key?(@lane_collections, ev.data.collection),
+        reduce: %{} do
+      acc ->
+        key = {env.legacy_entity, ev.source || env.source_system, ev.data.collection}
+        id = to_string(ev.data.asset)
+        cur = Map.get(acc, key, %{ids: MapSet.new(), last: %{}})
+
+        ids = if ev.op == :remove, do: MapSet.delete(cur.ids, id), else: MapSet.put(cur.ids, id)
+
+        Map.put(acc, key, %{ids: ids, last: Map.put(cur.last, id, {ev.valid_from, ev.recorded_at})})
     end
   end
 
@@ -236,6 +291,24 @@ defmodule FinerClaims do
   end
 
   defp to_date(epoch) when is_integer(epoch), do: epoch |> DateTime.from_unix!() |> DateTime.to_date()
+
+  defp ledgers_from(%IdentityLedger{} = ledger) do
+    members_by_lane = Lanes.partition_members(ledger.members)
+
+    Map.new(Lanes.lanes(), fn lane ->
+      members = Map.fetch!(members_by_lane, lane)
+      prefix = Lanes.prefix(lane)
+      {lane, %IdentityLedger{members: members, next: next_key(members), prefix: prefix}}
+    end)
+  end
+
+  defp next_key(members) do
+    members
+    |> Map.keys()
+    |> Enum.map(fn key -> key |> String.split("_") |> List.last() |> String.to_integer() end)
+    |> Enum.max(fn -> 0 end)
+    |> Kernel.+(1)
+  end
 
   # Chronological order stamp (later date ⇒ higher order), stable on emission index — the Date
   # analogue of ClaimMapping.stamp/1.

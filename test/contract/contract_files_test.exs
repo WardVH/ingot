@@ -24,6 +24,13 @@ defmodule ContractFilesTest do
     end
   end
 
+  test "claims.schema.json allows identity codes to be empty for retractions" do
+    schema = load!("claims.schema.json")
+    codes = schema["$defs"]["identityClaim"]["properties"]["codes"]
+
+    refute Map.has_key?(codes, "minItems")
+  end
+
   test "scheme_registry.schema.json parses, declares draft 2020-12, and requires its top-level keys" do
     schema = load!("scheme_registry.schema.json")
 

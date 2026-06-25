@@ -11,8 +11,6 @@ defmodule Api.Steward do
   (`Stewardship.endorse_merge/6`), not by this module or any UI.
   """
 
-  @priority Api.Priority.empty()
-
   # ── the queue ───────────────────────────────────────────────────────────────
   def queue do
     state = Api.Store.state()
@@ -68,7 +66,12 @@ defmodule Api.Steward do
 
     attributes =
       for %Events.ConflictFlagged{subject: {:attr, key, field}, candidates: candidates} <-
-            Stewardship.detect(state.ledger.members, claims, @priority, Date.utc_today()),
+            Stewardship.detect(
+              state.ledger.members,
+              claims,
+              Api.Priority.current(),
+              Date.utc_today()
+            ),
           not MapSet.member?(state.resolved, {:attr, key, field}) do
         %{
           type: "attribute",
@@ -230,6 +233,9 @@ defmodule Api.Steward do
             {:error,
              {422,
               %{error: "selecting every code would leave #{key} empty — reject the merge instead"}}}
+
+          MapSet.disjoint?(member, MapSet.new(parsed)) ->
+            {:error, {422, %{error: "split must select at least one code owned by #{key}"}}}
 
           true ->
             split_events(state, key, parsed, by, reason(params))
