@@ -159,6 +159,30 @@ defmodule RetractionTest do
       assert Map.has_key?(apply_events(ledger, round2_events).members, "SK_1")
     end
 
+    test "surviving key drops exclusive codes from the retracted listing" do
+      claims =
+        [
+          identity("source_A", "P-1", [{:cnk, "100"}, {:gtin, "05012345678900"}], 10),
+          identity("source_B", "P-2", [{:cnk, "100"}], 10)
+        ]
+        |> stamp()
+
+      round1_events = reconcile(claims, IdentityLedger.new(), 10)
+      ledger = apply_events(IdentityLedger.new(), round1_events)
+
+      assert ledger.members["SK_1"] == MapSet.new([{:cnk, "100"}, {:gtin, "05012345678900"}])
+
+      retraction = identity("source_A", "P-1", [], 20)
+      all_claims = claims ++ stamp_from([retraction], claims)
+
+      round2_events = reconcile(all_claims, ledger, 20)
+      ledger2 = apply_events(ledger, round2_events)
+
+      assert Map.has_key?(ledger2.members, "SK_1")
+      assert ledger2.members["SK_1"] == MapSet.new([{:cnk, "100"}])
+      refute MapSet.member?(ledger2.members["SK_1"], {:gtin, "05012345678900"})
+    end
+
     test "retracting the sole listing on a key DOES retract it" do
       claims = [identity("source_A", "P-1", [{:cnk, "100"}], 10)] |> stamp()
 

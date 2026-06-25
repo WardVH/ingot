@@ -515,8 +515,7 @@ defmodule IdentityLedger do
             {[{cluster, key} | assigns], Map.put(m, key, cluster), n + 1, [key | minted], proposals}
 
           [key] ->
-            {[{cluster, key} | assigns], Map.update(m, key, cluster, &MapSet.union(&1, cluster)), n, minted,
-             proposals}
+            {[{cluster, key} | assigns], Map.put(m, key, cluster), n, minted, proposals}
 
           many ->
             # GATED: never auto-merge established keys — propose for steward review.

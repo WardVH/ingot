@@ -99,12 +99,12 @@ final class IdentityLedger
     /**
      * The reconcile core. Returns
      * ['minted' => list<string>, 'split' => list<[key, into]>, 'proposals' => list<[keys, cluster]>,
-     *  'members' => members].
+     *  'retracted' => list<string>, 'members' => members].
      *
      * @param array<string, array<string, array{0: string, 1: string}>> $oldMembers
      * @param list<array<string, array{0: string, 1: string}>> $clusters
      * @param array<string, array{0: string, 1: string}> $shared
-     * @return array{minted: list<string>, split: list<array{0: string, 1: list<array{0: string, 1: array<string, array{0: string, 1: string}>}>}>, proposals: list<array{0: list<string>, 1: array<string, array{0: string, 1: string}>}>, members: array<string, array<string, array{0: string, 1: string}>>}
+     * @return array{minted: list<string>, split: list<array{0: string, 1: list<array{0: string, 1: array<string, array{0: string, 1: string}>}>}>, proposals: list<array{0: list<string>, 1: array<string, array{0: string, 1: string}>}>, retracted: list<string>, members: array<string, array<string, array{0: string, 1: string}>>}
      */
     private static function reconcile(array $oldMembers, int $next, string $prefix, array $clusters, array $shared): array
     {
@@ -129,9 +129,7 @@ final class IdentityLedger
             } elseif (count($keys) === 1) {
                 $key = $keys[0];
                 $assigns[] = [$cluster, $key];
-                $members[$key] = isset($members[$key])
-                    ? Sets::union($members[$key], $cluster)
-                    : $cluster;
+                $members[$key] = $cluster;
             } else {
                 // GATED: never auto-merge established keys — propose for steward review.
                 $proposals[] = [$keys, $cluster];
@@ -217,7 +215,7 @@ final class IdentityLedger
      * mints, then splits, then proposals, then keeps_changed.
      *
      * @param array<string, array<string, array{0: string, 1: string}>> $oldMembers
-     * @param array{minted: list<string>, split: list<array{0: string, 1: list<array{0: string, 1: array<string, array{0: string, 1: string}>}>}>, proposals: list<array{0: list<string>, 1: array<string, array{0: string, 1: string}>}>, members: array<string, array<string, array{0: string, 1: string}>>} $outcome
+     * @param array{minted: list<string>, split: list<array{0: string, 1: list<array{0: string, 1: array<string, array{0: string, 1: string}>}>}>, proposals: list<array{0: list<string>, 1: array<string, array{0: string, 1: string}>}>, retracted: list<string>, members: array<string, array<string, array{0: string, 1: string}>>} $outcome
      * @return list<array<string,mixed>>
      */
     private static function buildEvents(array $oldMembers, array $outcome, mixed $at): array
