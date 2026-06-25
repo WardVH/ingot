@@ -44,9 +44,19 @@ defmodule CanonicalClaimsTest do
     test "an invalid batch rejects whole with the validator's per-index findings" do
       assert {:error, [%{index: 0, field: "codes"}]} =
                CanonicalClaims.to_engine(
+                 [%{"kind" => "identity", "source" => "s", "ref" => "P-1", "codes" => "not-a-list"}],
+                 recorded_at: ~D[2026-06-11]
+               )
+    end
+
+    test "an identity claim with empty codes passes validation (retraction)" do
+      assert {:ok, [claim]} =
+               CanonicalClaims.to_engine(
                  [%{"kind" => "identity", "source" => "s", "ref" => "P-1", "codes" => []}],
                  recorded_at: ~D[2026-06-11]
                )
+
+      assert claim.data.codes == []
     end
   end
 

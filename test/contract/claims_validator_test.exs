@@ -111,12 +111,10 @@ defmodule ClaimsValidatorTest do
       assert {:error, [%{index: 0, field: "codes"}]} =
                ClaimsValidator.validate([%{"kind" => "identity", "source" => "m", "ref" => "P"}])
 
-      assert {:error, [%{index: 0, field: "codes", error: error}]} =
+      assert {:ok, _} =
                ClaimsValidator.validate([
                  %{"kind" => "identity", "source" => "m", "ref" => "P", "codes" => []}
                ])
-
-      assert error =~ "non-empty array"
 
       assert {:error, [%{index: 0, field: "value", error: value_error}]} =
                ClaimsValidator.validate([

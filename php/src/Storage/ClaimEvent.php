@@ -47,7 +47,7 @@ final class ClaimEvent
         if (isset($event['key'])) {
             return Lanes::laneOfKey($event['key']);
         }
-        if (isset($event['into']) && is_string($event['into'])) {
+        if (isset($event['into']) && \is_string($event['into'])) {
             return Lanes::laneOfKey($event['into']);
         }
 

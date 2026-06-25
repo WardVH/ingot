@@ -84,6 +84,12 @@ final class IdentityLedger
 
                 return $s->with($members, $next);
 
+            case Events::TYPE_IDENTITY_RETRACTED:
+                $members = $s->members;
+                unset($members[$event['key']]);
+
+                return $s->with($members);
+
             default:
                 // ConflictFlagged / MergeProposed / ConflictResolved / ClaimAsserted / LegacyIdAssigned
                 return $s;
@@ -177,10 +183,31 @@ final class IdentityLedger
             $split[] = [$key, $into];
         }
 
+        $assignedKeys = [];
+        foreach ($assigns as [$_cluster, $key]) {
+            $assignedKeys[$key] = true;
+        }
+        foreach ($proposals as [$keys, $_cluster]) {
+            foreach ($keys as $key) {
+                $assignedKeys[$key] = true;
+            }
+        }
+        $retracted = [];
+        foreach ($original as $key => $_codes) {
+            if (!isset($assignedKeys[$key])) {
+                $retracted[] = $key;
+            }
+        }
+        sort($retracted, SORT_STRING);
+        foreach ($retracted as $key) {
+            unset($members[$key]);
+        }
+
         return [
             'minted' => $minted,
             'split' => $split,
             'proposals' => $proposals,
+            'retracted' => $retracted,
             'members' => $members,
         ];
     }
@@ -211,6 +238,10 @@ final class IdentityLedger
 
         foreach ($outcome['proposals'] as [$keys, $cluster]) {
             $events[] = Events::conflictFlagged(['merge', $keys], $cluster, $at);
+        }
+
+        foreach ($outcome['retracted'] as $key) {
+            $events[] = Events::identityRetracted($key, $oldMembers[$key] ?? [], $at);
         }
 
         foreach (self::keepsChanged($oldMembers, $outcome, $at) as $e) {

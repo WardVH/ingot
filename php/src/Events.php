@@ -26,6 +26,7 @@ final class Events
     public const TYPE_LEGACY_ID_ASSIGNED = 'legacy_id_assigned';
     public const TYPE_CONFLICT_FLAGGED = 'conflict_flagged';
     public const TYPE_MERGE_PROPOSED = 'merge_proposed';
+    public const TYPE_IDENTITY_RETRACTED = 'identity_retracted';
     public const TYPE_CONFLICT_RESOLVED = 'conflict_resolved';
 
     /**
@@ -108,6 +109,24 @@ final class Events
             'key' => $key,
             'kept_codes' => $keptCodes,
             'into' => $into,
+            'recorded_at' => $recordedAt,
+            'order' => $order,
+        ];
+    }
+
+    /**
+     * The bookend of identityMinted: a key whose every contributing listing was retracted.
+     * `codes` carries the codes the key HELD before retraction (the notification payload).
+     *
+     * @param array<string, array{0: string, 1: string}> $codes a code-set
+     * @return array<string,mixed>
+     */
+    public static function identityRetracted(string $key, array $codes, mixed $recordedAt, ?int $order = null): array
+    {
+        return [
+            'type' => self::TYPE_IDENTITY_RETRACTED,
+            'key' => $key,
+            'codes' => $codes,
             'recorded_at' => $recordedAt,
             'order' => $order,
         ];

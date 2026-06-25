@@ -26,7 +26,11 @@ final class Cluster
             if ($c['kind'] !== 'identity') {
                 continue;
             }
-            $sets[] = Sets::of($c['data']['codes']);
+            $codeSet = Sets::of($c['data']['codes']);
+            if ($codeSet === []) {
+                continue;
+            }
+            $sets[] = $codeSet;
         }
 
         $components = self::connectedComponents($sets, $shared);
