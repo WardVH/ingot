@@ -15,10 +15,15 @@ final class GoldenRecords
     private const NO_OVERRIDES = ['attr' => [], 'product' => []];
 
     /**
+     * `$priority` is the survivorship policy — a {@see Priority} (tier ranking) OR a
+     * `callable(dimension, source): int|float` injected rank fun (medipim's context-aware,
+     * off-product-penalty scoring lives there). The toggle is thus reachable from the fold entry,
+     * not just {@see Survivorship::decide()}.
+     *
      * @param array{log: list<array<string,mixed>>, ledger: LedgerState} $rederivation
      * @return array{records: list<array<string,mixed>>, log: list<array<string,mixed>>}
      */
-    public static function project(array $rederivation, ?Priority $priority = null): array
+    public static function project(array $rederivation, Priority|callable|null $priority = null): array
     {
         $priority ??= self::defaultPriority();
         $log = $rederivation['log'];
@@ -44,7 +49,7 @@ final class GoldenRecords
      * @param list<array<string,mixed>> $envelopes
      * @return array{records: list<array<string,mixed>>, log: list<array<string,mixed>>}
      */
-    public static function fromEnvelopes(array $envelopes, mixed $at, ?Priority $priority = null): array
+    public static function fromEnvelopes(array $envelopes, mixed $at, Priority|callable|null $priority = null): array
     {
         return self::project(Rederivation::run($envelopes, $at), $priority ?? self::defaultPriority());
     }
@@ -60,7 +65,7 @@ final class GoldenRecords
      * @param list<array<string,mixed>> $log
      * @return array<string,mixed>
      */
-    private static function enrich(array $variant, array $log, Priority $priority): array
+    private static function enrich(array $variant, array $log, Priority|callable $priority): array
     {
         $variant['cnk'] = PublicId::canonical('cnk', $variant['key'], $log, $priority);
 

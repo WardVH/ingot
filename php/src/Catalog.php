@@ -22,7 +22,7 @@ final class Catalog
      * @param array{attr: array<string, mixed>, product: array<string, mixed>} $overrides
      * @return list<array<string,mixed>> products, each {product, variants}
      */
-    public static function project(array $members, array $liveClaims, Priority $priority, array $overrides): array
+    public static function project(array $members, array $liveClaims, Priority|callable $priority, array $overrides): array
     {
         $lanes = Lanes::partitionMembers($members);
         $attrs = self::filterKind($liveClaims, 'attribute');
@@ -80,7 +80,7 @@ final class Catalog
      * @param array<string, mixed> $attrOverrides
      * @return list<array{0: string, 1: array<string,mixed>}>
      */
-    private static function resolveAttributes(string $key, array $codes, array $attrs, Priority $priority, array $attrOverrides): array
+    private static function resolveAttributes(string $key, array $codes, array $attrs, Priority|callable $priority, array $attrOverrides): array
     {
         $decisions = Survivorship::fieldDecisions($codes, $attrs, $priority);
 
@@ -99,7 +99,7 @@ final class Catalog
      * @param array<string, mixed> $productOverrides
      * @return array<string,mixed>
      */
-    private static function resolveProduct(string $key, array $codes, array $groups, Priority $priority, array $productOverrides): array
+    private static function resolveProduct(string $key, array $codes, array $groups, Priority|callable $priority, array $productOverrides): array
     {
         if (array_key_exists($key, $productOverrides)) {
             return ['value' => $productOverrides[$key], 'winner' => 'steward', 'status' => 'resolved_by_steward', 'candidates' => []];
@@ -113,7 +113,7 @@ final class Catalog
      * @param list<array<string,mixed>> $groups
      * @return array<string,mixed>
      */
-    private static function resolveProductFromClaims(array $codes, array $groups, Priority $priority): array
+    private static function resolveProductFromClaims(array $codes, array $groups, Priority|callable $priority): array
     {
         $entries = [];
         foreach ($groups as $g) {
@@ -145,7 +145,7 @@ final class Catalog
      * @param list<array<string,mixed>> $media
      * @return list<array<string,mixed>>
      */
-    private static function resolveMedia(array $codes, array $media, Priority $priority): array
+    private static function resolveMedia(array $codes, array $media, Priority|callable $priority): array
     {
         /** @var array<string, list<array<string,mixed>>> $byAsset */
         $byAsset = [];
@@ -155,12 +155,14 @@ final class Catalog
             }
         }
 
+        $rank = Survivorship::rankFn($priority);
+
         $out = [];
         foreach ($byAsset as $claims) {
             $best = $claims[0];
-            $bestRank = $priority->rank('media', $best['source']);
+            $bestRank = $rank('media', $best['source']);
             foreach ($claims as $m) {
-                $r = $priority->rank('media', $m['source']);
+                $r = $rank('media', $m['source']);
                 if (self::infLt($r, $bestRank)) {
                     $bestRank = $r;
                     $best = $m;
@@ -270,7 +272,7 @@ final class Catalog
      * @param list<array<string,mixed>> $attrs
      * @return list<array<string,mixed>>
      */
-    private static function resolveDepicted(array $codes, array $edges, array $mediaMembers, array $attrs, Priority $priority): array
+    private static function resolveDepicted(array $codes, array $edges, array $mediaMembers, array $attrs, Priority|callable $priority): array
     {
         /** @var array<string, list<array<string,mixed>>> $byKey */
         $byKey = [];
@@ -328,7 +330,7 @@ final class Catalog
      * @param list<array<string,mixed>> $attrs
      * @return list<array<string,mixed>>
      */
-    private static function resolveDescriptions(array $codes, array $edges, array $lanes, array $attrs, Priority $priority): array
+    private static function resolveDescriptions(array $codes, array $edges, array $lanes, array $attrs, Priority|callable $priority): array
     {
         $describes = [];
         foreach ($edges as $e) {
@@ -472,7 +474,7 @@ final class Catalog
      * @param list<array<string,mixed>> $attrs
      * @return list<array{0: string, 1: array<string,mixed>}>
      */
-    private static function laneAttributes(array $codes, array $attrs, Priority $priority): array
+    private static function laneAttributes(array $codes, array $attrs, Priority|callable $priority): array
     {
         $decisions = Survivorship::fieldDecisions($codes, $attrs, $priority);
         usort($decisions, static fn (array $a, array $b): int => strcmp($a[0], $b[0]));

@@ -20,7 +20,7 @@ final class PublicId
      * @param list<array<string,mixed>> $log
      * @return array{canonical: array{0: string, 1: string}, aliases: list<array{0: string, 1: string}>}|null
      */
-    public static function canonical(string $scheme, string $key, array $log, Priority $priority): ?array
+    public static function canonical(string $scheme, string $key, array $log, Priority|callable $priority): ?array
     {
         $members = self::ledger($log)->members[$key] ?? [];
         $codes = [];

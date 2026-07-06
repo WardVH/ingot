@@ -129,5 +129,21 @@ defmodule GoldenRecordsTest do
       assert [%{variants: [variant]}] = gr.records
       assert %{value: "Alpha", winner: "A", status: :resolved} = field(variant, "name")
     end
+
+    # gr-6y2 slice 2: the injected-policy toggle must be reachable from the FOLD ENTRY, not just
+    # Survivorship.decide/3. A 2-arity rank fun (NOT a %Priority{}) threads through project/2 →
+    # Catalog.project, and the same claims under different injected context yield different winners —
+    # exactly what one static Priority cannot express.
+    test "an injected policy fn reaches the fold entry and its context picks the winner" do
+      prefer = fn preferred -> fn _dim, src -> if src == preferred, do: 0, else: 1 end end
+
+      gr_b = two_source_conflict() |> Rederivation.run(1) |> GoldenRecords.project(prefer.("B"))
+      assert [%{variants: [v_b]}] = gr_b.records
+      assert %{value: "Beta", winner: "B", status: :resolved} = field(v_b, "name")
+
+      gr_a = two_source_conflict() |> Rederivation.run(1) |> GoldenRecords.project(prefer.("A"))
+      assert [%{variants: [v_a]}] = gr_a.records
+      assert %{value: "Alpha", winner: "A", status: :resolved} = field(v_a, "name")
+    end
   end
 end

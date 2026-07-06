@@ -440,8 +440,14 @@ defmodule Survivorship do
     }
   end
 
-  defp rank_fun(%Priority{} = priority), do: &Priority.rank(priority, &1, &2)
-  defp rank_fun(fun) when is_function(fun, 2), do: fun
+  @doc """
+  A rank function `(dimension, source) -> rank` from a `policy`: a `%Priority{}` ranks by tier
+  (back-compat); a 2-arity fun is an injected rank function carrying its own context. Public so any
+  fold step that ranks (e.g. media survivorship) consumes the SAME policy seam — never `Priority`
+  directly — so an injected policy threads end-to-end.
+  """
+  def rank_fun(%Priority{} = priority), do: &Priority.rank(priority, &1, &2)
+  def rank_fun(fun) when is_function(fun, 2), do: fun
 end
 
 defmodule Cluster do
@@ -921,11 +927,13 @@ defmodule Catalog do
   # split/merge moves its target code to a different surrogate key. Dedup by asset identity;
   # the highest-priority source wins each asset's metadata.
   defp resolve_media(codes, media, priority) do
+    rank = Survivorship.rank_fun(priority)
+
     media
     |> Enum.filter(&MapSet.member?(codes, &1.data.target))
     |> Enum.group_by(& &1.data.asset)
     |> Enum.map(fn {asset, claims} ->
-      best = Enum.min_by(claims, &Priority.rank(priority, :media, &1.source))
+      best = Enum.min_by(claims, &rank.(:media, &1.source))
       %{asset: asset, role: best.data.role, source: best.source, uri: best.data.uri}
     end)
     |> Enum.sort_by(fn m -> {m.role != :primary, m.asset} end)

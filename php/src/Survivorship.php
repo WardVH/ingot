@@ -114,9 +114,11 @@ final class Survivorship
 
     /**
      * A rank function `(dimension, source): int|float` from the policy: a {@see Priority} ranks by
-     * tier; an injected callable carries its own (e.g. medipim per-field/per-org) scoring.
+     * tier; an injected callable carries its own (e.g. medipim per-field/per-org) scoring. Public so
+     * any fold step that ranks (e.g. media survivorship) consumes the SAME policy seam — never
+     * {@see Priority} directly — so an injected policy threads end-to-end.
      */
-    private static function rankFn(Priority|callable $policy): callable
+    public static function rankFn(Priority|callable $policy): callable
     {
         if ($policy instanceof Priority) {
             return static fn (string $dimension, ?string $source): int|float => $policy->rank($dimension, $source);

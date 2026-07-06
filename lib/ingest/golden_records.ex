@@ -69,12 +69,15 @@ defmodule GoldenRecords do
   `log` is passed through unchanged so downstream callers keep the engine's read layer
   (`Api.resolve_key/2`, `Api.changes_since/2`, `PublicId.collisions/2`).
 
-  `priority` is a `%Priority{}`; it defaults to the permissive `Priority.new(%{}, [])` (see
-  moduledoc) so unranked-source conflicts surface as `:needs_review`.
+  `priority` is the survivorship policy — a `%Priority{}` (tier ranking) OR a 2-arity injected rank
+  fun `(dimension, source) -> rank` (e.g. medipim's context-aware, off-product-penalty scoring; see
+  `Survivorship`). It defaults to the permissive `Priority.new(%{}, [])` so unranked-source conflicts
+  surface as `:needs_review`. The toggle is thus reachable from the fold entry, not just `decide/3`.
   """
   def project(rederivation, priority \\ default_priority())
 
-  def project(%{log: log, ledger: ledger}, %Priority{} = priority) do
+  def project(%{log: log, ledger: ledger}, priority)
+      when is_struct(priority, Priority) or is_function(priority, 2) do
     records =
       ledger.members
       |> Catalog.project(live_claims(log), priority, @no_overrides)
